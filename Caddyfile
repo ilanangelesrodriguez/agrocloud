@@ -3,7 +3,14 @@
 
     encode zstd gzip
 
-    php_server {
-        try_files {path} index.php
+    @reverb path /app/* /apps/*
+    handle @reverb {
+        reverse_proxy 127.0.0.1:8080
+    }
+
+    handle {
+        php_server {
+            try_files {path} index.php
+        }
     }
 }

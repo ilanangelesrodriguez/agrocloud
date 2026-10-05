@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Events\CompanySecurityUpdated;
+use App\Http\Requests\Company\UpdateCompanyRequest;
+use App\Models\Empresa;
+use App\Services\CloudinaryService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+use Throwable;
+
+class EmpresaController extends Controller
+{
+    public function edit(): View
+    {
+        $empresa = $this->currentCompany();
+
+        return view('empresa.edit', compact('empresa'));
+    }
+
+    public function update(UpdateCompanyRequest $request, CloudinaryService $cloudinary): RedirectResponse
+    {
+        $empresa = $this->currentCompany();
+        $data = $request->safe()->except(['logo']);
+        $data['estado'] = $request->boolean('estado');
+        $oldPublicId = $empresa->logo_public_id;
+        $newUpload = null;
+
+        try {
+            if ($request->hasFile('logo')) {
+                $newUpload = $cloudinary->uploadImage($request->file('logo'), 'agrocloud/empresas');
+                $data['logo_url'] = $newUpload['url'];
+                $data['logo_public_id'] = $newUpload['public_id'];
+            }
+
+            $empresa->update($data);
+        } catch (Throwable $e) {
+            if ($newUpload) {
+                rescue(fn () => $cloudinary->deleteImage($newUpload['public_id']), report: true);
+            }
+
+            report($e);
+
+            return back()->withInput()->withErrors([
+                'logo' => 'No se pudo guardar la empresa o subir el logo. Revisa la configuración de Cloudinary.',
+            ]);
+        }
+
+        if ($newUpload && $oldPublicId) {
+            rescue(fn () => $cloudinary->deleteImage($oldPublicId), report: true);
+        }
+
+        CompanySecurityUpdated::dispatch($empresa->id_empresa, 'empresa', 'updated', $empresa->id_empresa);
+
+        return back()->with('success', 'Datos de la empresa actualizados correctamente.');
+    }
+
+    private function currentCompany(): Empresa
+    {
+        $empresaId = auth()->user()?->id_empresa;
+
+        abort_unless($empresaId, 404, 'El usuario no tiene una empresa asignada.');
+
+        return Empresa::query()->findOrFail($empresaId);
+    }
+}

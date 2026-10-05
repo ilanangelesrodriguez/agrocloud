@@ -18,8 +18,13 @@ class User extends Authenticatable
         'id_empresa',
         'id_rol',
         'nombre',
+        'apellido',
         'correo',
         'password_hash',
+        'telefono',
+        'cargo',
+        'foto_perfil_url',
+        'foto_perfil_public_id',
         'estado',
         'email_verified_at',
         'ultimo_acceso',
@@ -30,9 +35,15 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'nombre_completo',
+    ];
+
     protected function casts(): array
     {
         return [
+            'id_empresa' => 'integer',
+            'id_rol' => 'integer',
             'estado' => 'boolean',
             'email_verified_at' => 'datetime',
             'ultimo_acceso' => 'datetime',
@@ -50,8 +61,54 @@ class User extends Authenticatable
         return 'id_usuario';
     }
 
+    public function getNombreCompletoAttribute(): string
+    {
+        return trim(implode(' ', array_filter([$this->nombre, $this->apellido])));
+    }
+
     public function rol(): BelongsTo
     {
         return $this->belongsTo(Rol::class, 'id_rol', 'id_rol');
+    }
+
+    public function empresa(): BelongsTo
+    {
+        return $this->belongsTo(Empresa::class, 'id_empresa', 'id_empresa');
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->rol?->estado === true && $this->rol?->codigo === 'ADMIN';
+    }
+
+    public function hasPermission(string $code): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if (! $this->rol || ! $this->rol->estado) {
+            return false;
+        }
+
+        return $this->rol
+            ->permisos()
+            ->where('permiso.codigo', $code)
+            ->where('permiso.estado', true)
+            ->exists();
+    }
+
+    /**
+     * @param  array<int, string>  $codes
+     */
+    public function hasAnyPermission(array $codes): bool
+    {
+        foreach ($codes as $code) {
+            if ($this->hasPermission($code)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

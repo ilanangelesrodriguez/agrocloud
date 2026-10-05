@@ -11,3 +11,9 @@ vendor
 
 public/build
 public/hot
+
+storage/logs/*
+storage/app/certs
+bootstrap/cache/*.php
+storage/framework/views/*
+storage/framework/sessions/*

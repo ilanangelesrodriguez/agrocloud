@@ -6,6 +6,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="empresa-id" content="{{ auth()->user()?->id_empresa }}">
+    @if (config('broadcasting.default') === 'reverb')
+        <meta name="reverb-key" content="{{ config('broadcasting.connections.reverb.key') }}">
+        <meta name="reverb-host" content="{{ config('broadcasting.connections.reverb.client.host') }}">
+        <meta name="reverb-port" content="{{ config('broadcasting.connections.reverb.client.port') }}">
+        <meta name="reverb-scheme" content="{{ config('broadcasting.connections.reverb.client.scheme') }}">
+    @endif
     <title>{{ $title }} · AgroCloud AI</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -22,8 +29,12 @@
 
             <nav class="space-y-1 p-3">
                 @foreach (config('navigation.sidebar', []) as $item)
+                    @php($permission = $item['permission'] ?? null)
+                    @continue($permission && ! auth()->user()?->hasPermission($permission))
+
                     <x-app.sidebar-link
                         :route="$item['route']"
+                        :active="$item['active'] ?? null"
                         :label="$item['label']"
                         :icon="$item['icon'] ?? null"
                     />
@@ -43,8 +54,16 @@
                 </div>
 
                 <div class="flex items-center gap-3">
+                    @if (auth()->user()?->foto_perfil_url)
+                        <img src="{{ auth()->user()->foto_perfil_url }}" alt="Foto de perfil" class="h-9 w-9 rounded-full object-cover ring-2 ring-slate-100">
+                    @else
+                        <div class="grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
+                            {{ strtoupper(substr(auth()->user()?->nombre ?? 'U', 0, 1)) }}{{ strtoupper(substr(auth()->user()?->apellido ?? '', 0, 1)) }}
+                        </div>
+                    @endif
+
                     <div class="hidden text-right sm:block">
-                        <p class="text-sm font-medium text-slate-800">{{ auth()->user()?->nombre }}</p>
+                        <p class="text-sm font-medium text-slate-800">{{ auth()->user()?->nombre_completo }}</p>
                         <p class="text-xs text-slate-500">{{ auth()->user()?->rol?->nombre ?? 'Sin rol' }}</p>
                     </div>
                     <form method="POST" action="{{ route(\App\Constants\RouteNames::LOGOUT) }}">
@@ -59,6 +78,12 @@
 
             <main class="p-4 sm:p-6 lg:p-8">
                 <div class="mx-auto max-w-7xl">
+                    @if (session('success'))
+                        <div class="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
                     {{ $slot }}
                 </div>
             </main>
