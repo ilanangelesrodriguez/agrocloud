@@ -12,6 +12,7 @@ class SecurityAndCompanySeeder extends Seeder
 {
     public function run(): void
     {
+        // ECONOAGRO es la primera empresa, no una empresa codificada como única del sistema.
         $empresa = Empresa::query()->updateOrCreate(
             ['ruc' => '20550844321'],
             [
@@ -25,7 +26,8 @@ class SecurityAndCompanySeeder extends Seeder
         );
 
         $roles = [
-            'ADMIN' => ['Administrador', 'Acceso total de administración y seguridad.'],
+            'SUPERADMIN' => ['Superadministrador AgroCloud', 'Rol reservado para administración global de la plataforma y futuras empresas.'],
+            'ADMIN' => ['Administrador de empresa', 'Administra usuarios y datos de su propia empresa; no modifica seguridad global.'],
             'RECEPCION' => ['Responsable de recepción', 'Gestiona la recepción de lotes.'],
             'INSPECTOR' => ['Inspector de control de calidad', 'Realiza inspecciones, evidencias y validaciones.'],
             'SUPERVISOR' => ['Supervisor de Pre-Empaque', 'Supervisa el proceso de Pre-Empaque.'],
@@ -42,17 +44,23 @@ class SecurityAndCompanySeeder extends Seeder
         $permissions = [
             ['dashboard.ver', 'Ver dashboard', 'DASHBOARD', 'Acceder al dashboard principal.'],
             ['empresa.ver', 'Ver empresa', 'EMPRESA', 'Consultar la empresa asignada.'],
-            ['empresa.editar', 'Editar empresa', 'EMPRESA', 'Actualizar datos y logo de la empresa.'],
-            ['usuarios.ver', 'Ver usuarios', 'USUARIOS', 'Listar usuarios de la empresa.'],
-            ['usuarios.crear', 'Crear usuarios', 'USUARIOS', 'Crear cuentas dentro de la empresa.'],
-            ['usuarios.editar', 'Editar usuarios', 'USUARIOS', 'Editar datos, rol, contraseña y foto.'],
-            ['usuarios.estado', 'Cambiar estado de usuarios', 'USUARIOS', 'Activar o desactivar usuarios.'],
-            ['roles.ver', 'Ver roles', 'SEGURIDAD', 'Consultar roles disponibles.'],
-            ['roles.editar', 'Asignar permisos a roles', 'SEGURIDAD', 'Configurar la matriz de permisos por rol.'],
-            ['permisos.ver', 'Ver permisos', 'SEGURIDAD', 'Consultar el catálogo de permisos.'],
-            ['permisos.crear', 'Crear permisos', 'SEGURIDAD', 'Agregar permisos al catálogo.'],
-            ['permisos.editar', 'Editar permisos', 'SEGURIDAD', 'Modificar permisos existentes.'],
-            ['permisos.estado', 'Cambiar estado de permisos', 'SEGURIDAD', 'Activar o desactivar permisos.'],
+            ['empresa.editar', 'Editar empresa', 'EMPRESA', 'Actualizar datos y logo de la empresa asignada.'],
+            ['usuarios.ver', 'Ver usuarios', 'USUARIOS', 'Listar usuarios de la propia empresa.'],
+            ['usuarios.crear', 'Crear usuarios', 'USUARIOS', 'Crear cuentas dentro de la propia empresa.'],
+            ['usuarios.editar', 'Editar usuarios', 'USUARIOS', 'Editar usuarios de la propia empresa.'],
+            ['usuarios.estado', 'Cambiar estado de usuarios', 'USUARIOS', 'Activar o desactivar usuarios de la propia empresa.'],
+
+            // Seguridad y empresas globales: reservadas para SUPERADMIN.
+            ['empresas.ver', 'Ver empresas', 'SISTEMA', 'Consultar empresas registradas en AgroCloud.'],
+            ['empresas.crear', 'Crear empresas', 'SISTEMA', 'Registrar nuevas empresas en AgroCloud.'],
+            ['empresas.editar', 'Editar empresas', 'SISTEMA', 'Editar cualquier empresa desde administración global.'],
+            ['empresas.estado', 'Cambiar estado de empresas', 'SISTEMA', 'Activar o desactivar empresas desde administración global.'],
+            ['roles.ver', 'Ver roles', 'SEGURIDAD', 'Consultar roles globales del sistema.'],
+            ['roles.editar', 'Asignar permisos a roles', 'SEGURIDAD', 'Configurar la matriz global de permisos.'],
+            ['permisos.ver', 'Ver permisos', 'SEGURIDAD', 'Consultar el catálogo global de permisos.'],
+            ['permisos.crear', 'Crear permisos', 'SEGURIDAD', 'Agregar permisos globales al catálogo.'],
+            ['permisos.editar', 'Editar permisos', 'SEGURIDAD', 'Modificar permisos globales existentes.'],
+            ['permisos.estado', 'Cambiar estado de permisos', 'SEGURIDAD', 'Activar o desactivar permisos globales.'],
         ];
 
         $permissionIds = [];
@@ -64,22 +72,37 @@ class SecurityAndCompanySeeder extends Seeder
             $permissionIds[$codigo] = $permission->id_permiso;
         }
 
+        $superadmin = Rol::query()->where('codigo', 'SUPERADMIN')->firstOrFail();
+        $superadmin->permisos()->sync(array_values($permissionIds));
+
         $admin = Rol::query()->where('codigo', 'ADMIN')->firstOrFail();
-        $admin->permisos()->syncWithoutDetaching(array_values($permissionIds));
+        $adminCodes = [
+            'dashboard.ver',
+            'empresa.ver',
+            'empresa.editar',
+            'usuarios.ver',
+            'usuarios.crear',
+            'usuarios.editar',
+            'usuarios.estado',
+        ];
+        $admin->permisos()->sync(array_values(array_intersect_key($permissionIds, array_flip($adminCodes))));
 
-        $basic = array_values(array_filter([
-            $permissionIds['dashboard.ver'] ?? null,
-            $permissionIds['empresa.ver'] ?? null,
-        ]));
-
+        $basicCodes = ['dashboard.ver', 'empresa.ver'];
+        $basic = array_values(array_intersect_key($permissionIds, array_flip($basicCodes)));
         Rol::query()
             ->whereIn('codigo', ['RECEPCION', 'INSPECTOR', 'SUPERVISOR', 'PRODUCCION'])
             ->get()
-            ->each(fn (Rol $rol) => $rol->permisos()->syncWithoutDetaching($basic));
+            ->each(fn (Rol $rol) => $rol->permisos()->sync($basic));
 
-        // En este proyecto actualmente se trabaja con una empresa principal.
-        // Usuarios antiguos sin empresa quedan asociados a ECONOAGRO de forma no destructiva.
-        User::query()->whereNull('id_empresa')->update(['id_empresa' => $empresa->id_empresa]);
+        // Compatibilidad inicial: usuarios antiguos sin empresa se asocian una sola vez a
+        // la primera empresa del caso actual. Los nuevos usuarios SIEMPRE se crean con empresa.
+        User::query()
+            ->whereNull('id_empresa')
+            ->where(function ($query) {
+                $query->whereDoesntHave('rol')
+                    ->orWhereHas('rol', fn ($roleQuery) => $roleQuery->where('codigo', '!=', 'SUPERADMIN'));
+            })
+            ->update(['id_empresa' => $empresa->id_empresa]);
 
         $adminEmail = config('agrocloud.bootstrap_admin.email');
         $adminPassword = config('agrocloud.bootstrap_admin.password');
@@ -92,10 +115,13 @@ class SecurityAndCompanySeeder extends Seeder
                     'id_rol' => $admin->id_rol,
                     'nombre' => config('agrocloud.bootstrap_admin.name'),
                     'apellido' => config('agrocloud.bootstrap_admin.lastname'),
+                    'cargo' => 'Administrador de empresa',
                     'password_hash' => $adminPassword,
                     'estado' => true,
                 ],
             );
         }
+
+        // No se crea un SUPERADMIN automáticamente. Queda reservado para una fase futura.
     }
 }

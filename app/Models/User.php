@@ -11,7 +11,6 @@ class User extends Authenticatable
     use Notifiable;
 
     protected $table = 'usuario';
-
     protected $primaryKey = 'id_usuario';
 
     protected $fillable = [
@@ -76,14 +75,20 @@ class User extends Authenticatable
         return $this->belongsTo(Empresa::class, 'id_empresa', 'id_empresa');
     }
 
-    public function isAdmin(): bool
+    public function isSuperAdmin(): bool
+    {
+        return $this->rol?->estado === true && $this->rol?->codigo === 'SUPERADMIN';
+    }
+
+    public function isCompanyAdmin(): bool
     {
         return $this->rol?->estado === true && $this->rol?->codigo === 'ADMIN';
     }
 
     public function hasPermission(string $code): bool
     {
-        if ($this->isAdmin()) {
+        // Solo el SUPERADMIN de plataforma tiene bypass global.
+        if ($this->isSuperAdmin()) {
             return true;
         }
 
@@ -98,9 +103,7 @@ class User extends Authenticatable
             ->exists();
     }
 
-    /**
-     * @param  array<int, string>  $codes
-     */
+    /** @param array<int, string> $codes */
     public function hasAnyPermission(array $codes): bool
     {
         foreach ($codes as $code) {

@@ -15,15 +15,15 @@ class EmpresaController extends Controller
     public function edit(): View
     {
         $empresa = $this->currentCompany();
+        $canEdit = auth()->user()?->hasPermission('empresa.editar') ?? false;
 
-        return view('empresa.edit', compact('empresa'));
+        return view('empresa.edit', compact('empresa', 'canEdit'));
     }
 
     public function update(UpdateCompanyRequest $request, CloudinaryService $cloudinary): RedirectResponse
     {
         $empresa = $this->currentCompany();
         $data = $request->safe()->except(['logo']);
-        $data['estado'] = $request->boolean('estado');
         $oldPublicId = $empresa->logo_public_id;
         $newUpload = null;
 
@@ -34,6 +34,7 @@ class EmpresaController extends Controller
                 $data['logo_public_id'] = $newUpload['public_id'];
             }
 
+            // El ADMIN de empresa puede editar datos, pero no activar/desactivar su tenant.
             $empresa->update($data);
         } catch (Throwable $e) {
             if ($newUpload) {
@@ -59,7 +60,6 @@ class EmpresaController extends Controller
     private function currentCompany(): Empresa
     {
         $empresaId = auth()->user()?->id_empresa;
-
         abort_unless($empresaId, 404, 'El usuario no tiene una empresa asignada.');
 
         return Empresa::query()->findOrFail($empresaId);

@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Requests\Profile;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateProfileRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user() !== null;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'nombre' => ['required', 'string', 'max:150'],
+            'apellido' => ['required', 'string', 'max:150'],
+            'telefono' => ['nullable', 'string', 'max:30'],
+            'foto_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ];
+    }
+}

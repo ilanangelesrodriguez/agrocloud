@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\CompanySecurityUpdated;
 use App\Http\Requests\Role\UpdateRolePermissionsRequest;
 use App\Models\Permiso;
 use App\Models\Rol;
@@ -28,16 +27,19 @@ class RolController extends Controller
 
     public function update(UpdateRolePermissionsRequest $request, Rol $rol): RedirectResponse
     {
-        if ($rol->codigo !== 'ADMIN') {
+        // ADMIN y SUPERADMIN son roles estructurales; su estado no se desactiva aquí.
+        if (! in_array($rol->codigo, ['ADMIN', 'SUPERADMIN'], true)) {
             $rol->update(['estado' => $request->boolean('estado')]);
         }
 
-        $permissionIds = collect($request->input('permisos', []))->map(fn ($id) => (int) $id)->all();
+        $permissionIds = collect($request->input('permisos', []))
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
         $rol->permisos()->sync($permissionIds);
 
-        $empresaId = (int) $request->user()->id_empresa;
-        CompanySecurityUpdated::dispatch($empresaId, 'rol', 'permissions_updated', $rol->id_rol);
-
-        return redirect()->route('roles.index')->with('success', 'Permisos del rol actualizados.');
+        // Los roles son globales. Cuando se implemente UI global en tiempo real,
+        // debe emitirse por un canal de plataforma, no por empresa.{id}.security.
+        return redirect()->route('roles.index')->with('success', 'Permisos globales del rol actualizados.');
     }
 }

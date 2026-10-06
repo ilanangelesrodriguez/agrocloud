@@ -24,11 +24,16 @@ class UsuarioController extends Controller
         $usuarios = User::query()
             ->with('rol')
             ->where('id_empresa', $empresaId)
+            ->where(function ($query) {
+                $query->whereDoesntHave('rol')
+                    ->orWhereHas('rol', fn ($roleQuery) => $roleQuery->where('codigo', '!=', 'SUPERADMIN'));
+            })
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('nombre', 'like', "%{$search}%")
                         ->orWhere('apellido', 'like', "%{$search}%")
-                        ->orWhere('correo', 'like', "%{$search}%");
+                        ->orWhere('correo', 'like', "%{$search}%")
+                        ->orWhere('cargo', 'like', "%{$search}%");
                 });
             })
             ->orderBy('nombre')
@@ -41,7 +46,7 @@ class UsuarioController extends Controller
 
     public function create(): View
     {
-        $roles = Rol::query()->where('estado', true)->orderBy('nombre')->get();
+        $roles = $this->companyRoles();
 
         return view('usuarios.create', compact('roles'));
     }
@@ -81,17 +86,24 @@ class UsuarioController extends Controller
 
     public function edit(User $usuario): View
     {
-        $this->assertSameCompany($usuario);
-        $roles = Rol::query()->where('estado', true)->orderBy('nombre')->get();
+        $this->assertManageableUser($usuario);
+        $roles = $this->companyRoles();
 
         return view('usuarios.edit', compact('usuario', 'roles'));
     }
 
     public function update(UpdateUserRequest $request, User $usuario, CloudinaryService $cloudinary): RedirectResponse
     {
-        $this->assertSameCompany($usuario);
+        $this->assertManageableUser($usuario);
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
-        $data['estado'] = $request->boolean('estado');
+
+        // Un administrador no puede dejar su propia cuenta sin acceso desde este módulo.
+        if ($usuario->is($request->user())) {
+            $data['id_rol'] = $usuario->id_rol;
+            $data['estado'] = true;
+        } else {
+            $data['estado'] = $request->boolean('estado');
+        }
 
         if ($request->filled('password')) {
             $data['password_hash'] = $request->string('password')->toString();
@@ -131,15 +143,22 @@ class UsuarioController extends Controller
 
     public function toggleStatus(User $usuario): RedirectResponse
     {
-        $this->assertSameCompany($usuario);
-
+        $this->assertManageableUser($usuario);
         abort_if($usuario->is(auth()->user()), 422, 'No puedes desactivar tu propio usuario desde esta pantalla.');
 
         $usuario->update(['estado' => ! $usuario->estado]);
-
         CompanySecurityUpdated::dispatch($this->empresaId(), 'usuario', 'status_changed', $usuario->id_usuario);
 
         return back()->with('success', 'Estado del usuario actualizado.');
+    }
+
+    private function companyRoles()
+    {
+        return Rol::query()
+            ->where('estado', true)
+            ->where('codigo', '!=', 'SUPERADMIN')
+            ->orderBy('nombre')
+            ->get();
     }
 
     private function empresaId(): int
@@ -150,8 +169,10 @@ class UsuarioController extends Controller
         return (int) $empresaId;
     }
 
-    private function assertSameCompany(User $usuario): void
+    private function assertManageableUser(User $usuario): void
     {
         abort_unless((int) $usuario->id_empresa === $this->empresaId(), 404);
+        $usuario->loadMissing('rol');
+        abort_if($usuario->rol?->codigo === 'SUPERADMIN', 404);
     }
 }

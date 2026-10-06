@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\CompanySecurityUpdated;
 use App\Http\Requests\Permission\StorePermissionRequest;
 use App\Http\Requests\Permission\UpdatePermissionRequest;
 use App\Models\Permiso;
@@ -30,11 +29,9 @@ class PermisoController extends Controller
         $data['modulo'] = strtoupper($data['modulo']);
         $data['estado'] = $request->boolean('estado');
 
-        $permiso = Permiso::query()->create($data);
-        $empresaId = (int) $request->user()->id_empresa;
-        CompanySecurityUpdated::dispatch($empresaId, 'permiso', 'created', $permiso->id_permiso);
+        Permiso::query()->create($data);
 
-        return redirect()->route('permisos.index')->with('success', 'Permiso creado correctamente.');
+        return redirect()->route('permisos.index')->with('success', 'Permiso global creado correctamente.');
     }
 
     public function edit(Permiso $permiso): View
@@ -50,18 +47,14 @@ class PermisoController extends Controller
         $data['estado'] = $request->boolean('estado');
 
         $permiso->update($data);
-        $empresaId = (int) $request->user()->id_empresa;
-        CompanySecurityUpdated::dispatch($empresaId, 'permiso', 'updated', $permiso->id_permiso);
 
-        return redirect()->route('permisos.index')->with('success', 'Permiso actualizado correctamente.');
+        return redirect()->route('permisos.index')->with('success', 'Permiso global actualizado correctamente.');
     }
 
     public function toggleStatus(Permiso $permiso): RedirectResponse
     {
         $permiso->update(['estado' => ! $permiso->estado]);
-        $empresaId = (int) auth()->user()->id_empresa;
-        CompanySecurityUpdated::dispatch($empresaId, 'permiso', 'status_changed', $permiso->id_permiso);
 
-        return back()->with('success', 'Estado del permiso actualizado.');
+        return back()->with('success', 'Estado del permiso global actualizado.');
     }
 }

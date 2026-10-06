@@ -17,11 +17,7 @@ class UpdateCompanyRequest extends FormRequest
         $empresaId = $this->user()?->id_empresa;
 
         return [
-            'ruc' => [
-                'required',
-                'digits:11',
-                Rule::unique('empresa', 'ruc')->ignore($empresaId, 'id_empresa'),
-            ],
+            'ruc' => ['required', 'digits:11', Rule::unique('empresa', 'ruc')->ignore($empresaId, 'id_empresa')],
             'razon_social' => ['required', 'string', 'max:200'],
             'nombre_comercial' => ['required', 'string', 'max:150'],
             'grupo_empresarial' => ['nullable', 'string', 'max:150'],
@@ -37,7 +33,6 @@ class UpdateCompanyRequest extends FormRequest
             'correo' => ['nullable', 'email', 'max:255'],
             'sitio_web' => ['nullable', 'url', 'max:255'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'estado' => ['nullable', 'boolean'],
         ];
     }
 }
