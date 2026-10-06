@@ -11,6 +11,7 @@ final class RouteNames
     public const PROFILE = 'perfil.edit';
     public const EMPRESA = 'empresa.edit';
     public const USUARIOS = 'usuarios.index';
+    public const ADMIN_EMPRESAS = 'admin.empresas.index';
     public const ROLES = 'roles.index';
     public const PERMISOS = 'permisos.index';
 

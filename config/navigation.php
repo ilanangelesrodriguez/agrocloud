@@ -32,6 +32,15 @@ return [
         ],
         [
             'section' => 'SISTEMA',
+            'label' => 'Empresas',
+            'route' => RouteNames::ADMIN_EMPRESAS,
+            'active' => 'admin.empresas.*',
+            'icon' => 'building-plus',
+            'permission' => 'empresas.ver',
+            'superadmin' => true,
+        ],
+        [
+            'section' => 'SISTEMA',
             'label' => 'Roles',
             'route' => RouteNames::ROLES,
             'active' => 'roles.*',

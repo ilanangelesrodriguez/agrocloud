@@ -24,6 +24,10 @@ class EmpresaController extends Controller
     {
         $empresa = $this->currentCompany();
         $data = $request->safe()->except(['logo']);
+
+        // Un ADMIN de empresa puede editar sus datos, pero no activar/desactivar el tenant.
+        unset($data['estado']);
+
         $oldPublicId = $empresa->logo_public_id;
         $newUpload = null;
 
@@ -34,7 +38,6 @@ class EmpresaController extends Controller
                 $data['logo_public_id'] = $newUpload['public_id'];
             }
 
-            // El ADMIN de empresa puede editar datos, pero no activar/desactivar su tenant.
             $empresa->update($data);
         } catch (Throwable $e) {
             if ($newUpload) {

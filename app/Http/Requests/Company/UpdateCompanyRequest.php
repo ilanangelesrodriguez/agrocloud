@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Company;
 
+use App\Models\Empresa;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,7 +15,10 @@ class UpdateCompanyRequest extends FormRequest
 
     public function rules(): array
     {
-        $empresaId = $this->user()?->id_empresa;
+        $routeCompany = $this->route('empresa');
+        $empresaId = $routeCompany instanceof Empresa
+            ? $routeCompany->getKey()
+            : $this->user()?->id_empresa;
 
         return [
             'ruc' => ['required', 'digits:11', Rule::unique('empresa', 'ruc')->ignore($empresaId, 'id_empresa')],
@@ -33,6 +37,8 @@ class UpdateCompanyRequest extends FormRequest
             'correo' => ['nullable', 'email', 'max:255'],
             'sitio_web' => ['nullable', 'url', 'max:255'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            // Solo EmpresaAdminController utiliza este campo. EmpresaController lo elimina explícitamente.
+            'estado' => ['nullable', 'boolean'],
         ];
     }
 }
