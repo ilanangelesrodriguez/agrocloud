@@ -5,9 +5,9 @@
 
 @php
     $classes = match ($variant) {
-        'secondary' => 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:ring-slate-200',
-        'danger' => 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-200',
-        default => 'bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-200',
+        'secondary' => 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-slate-200 dark:focus:ring-slate-700',
+        'danger' => 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-200 dark:focus:ring-red-900/50',
+        default => 'bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-200 dark:focus:ring-brand-900/50',
     };
 @endphp
 

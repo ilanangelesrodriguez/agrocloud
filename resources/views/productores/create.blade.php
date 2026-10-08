@@ -8,7 +8,7 @@
             <div>
                 <a
                     href="{{ route('productores.index') }}"
-                    class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-brand-700"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-brand-700 dark:hover:text-brand-300"
                 >
                     <x-ui.icon
                         name="arrow-left"
@@ -20,11 +20,11 @@
             </div>
 
             <div>
-                <h1 class="text-2xl font-semibold text-slate-900">
+                <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
                     Nuevo productor
                 </h1>
 
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     Registra la información del productor para tu empresa.
                 </p>
             </div>
@@ -74,7 +74,7 @@
 
                         <label
                             for="ruc"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             RUC
                             <span class="text-red-500">*</span>
@@ -89,16 +89,16 @@
                             value="{{ old('ruc') }}"
                             placeholder="Ej. 20550844321"
                             required
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('ruc') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('ruc') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                         @error('ruc')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
 
-                        <p class="mt-1.5 text-xs text-slate-500">
+                        <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                             Debe contener exactamente 11 dígitos.
                         </p>
 
@@ -109,7 +109,7 @@
 
                         <label
                             for="nombre_razon_social"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Nombre / razón social
                             <span class="text-red-500">*</span>
@@ -123,11 +123,11 @@
                             value="{{ old('nombre_razon_social') }}"
                             placeholder="Nombre o razón social del productor"
                             required
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('nombre_razon_social') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('nombre_razon_social') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                         @error('nombre_razon_social')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
@@ -139,7 +139,7 @@
 
                         <label
                             for="fundo"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Fundo
                         </label>
@@ -151,11 +151,11 @@
                             maxlength="150"
                             value="{{ old('fundo') }}"
                             placeholder="Nombre del fundo"
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('fundo') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('fundo') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                         @error('fundo')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
@@ -167,7 +167,7 @@
 
                         <label
                             for="ubicacion"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Ubicación
                         </label>
@@ -179,11 +179,11 @@
                             maxlength="250"
                             value="{{ old('ubicacion') }}"
                             placeholder="Ubicación del fundo"
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('ubicacion') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('ubicacion') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                         @error('ubicacion')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
@@ -193,14 +193,14 @@
                 </div>
 
                 {{-- Separador --}}
-                <div class="border-t border-slate-100"></div>
+                <div class="border-t border-slate-100 dark:border-slate-700"></div>
 
                 {{-- Acciones --}}
                 <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
 
                     <a
                         href="{{ route('productores.index') }}"
-                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-700"
                     >
                         Cancelar
                     </a>

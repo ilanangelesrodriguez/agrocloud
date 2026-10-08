@@ -3,13 +3,27 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    {{-- Tema aplicado antes del CSS para evitar parpadeo blanco al cargar. --}}
+    <script data-agrocloud-theme-init>
+        (function () {
+            try {
+                var storageKey = 'agrocloud.theme.' + (document.documentElement.dataset.themeUser || 'guest');
+                var preference = localStorage.getItem(storageKey);
+                var isDark = preference === 'dark' || ((preference === 'system' || !preference) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                document.documentElement.classList.toggle('dark', isDark);
+                document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+            } catch (error) {
+                document.documentElement.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }} · AgroCloud AI</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 antialiased">
     <main class="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
         <section class="hidden bg-brand-700 p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
             <div>
