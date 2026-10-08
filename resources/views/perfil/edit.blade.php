@@ -34,7 +34,7 @@
                     <div class="grid gap-5 md:grid-cols-2">
                         <x-ui.input name="nombre" label="Nombre" :value="$user->nombre" required />
                         <x-ui.input name="apellido" label="Apellido" :value="$user->apellido" required />
-                        <x-ui.input name="telefono" label="Teléfono" :value="$user->telefono" />
+                        <x-ui.input name="telefono" label="Teléfono" type="tel" :value="$user->telefono" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" pattern="^\+?[0-9][0-9\s().-]*$" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
 
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-slate-700">Correo</label>

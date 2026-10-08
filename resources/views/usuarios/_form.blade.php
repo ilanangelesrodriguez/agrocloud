@@ -20,7 +20,7 @@
                 <x-ui.input name="nombre" label="Nombre *" :value="$editing ? $usuario->nombre : null" placeholder="Ej. Juan" autocomplete="given-name" required />
                 <x-ui.input name="apellido" label="Apellido *" :value="$editing ? $usuario->apellido : null" placeholder="Ej. Pérez García" autocomplete="family-name" required />
                 <x-ui.input name="correo" label="Correo *" type="email" :value="$editing ? $usuario->correo : null" placeholder="Ej. juan.perez@empresa.pe" autocomplete="email" required />
-                <x-ui.input name="telefono" label="Teléfono" :value="$editing ? $usuario->telefono : null" placeholder="Ej. +51 999 888 777" autocomplete="tel" />
+                <x-ui.input name="telefono" label="Teléfono" type="tel" :value="$editing ? $usuario->telefono : null" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" pattern="^\+?[0-9][0-9\s().-]*$" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
                 <x-ui.select name="cargo" label="Cargo" :value="$cargoActual" placeholder="Selecciona un cargo">
                     @foreach (config('agrocloud.cargos', []) as $value => $label)
                         <option value="{{ $value }}" @selected($cargoActual === $value)>{{ $label }}</option>
