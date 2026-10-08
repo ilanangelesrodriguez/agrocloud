@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use App\Enums\LoteEstado;
+use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Lote extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'lote';
 
     protected $primaryKey = 'id_lote';
@@ -36,8 +39,12 @@ class Lote extends Model
         ];
     }
 
-    public function empresa(): BelongsTo
+    public function productor(): BelongsTo
     {
-        return $this->belongsTo(Empresa::class, 'id_empresa', 'id_empresa');
+        return $this->belongsTo(
+            Productor::class,
+            'id_productor',
+            'id_productor'
+        );
     }
 }
