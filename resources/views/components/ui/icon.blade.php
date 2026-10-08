@@ -49,6 +49,18 @@
     @case('pencil')
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="m4 20 4-.8L19 8.2a2 2 0 0 0-3-3L5 16.2 4 20Z"/><path d="m14.5 6.5 3 3"/></svg>
         @break
+
+
+        @case('trash')
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true">
+                <path d="M4 7h16"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M6 7l1 14h10l1-14"/>
+                <path d="M9 7V4h6v3"/>
+            </svg>
+            @break
+
+
     @case('save')
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="M5 3h12l2 2v16H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>
         @break

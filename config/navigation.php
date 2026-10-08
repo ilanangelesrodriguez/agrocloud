@@ -4,6 +4,13 @@ use App\Constants\RouteNames;
 
 return [
     'sidebar' => [
+
+        /*
+        |--------------------------------------------------------------------------
+        | PRINCIPAL
+        |--------------------------------------------------------------------------
+        */
+
         [
             'section' => 'PRINCIPAL',
             'label' => 'Dashboard',
@@ -12,6 +19,13 @@ return [
             'icon' => 'dashboard',
             'permission' => 'dashboard.ver',
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | ADMINISTRACIÓN
+        |--------------------------------------------------------------------------
+        */
+
         [
             'section' => 'ADMINISTRACIÓN',
             'label' => 'Mi empresa',
@@ -21,6 +35,7 @@ return [
             'permission' => 'empresa.ver',
             'requires_company' => true,
         ],
+
         [
             'section' => 'ADMINISTRACIÓN',
             'label' => 'Usuarios',
@@ -30,6 +45,37 @@ return [
             'permission' => 'usuarios.ver',
             'requires_company' => true,
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | OPERACIONES
+        |--------------------------------------------------------------------------
+        */
+
+        [
+            'section' => 'OPERACIONES',
+            'label' => 'Productores',
+            'route' => 'productores.index',
+            'active' => 'productores.*',
+            'icon' => 'users',
+            'permission' => 'productores.ver',
+            'requires_company' => true,
+        ],
+[
+    'section' => 'OPERACIONES',
+    'label' => 'Lotes',
+    'route' => 'lotes.index',
+    'active' => 'lotes.*',
+    'icon' => 'briefcase',
+    'permission' => 'lotes.ver',
+    'requires_company' => true,
+],
+        /*
+        |--------------------------------------------------------------------------
+        | SISTEMA
+        |--------------------------------------------------------------------------
+        */
+
         [
             'section' => 'SISTEMA',
             'label' => 'Empresas',
@@ -39,6 +85,7 @@ return [
             'permission' => 'empresas.ver',
             'superadmin' => true,
         ],
+
         [
             'section' => 'SISTEMA',
             'label' => 'Roles',
@@ -48,6 +95,7 @@ return [
             'permission' => 'roles.ver',
             'superadmin' => true,
         ],
+
         [
             'section' => 'SISTEMA',
             'label' => 'Permisos',
@@ -57,5 +105,6 @@ return [
             'permission' => 'permisos.ver',
             'superadmin' => true,
         ],
+
     ],
 ];
