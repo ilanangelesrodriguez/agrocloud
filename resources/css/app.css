@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../views/**/*.blade.php';
@@ -100,3 +102,89 @@ select:not([multiple]):not([size]):disabled {
         padding-right: 1rem;
     }
 }
+
+/* --- AGROCLOUD DARK MODE: INICIO --- */
+/* Tailwind aplica las variantes `dark:` sobre html.dark. */
+html.dark {
+    color-scheme: dark;
+}
+
+/* Superficies principales con profundidad sin negro puro. */
+html.dark body {
+    background-color: #0f172a;
+}
+
+html.dark .agrocloud-sidebar {
+    background-color: #111c2e;
+}
+
+html.dark ::selection {
+    background: #166534;
+    color: #f0fdf4;
+}
+
+html.dark .agrocloud-sidebar-nav {
+    scrollbar-color: #475569 transparent;
+}
+
+html.dark .agrocloud-sidebar-nav::-webkit-scrollbar-thumb {
+    background-color: #475569;
+}
+
+/* El SVG de la flecha del select en app.css usa un color oscuro fijo. */
+html.dark select:not([multiple]):not([size]) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+html.dark select option,
+html.dark select optgroup {
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+/* Los iconos nativos de calendario y reloj deben verse sobre un input oscuro. */
+html.dark input[type='date']::-webkit-calendar-picker-indicator,
+html.dark input[type='datetime-local']::-webkit-calendar-picker-indicator,
+html.dark input[type='time']::-webkit-calendar-picker-indicator {
+    filter: invert(0.85);
+}
+
+/* Mejor legibilidad de autofill de Chrome / navegadores Chromium. */
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #f1f5f9;
+    -webkit-box-shadow: 0 0 0 1000px #0f172a inset;
+    caret-color: #f1f5f9;
+}
+
+/* Los botones de tema son accesibles con teclado y muestran el estado elegido. */
+[data-theme-option][aria-pressed='true'] {
+    background-color: #dcfce7;
+    color: #166534;
+    font-weight: 600;
+}
+
+html.dark [data-theme-option][aria-pressed='true'] {
+    background-color: rgba(21, 128, 61, 0.3);
+    color: #86efac;
+}
+
+@media (forced-colors: active) {
+    html.dark select:not([multiple]):not([size]) {
+        background-image: none;
+    }
+
+    [data-theme-option][aria-pressed='true'] {
+        outline: 2px solid Highlight;
+        outline-offset: -2px;
+    }
+}
+/* --- AGROCLOUD DARK MODE: FIN --- */
+

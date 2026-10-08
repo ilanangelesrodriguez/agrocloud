@@ -8,7 +8,7 @@
             <div>
                 <a
                     href="{{ route('lotes.index') }}"
-                    class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-brand-700"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-brand-700 dark:hover:text-brand-300"
                 >
                     <x-ui.icon
                         name="arrow-left"
@@ -22,11 +22,11 @@
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
                 <div>
-                    <h1 class="text-2xl font-semibold text-slate-900">
+                    <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
                         Detalle del lote
                     </h1>
 
-                    <p class="mt-1 text-sm text-slate-500">
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         Consulta la información completa del lote registrado.
                     </p>
                 </div>
@@ -35,7 +35,7 @@
 
                     <a
                         href="{{ route('lotes.edit', $lote->id_lote) }}"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200 dark:focus:ring-brand-900/50"
                     >
                         <x-ui.icon
                             name="pencil"
@@ -71,11 +71,11 @@
                 {{-- Código --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Código del lote
                     </p>
 
-                    <p class="mt-1 text-sm font-semibold text-slate-900">
+                    <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {{ $lote->codigo_lote }}
                     </p>
 
@@ -84,7 +84,7 @@
                 {{-- Estado --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Estado
                     </p>
 
@@ -96,7 +96,7 @@
 
                     <div class="mt-1">
 
-                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                        <span class="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
                             {{ $estado }}
                         </span>
 
@@ -107,11 +107,11 @@
                 {{-- Producto --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Producto
                     </p>
 
-                    <p class="mt-1 text-sm font-semibold text-slate-900">
+                    <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {{ $lote->producto }}
                     </p>
 
@@ -120,11 +120,11 @@
                 {{-- Variedad --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Variedad
                     </p>
 
-                    <p class="mt-1 text-sm text-slate-700">
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                         {{ $lote->variedad ?: 'No especificada' }}
                     </p>
 
@@ -133,11 +133,11 @@
                 {{-- Peso --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Peso recibido
                     </p>
 
-                    <p class="mt-1 text-sm font-semibold text-slate-900">
+                    <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {{ number_format((float) $lote->peso_kg, 2) }}
                         kg
                     </p>
@@ -147,11 +147,11 @@
                 {{-- Fecha de recepción --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Fecha de recepción
                     </p>
 
-                    <p class="mt-1 text-sm text-slate-700">
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                         {{ $lote->fecha_recepcion?->format('d/m/Y H:i') }}
                     </p>
 
@@ -174,11 +174,11 @@
                     {{-- Nombre --}}
                     <div>
 
-                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                             Nombre / razón social
                         </p>
 
-                        <p class="mt-1 text-sm font-semibold text-slate-900">
+                        <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
                             {{ $lote->productor->nombre_razon_social }}
                         </p>
 
@@ -187,11 +187,11 @@
                     {{-- RUC --}}
                     <div>
 
-                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                             RUC
                         </p>
 
-                        <p class="mt-1 text-sm text-slate-700">
+                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                             {{ $lote->productor->ruc }}
                         </p>
 
@@ -200,11 +200,11 @@
                     {{-- Fundo --}}
                     <div>
 
-                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                             Fundo
                         </p>
 
-                        <p class="mt-1 text-sm text-slate-700">
+                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                             {{ $lote->productor->fundo ?: 'No especificado' }}
                         </p>
 
@@ -213,11 +213,11 @@
                     {{-- Ubicación --}}
                     <div>
 
-                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                             Ubicación
                         </p>
 
-                        <p class="mt-1 text-sm text-slate-700">
+                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                             {{ $lote->productor->ubicacion ?: 'No especificada' }}
                         </p>
 
@@ -225,13 +225,13 @@
 
                 </div>
 
-                <div class="mt-6 border-t border-slate-100 pt-5">
+                <div class="mt-6 border-t border-slate-100 dark:border-slate-700 pt-5">
 
                     @if (auth()->user()->hasPermission('productores.ver'))
 
                         <a
                             href="{{ route('productores.show', $lote->productor->id_productor) }}"
-                            class="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 transition hover:text-brand-800"
+                            class="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300 transition hover:text-brand-800 dark:hover:text-brand-200"
                         >
                             <x-ui.icon
                                 name="eye"
@@ -247,14 +247,14 @@
 
             @else
 
-                <div class="flex items-center gap-3 rounded-xl bg-slate-50 p-4">
+                <div class="flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800 p-4">
 
                     <x-ui.icon
                         name="user"
                         class="h-5 w-5 text-slate-400"
                     />
 
-                    <p class="text-sm text-slate-500">
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
                         Este lote no tiene un productor asociado.
                     </p>
 
@@ -274,11 +274,11 @@
 
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         ID del lote
                     </p>
 
-                    <p class="mt-1 text-sm text-slate-700">
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                         {{ $lote->id_lote }}
                     </p>
 
@@ -286,11 +286,11 @@
 
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Empresa
                     </p>
 
-                    <p class="mt-1 text-sm text-slate-700">
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                         {{ $lote->empresa?->nombre_comercial ?? 'Empresa actual' }}
                     </p>
 
@@ -298,11 +298,11 @@
 
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Registrado
                     </p>
 
-                    <p class="mt-1 text-sm text-slate-700">
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                         {{ $lote->created_at?->format('d/m/Y H:i') }}
                     </p>
 
@@ -310,11 +310,11 @@
 
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Última actualización
                     </p>
 
-                    <p class="mt-1 text-sm text-slate-700">
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                         {{ $lote->updated_at?->format('d/m/Y H:i') }}
                     </p>
 
@@ -329,7 +329,7 @@
 
             <a
                 href="{{ route('lotes.index') }}"
-                class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-700"
             >
                 Regresar a lotes
             </a>
@@ -338,7 +338,7 @@
 
                 <a
                     href="{{ route('lotes.edit', $lote->id_lote) }}"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200 dark:focus:ring-brand-900/50"
                 >
                     <x-ui.icon
                         name="pencil"

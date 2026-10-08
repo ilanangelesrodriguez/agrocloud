@@ -129,3 +129,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 import './echo';
+import './theme';

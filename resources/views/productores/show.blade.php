@@ -6,7 +6,7 @@
         <div>
             <a
                 href="{{ route('productores.index') }}"
-                class="inline-flex items-center gap-2 rounded-lg px-1 py-1 text-sm font-semibold text-slate-600 transition hover:text-brand-700"
+                class="inline-flex items-center gap-2 rounded-lg px-1 py-1 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-brand-700 dark:hover:text-brand-300"
             >
                 <x-ui.icon
                     name="arrow-left"
@@ -22,11 +22,11 @@
 
             <div>
 
-                <h1 class="text-2xl font-semibold text-slate-900">
+                <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
                     {{ $productorModel->nombre_razon_social }}
                 </h1>
 
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     Detalle del productor registrado en tu empresa.
                 </p>
 
@@ -39,7 +39,7 @@
 
                     <a
                         href="{{ route('productores.lotes', $productorModel->id_productor) }}"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-700"
                     >
 
                         <x-ui.icon
@@ -58,7 +58,7 @@
 
                     <a
                         href="{{ route('productores.edit', $productorModel->id_productor) }}"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200 dark:focus:ring-brand-900/50"
                     >
 
                         <x-ui.icon
@@ -87,11 +87,11 @@
                 {{-- RUC --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         RUC
                     </p>
 
-                    <p class="mt-1 text-sm font-semibold text-slate-900">
+                    <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {{ $productorModel->ruc }}
                     </p>
 
@@ -100,11 +100,11 @@
                 {{-- Nombre / razón social --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Nombre / razón social
                     </p>
 
-                    <p class="mt-1 text-sm font-semibold text-slate-900">
+                    <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {{ $productorModel->nombre_razon_social }}
                     </p>
 
@@ -113,11 +113,11 @@
                 {{-- Fundo --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Fundo
                     </p>
 
-                    <p class="mt-1 text-sm text-slate-700">
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                         {{ $productorModel->fundo ?: 'No registrado' }}
                     </p>
 
@@ -126,11 +126,11 @@
                 {{-- Ubicación --}}
                 <div>
 
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Ubicación
                     </p>
 
-                    <p class="mt-1 text-sm text-slate-700">
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
                         {{ $productorModel->ubicacion ?: 'No registrada' }}
                     </p>
 
@@ -149,27 +149,27 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                 {{-- Total de lotes --}}
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-5">
 
                     <div class="flex items-center justify-between">
 
                         <div>
 
-                            <p class="text-sm font-medium text-slate-500">
+                            <p class="text-sm font-medium text-slate-500 dark:text-slate-400">
                                 Lotes registrados
                             </p>
 
-                            <p class="mt-2 text-2xl font-semibold text-slate-900">
+                            <p class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
                                 {{ $productorModel->lotes_count }}
                             </p>
 
                         </div>
 
-                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
+                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white dark:bg-slate-900 shadow-sm">
 
                             <x-ui.icon
                                 name="briefcase"
-                                class="h-5 w-5 text-brand-600"
+                                class="h-5 w-5 text-brand-600 dark:text-brand-400"
                             />
 
                         </div>
@@ -180,7 +180,7 @@
 
                         <a
                             href="{{ route('productores.lotes', $productorModel->id_productor) }}"
-                            class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 transition hover:text-brand-800"
+                            class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 dark:text-brand-300 transition hover:text-brand-800 dark:hover:text-brand-200"
                         >
 
                             Ver lotes
@@ -197,17 +197,17 @@
                 </div>
 
                 {{-- Identificador --}}
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-5">
 
-                    <p class="text-sm font-medium text-slate-500">
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400">
                         Identificador
                     </p>
 
-                    <p class="mt-2 text-2xl font-semibold text-slate-900">
+                    <p class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
                         #{{ $productorModel->id_productor }}
                     </p>
 
-                    <p class="mt-1 text-xs text-slate-500">
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         ID interno del productor.
                     </p>
 
