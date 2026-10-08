@@ -53,7 +53,7 @@
                 </div>
                 <div class="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
                     <x-ui.input name="correo" label="Correo corporativo" type="email" :value="$empresaActual?->correo" placeholder="Ej. contacto@empresa.pe" autocomplete="email" maxlength="255" />
-                    <x-ui.input name="telefono" label="Teléfono de contacto" type="tel" :value="$empresaActual?->telefono" placeholder="Ej. +51 999 888 777" autocomplete="tel" maxlength="30" />
+                    <x-ui.input name="telefono" label="Teléfono de contacto" type="tel" :value="$empresaActual?->telefono" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" pattern="^\+?[0-9][0-9\s().-]*$" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
                     <div class="sm:col-span-2">
                         <x-ui.input name="sitio_web" label="Sitio web" type="url" :value="$empresaActual?->sitio_web" placeholder="https://www.empresa.pe" autocomplete="url" maxlength="255" />
                     </div>
