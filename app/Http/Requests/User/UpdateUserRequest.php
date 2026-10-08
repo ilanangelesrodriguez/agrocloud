@@ -34,7 +34,7 @@ class UpdateUserRequest extends FormRequest
                 Rule::unique('usuario', 'correo')->ignore($usuario?->getKey(), 'id_usuario'),
             ],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'telefono' => ['nullable', 'string', 'max:30'],
+            'telefono' => ['nullable', 'string', 'max:30', 'regex:/^(?=(?:.*\d){7,15}$)\+?[0-9][0-9\s().-]*$/'],
             'cargo' => ['nullable', Rule::in(array_keys(config('agrocloud.cargos', [])))],
             'foto_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'estado' => ['nullable', 'boolean'],

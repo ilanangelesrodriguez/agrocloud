@@ -33,7 +33,7 @@ class UpdateCompanyRequest extends FormRequest
             'departamento' => ['nullable', 'string', 'max:100'],
             'provincia' => ['nullable', 'string', 'max:100'],
             'distrito' => ['nullable', 'string', 'max:100'],
-            'telefono' => ['nullable', 'string', 'max:30'],
+            'telefono' => ['nullable', 'string', 'max:30', 'regex:/^(?=(?:.*\d){7,15}$)\+?[0-9][0-9\s().-]*$/'],
             'correo' => ['nullable', 'email', 'max:255'],
             'sitio_web' => ['nullable', 'url', 'max:255'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],

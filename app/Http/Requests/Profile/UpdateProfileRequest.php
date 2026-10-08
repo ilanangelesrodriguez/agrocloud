@@ -16,7 +16,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             'nombre' => ['required', 'string', 'max:150'],
             'apellido' => ['required', 'string', 'max:150'],
-            'telefono' => ['nullable', 'string', 'max:30'],
+            'telefono' => ['nullable', 'string', 'max:30', 'regex:/^(?=(?:.*\d){7,15}$)\+?[0-9][0-9\s().-]*$/'],
             'foto_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
