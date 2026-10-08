@@ -5,8 +5,14 @@ namespace App\Services\Exports;
 use DateTimeInterface;
 use Phar;
 use PharData;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use ZipArchive;
 
+/**
+ * Genera un XLSX OpenXML válido sin nuevas dependencias de Composer.
+ * Prioriza ext-zip; usa PharData como alternativa cuando ext-zip no está activo.
+ */
 class XlsxExporter
 {
     /**
@@ -27,15 +33,14 @@ class XlsxExporter
         return response()
             ->download($path, $this->sanitizeFilename($filename).'.xlsx', [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment',
                 'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                'X-Content-Type-Options' => 'nosniff',
             ])
             ->deleteFileAfterSend(true);
     }
 
     /**
-     * Construye un XLSX OpenXML sin dependencias Composer adicionales.
-     * PharData crea internamente el ZIP que compone un archivo .xlsx.
-     *
      * @param array<int, array{key:string,label:string,width?:float,type?:string,status?:bool}> $columns
      * @param array<int, array<string, mixed>> $rows
      * @param array<string, scalar|null> $meta
@@ -51,27 +56,112 @@ class XlsxExporter
             throw new \InvalidArgumentException('El exportable necesita al menos una columna.');
         }
 
-        $path = sys_get_temp_dir().DIRECTORY_SEPARATOR.'agrocloud_'.bin2hex(random_bytes(8)).'.xlsx';
-        $archive = new PharData($path, 0, null, Phar::ZIP);
+        $base = tempnam(sys_get_temp_dir(), 'agrocloud_xlsx_');
+        if ($base === false) {
+            throw new RuntimeException('No se pudo reservar un archivo temporal para Excel.');
+        }
+        // ZipArchive::OVERWRITE necesita crear el ZIP, no abrir el archivo vacío de tempnam.
+        @unlink($base);
+        $path = $base.'.xlsx';
 
-        $files = [
-            '[Content_Types].xml' => $this->contentTypesXml(),
-            '_rels/.rels' => $this->rootRelationshipsXml(),
-            'docProps/app.xml' => $this->appPropertiesXml(),
-            'docProps/core.xml' => $this->corePropertiesXml($title),
-            'xl/workbook.xml' => $this->workbookXml($sheetName),
-            'xl/_rels/workbook.xml.rels' => $this->workbookRelationshipsXml(),
-            'xl/styles.xml' => $this->stylesXml(),
-            'xl/worksheets/sheet1.xml' => $this->worksheetXml($title, $columns, $rows, $meta),
-        ];
+        try {
+            $files = [
+                '[Content_Types].xml' => $this->contentTypesXml(),
+                '_rels/.rels' => $this->rootRelationshipsXml(),
+                'docProps/app.xml' => $this->appPropertiesXml(),
+                'docProps/core.xml' => $this->corePropertiesXml($title),
+                'xl/workbook.xml' => $this->workbookXml($sheetName),
+                'xl/_rels/workbook.xml.rels' => $this->workbookRelationshipsXml(),
+                'xl/styles.xml' => $this->stylesXml(),
+                'xl/worksheets/sheet1.xml' => $this->worksheetXml($title, $columns, $rows, $meta),
+            ];
 
-        foreach ($files as $name => $content) {
-            $archive[$name] = $content;
+            // Verificar que ninguno de los XML esté vacío antes de crear el Excel.
+            foreach ($files as $name => $xml) {
+                if ($xml === '' || ! str_starts_with(ltrim($xml), '<?xml')) {
+                    throw new RuntimeException("El XML {$name} no tiene un encabezado válido.");
+                }
+            }
+
+            $this->writeArchive($path, $files);
+            $this->assertArchive($path, array_keys($files));
+
+            return $path;
+        } catch (\Throwable $e) {
+            @unlink($path);
+            throw $e;
+        }
+    }
+
+    /** @param array<string, string> $files */
+    private function writeArchive(string $path, array $files): void
+    {
+        if (class_exists(ZipArchive::class)) {
+            $zip = new ZipArchive();
+            $result = $zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+            if ($result !== true) {
+                throw new RuntimeException('No se pudo crear el ZIP de Excel. Código: '.$result);
+            }
+
+            try {
+                foreach ($files as $filename => $content) {
+                    if (! $zip->addFromString($filename, $content)) {
+                        throw new RuntimeException('No se pudo escribir '.$filename.' dentro del Excel.');
+                    }
+                }
+            } catch (\Throwable $e) {
+                $zip->close();
+                throw $e;
+            }
+
+            if (! $zip->close()) {
+                throw new RuntimeException('No se pudo finalizar el archivo XLSX.');
+            }
+            return;
         }
 
-        unset($archive);
+        // Compatibilidad local con instalaciones PHP sin ext-zip.
+        if (! class_exists(PharData::class)) {
+            throw new RuntimeException('Es necesario habilitar la extensión ZIP o Phar de PHP para exportar Excel.');
+        }
 
-        return $path;
+        $archive = new PharData($path, 0, null, Phar::ZIP);
+        foreach ($files as $filename => $content) {
+            $archive[$filename] = $content;
+        }
+        unset($archive);
+    }
+
+    /** @param array<int, string> $expectedFiles */
+    private function assertArchive(string $path, array $expectedFiles): void
+    {
+        if (! is_file($path) || filesize($path) === 0) {
+            throw new RuntimeException('No se generó el archivo XLSX.');
+        }
+
+        if (class_exists(ZipArchive::class)) {
+            $zip = new ZipArchive();
+            if ($zip->open($path, ZipArchive::RDONLY) !== true) {
+                throw new RuntimeException('El archivo generado no es un ZIP XLSX válido.');
+            }
+            try {
+                foreach ($expectedFiles as $expected) {
+                    if ($zip->locateName($expected) === false) {
+                        throw new RuntimeException("El XLSX no contiene {$expected}.");
+                    }
+                }
+            } finally {
+                $zip->close();
+            }
+        } else {
+            $archive = new PharData($path, 0, null, Phar::ZIP);
+            foreach ($expectedFiles as $expected) {
+                if (! isset($archive[$expected])) {
+                    throw new RuntimeException("El XLSX no contiene {$expected}.");
+                }
+            }
+            unset($archive);
+        }
     }
 
     private function contentTypesXml(): string
@@ -115,7 +205,8 @@ XML;
 
     private function workbookXml(string $sheetName): string
     {
-        $sheetName = substr(str_replace(['\\', '/', '?', '*', '[', ']', ':'], ' ', $sheetName) ?: 'Datos', 0, 31);
+        $sheetName = preg_replace('/[\\\\\/?*\[\]:]/u', ' ', $this->cleanText($sheetName)) ?: 'Datos';
+        $sheetName = $this->truncateCharacters(trim($sheetName) ?: 'Datos', 31);
         $sheetName = $this->xml($sheetName);
 
         return <<<XML
@@ -190,10 +281,9 @@ XML;
 
         $metaText = 'Generado: '.now()->format('d/m/Y H:i');
         foreach ($meta as $label => $value) {
-            if ($value === null || $value === '') {
-                continue;
+            if ($value !== null && $value !== '') {
+                $metaText .= '  ·  '.$label.': '.$this->stringValue($value);
             }
-            $metaText .= '  ·  '.$label.': '.$this->stringValue($value);
         }
 
         $sheetRows = '<row r="1" ht="30" customHeight="1">'.$this->inlineCell('A1', $title, 1).'</row>';
@@ -202,15 +292,13 @@ XML;
 
         $headerCells = '';
         foreach ($columns as $index => $column) {
-            $cell = $this->columnName($index + 1).'4';
-            $headerCells .= $this->inlineCell($cell, $column['label'], 2);
+            $headerCells .= $this->inlineCell($this->columnName($index + 1).'4', (string) $column['label'], 2);
         }
         $sheetRows .= '<row r="4" ht="28" customHeight="1">'.$headerCells.'</row>';
 
         foreach ($rows as $rowIndex => $row) {
             $excelRow = $rowIndex + 5;
             $cells = '';
-
             foreach ($columns as $columnIndex => $column) {
                 $cell = $this->columnName($columnIndex + 1).$excelRow;
                 $value = $row[$column['key']] ?? '';
@@ -221,15 +309,19 @@ XML;
                     $style = in_array($normalized, ['activo', 'activa', 'sí', 'si'], true) ? 5 : 6;
                 }
 
-                if (($column['type'] ?? null) === 'number' && is_numeric($value)) {
-                    $cells .= '<c r="'.$cell.'" s="'.$style.'" t="n"><v>'.(string) $value.'</v></c>';
+                if (($column['type'] ?? null) === 'number' && is_numeric($value) && is_finite((float) $value)) {
+                    $cells .= '<c r="'.$cell.'" s="'.$style.'" t="n"><v>'.$this->xml((string) $value).'</v></c>';
                 } else {
                     $cells .= $this->inlineCell($cell, $this->stringValue($value), $style);
                 }
             }
-
             $sheetRows .= '<row r="'.$excelRow.'" ht="22" customHeight="1">'.$cells.'</row>';
         }
+
+        $mergeCells = count($columns) > 1
+            ? '<mergeCells count="2"><mergeCell ref="A1:'.$lastColumn.'1"/><mergeCell ref="A2:'.$lastColumn.'2"/></mergeCells>'
+            : '';
+        $autoFilter = count($rows) > 0 ? '<autoFilter ref="A4:'.$lastColumn.$lastRow.'"/>' : '';
 
         return <<<XML
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -239,13 +331,14 @@ XML;
   <sheetViews>
     <sheetView workbookViewId="0" showGridLines="0">
       <pane ySplit="4" topLeftCell="A5" activePane="bottomLeft" state="frozen"/>
+      <selection pane="bottomLeft" activeCell="A5" sqref="A5"/>
     </sheetView>
   </sheetViews>
   <sheetFormatPr defaultRowHeight="18"/>
   <cols>{$colsXml}</cols>
   <sheetData>{$sheetRows}</sheetData>
-  <autoFilter ref="A4:{$lastColumn}{$lastRow}"/>
-  <mergeCells count="2"><mergeCell ref="A1:{$lastColumn}1"/><mergeCell ref="A2:{$lastColumn}2"/></mergeCells>
+  {$autoFilter}
+  {$mergeCells}
   <pageMargins left="0.3" right="0.3" top="0.5" bottom="0.5" header="0.2" footer="0.2"/>
   <pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0" paperSize="9"/>
 </worksheet>
@@ -290,16 +383,10 @@ XML;
         if ($value instanceof DateTimeInterface) {
             return $value->format('d/m/Y H:i');
         }
-
         if (is_bool($value)) {
             return $value ? 'Sí' : 'No';
         }
-
-        if ($value === null) {
-            return '';
-        }
-
-        return (string) $value;
+        return $value === null ? '' : (string) $value;
     }
 
     private function columnName(int $number): string
@@ -310,19 +397,42 @@ XML;
             $name = chr(65 + ($number % 26)).$name;
             $number = intdiv($number, 26);
         }
-
         return $name;
     }
 
     private function sanitizeFilename(string $filename): string
     {
         $filename = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $filename) ?: 'export_agrocloud';
+        return trim($filename, '_') ?: 'export_agrocloud';
+    }
 
-        return trim($filename, '_');
+    /** Quita bytes mal formados y caracteres prohibidos en XML 1.0. */
+    private function cleanText(string $value): string
+    {
+        if (function_exists('mb_convert_encoding')) {
+            $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+        } elseif (function_exists('iconv')) {
+            $value = iconv('UTF-8', 'UTF-8//IGNORE', $value) ?: '';
+        }
+
+        return preg_replace('/[^\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]/u', '', $value) ?? '';
+    }
+
+    private function truncateCharacters(string $value, int $limit): string
+    {
+        if (function_exists('mb_substr')) {
+            return mb_substr($value, 0, $limit, 'UTF-8');
+        }
+        preg_match_all('/./us', $value, $matches);
+        return implode('', array_slice($matches[0], 0, $limit));
     }
 
     private function xml(string $value): string
     {
-        return htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        return htmlspecialchars(
+            $this->truncateCharacters($this->cleanText($value), 32767),
+            ENT_XML1 | ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8',
+        );
     }
 }

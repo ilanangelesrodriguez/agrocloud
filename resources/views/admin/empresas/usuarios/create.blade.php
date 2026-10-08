@@ -1,6 +1,20 @@
 <x-layouts.app title="Nuevo usuario de empresa">
-    <div class="mx-auto max-w-4xl space-y-6">
-        <div><x-ui.back-link :href="route('admin.empresas.usuarios.index', $empresa)" label="Regresar a usuarios" /><div class="mt-3"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">{{ $empresa->nombre_comercial }}</p><h2 class="mt-2 text-2xl font-semibold text-slate-950">Crear usuario</h2><p class="mt-1 text-sm text-slate-500">La cuenta quedará asociada automáticamente a esta empresa. No se puede asignar el rol SUPERADMIN.</p></div></div>
-        <form method="POST" action="{{ route('admin.empresas.usuarios.store', $empresa) }}" enctype="multipart/form-data">@csrf<x-ui.card>@include('usuarios._form')<div class="mt-6 flex flex-col-reverse gap-2 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end"><a href="{{ route('admin.empresas.usuarios.index', $empresa) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</a><x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="user-plus" class="h-4 w-4" />Crear usuario</span></x-ui.button></div></x-ui.card></form>
+    <div class="mx-auto max-w-7xl space-y-6">
+        <div class="space-y-4">
+            <x-ui.back-link :href="route('admin.empresas.usuarios.index', $empresa)" label="Regresar a usuarios" />
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">{{ $empresa->nombre_comercial }} / Usuarios / Nuevo registro</p>
+                <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Crear usuario</h2>
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Registra una cuenta para esta empresa. El rol SUPERADMIN no está disponible en este formulario.</p>
+            </div>
+        </div>
+        <form method="POST" action="{{ route('admin.empresas.usuarios.store', $empresa) }}" enctype="multipart/form-data">
+            @csrf
+            @include('usuarios._form')
+            <div class="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-end sm:px-6">
+                <a href="{{ route('admin.empresas.usuarios.index', $empresa) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</a>
+                <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="user-plus" class="h-4 w-4" />Crear usuario</span></x-ui.button>
+            </div>
+        </form>
     </div>
 </x-layouts.app>
