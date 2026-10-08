@@ -8,7 +8,7 @@
             <div>
                 <a
                     href="{{ route('lotes.show', $lote->id_lote) }}"
-                    class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-brand-700"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-brand-700 dark:hover:text-brand-300"
                 >
                     <x-ui.icon
                         name="arrow-left"
@@ -20,11 +20,11 @@
             </div>
 
             <div>
-                <h1 class="text-2xl font-semibold text-slate-900">
+                <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
                     Editar lote
                 </h1>
 
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     Actualiza la información del lote registrado.
                 </p>
             </div>
@@ -75,7 +75,7 @@
 
                         <label
                             for="id_productor"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Productor
                             <span class="text-red-500">*</span>
@@ -85,7 +85,7 @@
                             id="id_productor"
                             name="id_productor"
                             required
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('id_productor') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('id_productor') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                             <option value="">
@@ -112,7 +112,7 @@
                         </select>
 
                         @error('id_productor')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
@@ -124,7 +124,7 @@
 
                         <label
                             for="codigo_lote"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Código del lote
                             <span class="text-red-500">*</span>
@@ -138,16 +138,16 @@
                             value="{{ old('codigo_lote', $lote->codigo_lote) }}"
                             placeholder="Ej. LOTE-2026-001"
                             required
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('codigo_lote') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('codigo_lote') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                         @error('codigo_lote')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
 
-                        <p class="mt-1.5 text-xs text-slate-500">
+                        <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                             El código debe ser único dentro de tu empresa.
                         </p>
 
@@ -158,7 +158,7 @@
 
                         <label
                             for="producto"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Producto
                             <span class="text-red-500">*</span>
@@ -172,11 +172,11 @@
                             value="{{ old('producto', $lote->producto) }}"
                             placeholder="Ej. Arándano"
                             required
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('producto') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('producto') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                         @error('producto')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
@@ -188,7 +188,7 @@
 
                         <label
                             for="variedad"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Variedad
                         </label>
@@ -200,11 +200,11 @@
                             maxlength="150"
                             value="{{ old('variedad', $lote->variedad) }}"
                             placeholder="Ej. Hass, Kent, Red Globe..."
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('variedad') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('variedad') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                         @error('variedad')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
@@ -216,7 +216,7 @@
 
                         <label
                             for="peso_kg"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Peso recibido (kg)
                             <span class="text-red-500">*</span>
@@ -231,11 +231,11 @@
                             value="{{ old('peso_kg', $lote->peso_kg) }}"
                             placeholder="Ej. 1250.50"
                             required
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('peso_kg') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('peso_kg') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                         @error('peso_kg')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
@@ -247,7 +247,7 @@
 
                         <label
                             for="fecha_recepcion"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Fecha y hora de recepción
                             <span class="text-red-500">*</span>
@@ -259,11 +259,11 @@
                             type="datetime-local"
                             value="{{ old('fecha_recepcion', $lote->fecha_recepcion?->format('Y-m-d\TH:i')) }}"
                             required
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('fecha_recepcion') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('fecha_recepcion') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                         @error('fecha_recepcion')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
@@ -275,7 +275,7 @@
 
                         <label
                             for="estado"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700"
+                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Estado
                             <span class="text-red-500">*</span>
@@ -294,7 +294,7 @@
                             id="estado"
                             name="estado"
                             required
-                            class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 @error('estado') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('estado') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
                             @foreach ($estados as $estado)
@@ -317,7 +317,7 @@
                         </select>
 
                         @error('estado')
-                            <p class="mt-1.5 text-sm text-red-600">
+                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
                         @enderror
@@ -327,14 +327,14 @@
                 </div>
 
                 {{-- Separador --}}
-                <div class="border-t border-slate-100"></div>
+                <div class="border-t border-slate-100 dark:border-slate-700"></div>
 
                 {{-- Acciones --}}
                 <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
 
                     <a
                         href="{{ route('lotes.show', $lote->id_lote) }}"
-                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                        class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-700"
                     >
                         Cancelar
                     </a>

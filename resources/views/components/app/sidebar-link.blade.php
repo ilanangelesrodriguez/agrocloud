@@ -11,8 +11,8 @@
     @if ($isActive) aria-current="page" @endif
     @class([
         'agrocloud-sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600',
-        'bg-brand-50 text-brand-700' => $isActive,
-        'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! $isActive,
+        'bg-brand-50 dark:bg-brand-900/35 text-brand-700 dark:text-brand-300' => $isActive,
+        'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100' => ! $isActive,
     ])
 >
     @if ($icon)

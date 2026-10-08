@@ -6,11 +6,11 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
             <div>
-                <h1 class="text-2xl font-semibold text-slate-900">
+                <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
                     Lotes
                 </h1>
 
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     Consulta y administra los lotes registrados en tu empresa.
                 </p>
             </div>
@@ -18,7 +18,7 @@
             @if (auth()->user()->hasPermission('lotes.crear'))
                 <a
                     href="{{ route('lotes.create') }}"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200 dark:focus:ring-brand-900/50"
                 >
                     <x-ui.icon name="plus" class="h-4 w-4" />
                     <span>Nuevo lote</span>
@@ -54,7 +54,7 @@
 
                     <label
                         for="buscar"
-                        class="mb-1.5 block text-sm font-semibold text-slate-700"
+                        class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                     >
                         Buscar lote
                     </label>
@@ -74,7 +74,7 @@
                             type="text"
                             value="{{ request('buscar') }}"
                             placeholder="Código, producto, variedad, productor o RUC..."
-                            class="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-2.5 pl-10 pr-3.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50"
                         >
 
                     </div>
@@ -94,7 +94,7 @@
                     @if (request()->filled('buscar'))
                         <a
                             href="{{ route('lotes.index') }}"
-                            class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                            class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-700"
                         >
                             Limpiar
                         </a>
@@ -111,11 +111,11 @@
 
             <div class="mb-5">
 
-                <h2 class="text-lg font-semibold text-slate-900">
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
                     Listado de lotes
                 </h2>
 
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     {{ $lotes->total() }}
                     {{ $lotes->total() === 1 ? 'lote registrado' : 'lotes registrados' }}
                 </p>
@@ -124,41 +124,41 @@
 
             <div class="overflow-x-auto">
 
-                <table class="min-w-full divide-y divide-slate-200">
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
 
                     <thead>
 
                         <tr class="text-left">
 
-                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                 Código
                             </th>
 
-                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                 Productor
                             </th>
 
-                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                 Producto
                             </th>
 
-                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                 Variedad
                             </th>
 
-                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                 Peso
                             </th>
 
-                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                 Recepción
                             </th>
 
-                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                 Estado
                             </th>
 
-                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                 Acciones
                             </th>
 
@@ -166,20 +166,20 @@
 
                     </thead>
 
-                    <tbody class="divide-y divide-slate-100 bg-white">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-900">
 
                         @forelse ($lotes as $lote)
 
-                            <tr class="transition hover:bg-slate-50">
+                            <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-700">
 
                                 {{-- Código --}}
                                 <td class="whitespace-nowrap px-4 py-4">
 
-                                    <div class="text-sm font-semibold text-slate-900">
+                                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">
                                         {{ $lote->codigo_lote }}
                                     </div>
 
-                                    <div class="mt-1 text-xs text-slate-500">
+                                    <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
                                         ID: {{ $lote->id_lote }}
                                     </div>
 
@@ -190,11 +190,11 @@
 
                                     @if ($lote->productor)
 
-                                        <div class="text-sm font-semibold text-slate-900">
+                                        <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">
                                             {{ $lote->productor->nombre_razon_social }}
                                         </div>
 
-                                        <div class="mt-1 text-xs text-slate-500">
+                                        <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
                                             RUC: {{ $lote->productor->ruc }}
                                         </div>
 
@@ -209,23 +209,23 @@
                                 </td>
 
                                 {{-- Producto --}}
-                                <td class="px-4 py-4 text-sm text-slate-600">
+                                <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                     {{ $lote->producto }}
                                 </td>
 
                                 {{-- Variedad --}}
-                                <td class="px-4 py-4 text-sm text-slate-600">
+                                <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                     {{ $lote->variedad ?: '—' }}
                                 </td>
 
                                 {{-- Peso --}}
                                 <td class="whitespace-nowrap px-4 py-4 text-right">
 
-                                    <span class="text-sm font-semibold text-slate-900">
+                                    <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
                                         {{ number_format((float) $lote->peso_kg, 2) }}
                                     </span>
 
-                                    <span class="text-xs text-slate-500">
+                                    <span class="text-xs text-slate-500 dark:text-slate-400">
                                         kg
                                     </span>
 
@@ -234,11 +234,11 @@
                                 {{-- Fecha de recepción --}}
                                 <td class="whitespace-nowrap px-4 py-4">
 
-                                    <div class="text-sm text-slate-700">
+                                    <div class="text-sm text-slate-700 dark:text-slate-200">
                                         {{ $lote->fecha_recepcion?->format('d/m/Y') }}
                                     </div>
 
-                                    <div class="mt-1 text-xs text-slate-500">
+                                    <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
                                         {{ $lote->fecha_recepcion?->format('H:i') }}
                                     </div>
 
@@ -253,7 +253,7 @@
                                             : $lote->estado;
                                     @endphp
 
-                                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                    <span class="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
                                         {{ $estado }}
                                     </span>
 
@@ -268,7 +268,7 @@
 
                                             <a
                                                 href="{{ route('lotes.show', $lote->id_lote) }}"
-                                                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-brand-700"
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-300"
                                             >
                                                 <x-ui.icon
                                                     name="eye"
@@ -283,7 +283,7 @@
 
                                             <a
                                                 href="{{ route('lotes.edit', $lote->id_lote) }}"
-                                                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-brand-700"
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-300"
                                             >
                                                 <x-ui.icon
                                                     name="pencil"
@@ -311,7 +311,7 @@
 
                                     <div class="flex flex-col items-center">
 
-                                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+                                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
 
                                             <x-ui.icon
                                                 name="briefcase"
@@ -320,11 +320,11 @@
 
                                         </div>
 
-                                        <h3 class="mt-4 text-sm font-semibold text-slate-900">
+                                        <h3 class="mt-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
                                             No hay lotes registrados
                                         </h3>
 
-                                        <p class="mt-1 max-w-md text-sm text-slate-500">
+                                        <p class="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
 
                                             @if (request()->filled('buscar'))
 
@@ -378,7 +378,7 @@
             {{-- Paginación --}}
             @if ($lotes->hasPages())
 
-                <div class="mt-5 border-t border-slate-100 pt-5">
+                <div class="mt-5 border-t border-slate-100 dark:border-slate-700 pt-5">
 
                     {{ $lotes->links() }}
 

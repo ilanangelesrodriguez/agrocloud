@@ -3,16 +3,16 @@
         <div class="inline-flex items-center gap-3">
             <div class="grid h-10 w-10 place-items-center rounded-xl bg-brand-600 text-sm font-bold text-white">AC</div>
             <div>
-                <p class="font-semibold text-slate-900">AgroCloud AI</p>
-                <p class="text-xs text-slate-500">Gestión agrícola inteligente</p>
+                <p class="font-semibold text-slate-900 dark:text-slate-100">AgroCloud AI</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Gestión agrícola inteligente</p>
             </div>
         </div>
     </div>
 
     <div class="mb-8">
-        <p class="text-sm font-medium text-brand-700">Acceso al sistema</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Bienvenido</h1>
-        <p class="mt-2 text-sm leading-6 text-slate-500">
+        <p class="text-sm font-medium text-brand-700 dark:text-brand-300">Acceso al sistema</p>
+        <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Bienvenido</h1>
+        <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
             Ingresa con el correo y contraseña registrados para tu empresa.
         </p>
     </div>
@@ -43,8 +43,8 @@
             required
         />
 
-        <label class="flex items-center gap-2 text-sm text-slate-600">
-            <input type="checkbox" name="remember" value="1" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+        <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <input type="checkbox" name="remember" value="1" class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-brand-600 dark:text-brand-400 focus:ring-brand-500">
             Mantener sesión iniciada
         </label>
 
