@@ -31,4 +31,11 @@ class StoreUserRequest extends FormRequest
             'estado' => ['nullable', 'boolean'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'telefono.regex' => 'El teléfono debe contener entre 7 y 15 dígitos y solo puede incluir +, espacios, guiones o paréntesis.',
+        ];
+    }
 }

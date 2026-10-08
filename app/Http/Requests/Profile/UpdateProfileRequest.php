@@ -20,4 +20,11 @@ class UpdateProfileRequest extends FormRequest
             'foto_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'telefono.regex' => 'El teléfono debe contener entre 7 y 15 dígitos y solo puede incluir +, espacios, guiones o paréntesis.',
+        ];
+    }
 }
