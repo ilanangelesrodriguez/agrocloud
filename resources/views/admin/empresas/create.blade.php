@@ -1,6 +1,24 @@
 <x-layouts.app title="Nueva empresa">
-    <div class="mx-auto max-w-5xl space-y-6">
-        <div><x-ui.back-link :href="route('admin.empresas.index')" label="Regresar a empresas" /><div class="mt-3"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">Administración global</p><h2 class="mt-2 text-2xl font-semibold text-slate-950">Registrar empresa</h2><p class="mt-1 text-sm text-slate-500">Crea un nuevo tenant. Después podrás registrar su administrador y demás usuarios.</p></div></div>
-        <form method="POST" action="{{ route('admin.empresas.store') }}" enctype="multipart/form-data">@csrf<x-ui.card>@include('admin.empresas._form')<div class="mt-8 flex flex-col-reverse gap-2 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end"><a href="{{ route('admin.empresas.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</a><x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="save" class="h-4 w-4" />Registrar empresa</span></x-ui.button></div></x-ui.card></form>
+    <div class="mx-auto max-w-7xl space-y-6">
+        <div class="space-y-4">
+            <x-ui.back-link :href="route('admin.empresas.index')" label="Regresar al listado de empresas" />
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">Sistema / Empresas / Nuevo registro</p>
+                <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Registrar nueva empresa</h2>
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Completa primero los datos corporativos, luego la ubicación y, si lo deseas, agrega un logo. Al guardar podrás registrar al administrador de la empresa.</p>
+            </div>
+        </div>
+        <form method="POST" action="{{ route('admin.empresas.store') }}" enctype="multipart/form-data">
+            @csrf
+            @include('admin.empresas._form')
+            <div class="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <p class="text-xs leading-5 text-slate-500">* Los campos obligatorios deben estar completos. El logo es opcional.</p>
+                <div class="flex flex-col-reverse gap-2 sm:flex-row">
+                    <a href="{{ route('admin.empresas.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</a>
+                    <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="save" class="h-4 w-4" />Registrar empresa</span></x-ui.button>
+                </div>
+            </div>
+        </form>
     </div>
+    <script defer src="{{ asset('js/empresa-form.js') }}?v=20261008-1"></script>
 </x-layouts.app>

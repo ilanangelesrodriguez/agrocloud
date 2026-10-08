@@ -23,3 +23,80 @@
 html {
     color-scheme: light;
 }
+
+/* Desktop: sidebar fijo respecto al viewport, sin perder scroll en la pantalla principal. */
+.agrocloud-shell {
+    --agrocloud-sidebar-width: 264px;
+}
+
+.agrocloud-sidebar-nav {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+@media (min-width: 1024px) {
+    .agrocloud-shell {
+        grid-template-columns: var(--agrocloud-sidebar-width) minmax(0, 1fr);
+        transition: grid-template-columns 200ms ease;
+    }
+
+    .agrocloud-sidebar {
+        width: var(--agrocloud-sidebar-width);
+        transition: width 200ms ease;
+    }
+
+    .agrocloud-shell[data-sidebar-collapsed="true"] {
+        --agrocloud-sidebar-width: 76px;
+    }
+
+    .agrocloud-shell[data-sidebar-collapsed="true"] [data-sidebar-brand-text],
+    .agrocloud-shell[data-sidebar-collapsed="true"] [data-sidebar-label],
+    .agrocloud-shell[data-sidebar-collapsed="true"] [data-sidebar-section] {
+        display: none;
+    }
+
+    .agrocloud-shell[data-sidebar-collapsed="true"] .agrocloud-sidebar-link {
+        justify-content: center;
+        gap: 0;
+    }
+
+    .agrocloud-shell[data-sidebar-collapsed="true"] .agrocloud-sidebar-nav {
+        padding-top: 1rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .agrocloud-shell,
+    .agrocloud-sidebar {
+        transition: none;
+    }
+}
+
+/*
+ * Select nativo con flecha unificada. 18px de margen derecho desde el borde,
+ * y espacio reservado para que el texto no se superponga a la flecha.
+ * Aplica a los select existentes, incluido ESTADO / ROL.
+ */
+select:not([multiple]):not([size]) {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 3.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 1.125rem center;
+    background-size: 1rem 1rem;
+    background-repeat: no-repeat;
+}
+
+select:not([multiple]):not([size]):disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+@media (forced-colors: active) {
+    select:not([multiple]):not([size]) {
+        -webkit-appearance: auto;
+        appearance: auto;
+        background-image: none;
+        padding-right: 1rem;
+    }
+}
