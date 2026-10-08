@@ -1,6 +1,13 @@
 <x-layouts.app title="Detalle del lote">
 
     <div class="space-y-6">
+        {{-- AGROCLOUD INSPECTOR: acceso directo al muestreo --}}
+        @if(auth()->user()->hasPermission('muestreos.crear'))
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-900 dark:bg-brand-900/25">
+                <div><p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Control de calidad</p><p class="mt-1 text-xs text-slate-600 dark:text-slate-300">Crea una muestra sobre este lote y continúa con la inspección.</p></div>
+                <a href="{{ route('muestreos.create', ['lote' => $lote->id_lote]) }}" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">+ Crear muestreo</a>
+            </div>
+        @endif
 
         {{-- Encabezado --}}
         <div class="flex flex-col gap-3">

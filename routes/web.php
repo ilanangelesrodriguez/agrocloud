@@ -12,3 +12,4 @@ Route::get('/', function () {
 
 require __DIR__.'/auth.php';
 require __DIR__.'/app.php';
+require __DIR__.'/inspector_workflow.php';
