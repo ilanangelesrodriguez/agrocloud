@@ -70,6 +70,34 @@ return [
     'permission' => 'lotes.ver',
     'requires_company' => true,
 ],
+        [
+            'section' => 'OPERACIONES',
+            'label' => 'Muestreos',
+            'route' => 'muestreos.index',
+            'active' => 'muestreos.*',
+            'icon' => 'clipboard-list',
+            'permission' => 'muestreos.ver',
+            'requires_company' => true,
+        ],
+        [
+            'section' => 'OPERACIONES',
+            'label' => 'Inspecciones',
+            'route' => 'inspecciones.index',
+            'active' => 'inspecciones.*',
+            'icon' => 'search',
+            'permission' => 'inspecciones.ver',
+            'requires_company' => true,
+        ],
+        [
+            'section' => 'CONTROL DE CALIDAD',
+            'label' => 'Dictámenes pendientes',
+            'route' => 'calidad.index',
+            'active' => 'calidad.*',
+            'icon' => 'shield',
+            'permission' => 'calidad.ver',
+            'requires_company' => true,
+        ],
+
         /*
         |--------------------------------------------------------------------------
         | SISTEMA
