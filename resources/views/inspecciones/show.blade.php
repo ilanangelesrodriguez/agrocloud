@@ -1,47 +1,59 @@
 <x-layouts.app title="Detalle de inspección">
-    <div class="space-y-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
+    @php
+        $fotos = $inspeccion->evidencias->count();
+        $analizadas = $inspeccion->evidencias->where('estado_ia', 'COMPLETADO')->count();
+        $validada = $inspeccion->estado === 'VALIDADA';
+    @endphp
+    <div class="space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
                 <x-ui.back-link :href="route('inspecciones.index')" label="Volver a inspecciones" />
-                <div class="mt-3 flex items-start gap-3">
-                    <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-                        <x-ui.icon name="camera" class="h-5 w-5" />
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Inspección #{{ $inspeccion->id_inspeccion }}</h1>
-                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Lote {{ $inspeccion->muestreo?->lote?->codigo_lote }} · {{ str_replace('_',' ',$inspeccion->estado) }}</p>
-                    </div>
-                </div>
+                <h1 class="mt-3 text-xl font-semibold text-slate-900 dark:text-slate-100 sm:text-2xl">Inspección #{{ $inspeccion->id_inspeccion }}</h1>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Lote {{ $inspeccion->muestreo?->lote?->codigo_lote }} · Inspector: {{ $inspeccion->inspector?->nombre_completo ?? 'Pendiente de asignación' }}</p>
             </div>
+            <span @class(['rounded-full px-3 py-1.5 text-xs font-semibold', 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' => $validada, 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' => !$validada])>{{ $validada ? 'Validada por inspector' : 'En captura y análisis' }}</span>
         </div>
         @include('inspecciones._mensajes')
-        <div class="grid gap-4 sm:grid-cols-3">
-            <x-ui.card>
-                <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Muestra</p><p class="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{{ $inspeccion->muestreo->tamano_muestra }}</p><p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Frutos seleccionados</p></div><span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"><x-ui.icon name="clipboard-list" class="h-4 w-4" /></span></div>
-            </x-ui.card>
-            <x-ui.card>
-                <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Evidencias</p><p class="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{{ $inspeccion->evidencias->count() }}</p><p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Fotografías registradas</p></div><span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"><x-ui.icon name="camera" class="h-4 w-4" /></span></div>
-            </x-ui.card>
-            <x-ui.card>
-                <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Hallazgos manuales</p><p class="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{{ $inspeccion->hallazgos->count() }}</p><p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Hallazgos adicionales</p></div><span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"><x-ui.icon name="file-text" class="h-4 w-4" /></span></div>
-            </x-ui.card>
+        <div class="grid gap-3 sm:grid-cols-4">
+            <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500">Frutos de muestra</p><p class="mt-1 text-2xl font-semibold dark:text-slate-100">{{ $inspeccion->muestreo->tamano_muestra }}</p></div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500">Fotos</p><p class="mt-1 text-2xl font-semibold dark:text-slate-100">{{ $fotos }}</p></div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500">Analizadas IA</p><p class="mt-1 text-2xl font-semibold dark:text-slate-100">{{ $analizadas }}</p></div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500">Hallazgos manuales</p><p class="mt-1 text-2xl font-semibold dark:text-slate-100">{{ $inspeccion->hallazgos->count() }}</p></div>
         </div>
-        <x-ui.card title="Flujo de trabajo" description="Captura, analiza y valida los resultados de tu inspección.">
-            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <a class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700" href="{{ route('inspecciones.evidencias', $inspeccion->id_inspeccion) }}"><x-ui.icon name="camera" class="h-4 w-4" />Captura y análisis IA</a>
-                <a class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700" href="{{ route('inspecciones.validacion', $inspeccion->id_inspeccion) }}"><x-ui.icon name="check" class="h-4 w-4" />Validar resultados</a>
-                @if(auth()->user()->hasPermission('calidad.ver') && $inspeccion->estado === 'VALIDADA')
-                    <a class="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-300 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-900/20" href="{{ route('calidad.show', $inspeccion->id_inspeccion) }}"><x-ui.icon name="file-text" class="h-4 w-4" />Ver dictamen</a>
-                @endif
+        <x-ui.card title="Etapas de control de calidad" description="El inspector valida la inspección; el supervisor emite el dictamen final del lote.">
+            <div class="grid gap-3 md:grid-cols-3">
+                <a href="{{ route('inspecciones.evidencias', $inspeccion->id_inspeccion) }}" class="group rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-brand-400 dark:border-slate-700 dark:bg-slate-800/50">
+                    <div class="flex items-center justify-between"><span class="rounded-full bg-brand-100 px-2 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">01 · Captura</span><x-ui.icon name="camera" class="h-5 w-5 text-brand-600" /></div>
+                    <p class="mt-3 font-semibold text-slate-900 dark:text-slate-100">Evidencias y análisis IA</p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ $analizadas }} de {{ $fotos }} fotografías analizadas. Sin recargas entre acciones.</p>
+                    <p class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 dark:text-brand-300">Abrir captura <x-ui.icon name="chevron-right" class="h-3.5 w-3.5" /></p>
+                </a>
+                <a href="{{ route('inspecciones.validacion', $inspeccion->id_inspeccion) }}" class="group rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-brand-400 dark:border-slate-700 dark:bg-slate-800/50">
+                    <div class="flex items-center justify-between"><span class="rounded-full bg-brand-100 px-2 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">02 · Validación</span><x-ui.icon name="check" class="h-5 w-5 text-brand-600" /></div>
+                    <p class="mt-3 font-semibold text-slate-900 dark:text-slate-100">Revisar detecciones</p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Confirmar, descartar o documentar hallazgos manuales.</p>
+                    <p class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 dark:text-brand-300">{{ $validada ? 'Ver revisión' : 'Continuar revisión' }} <x-ui.icon name="chevron-right" class="h-3.5 w-3.5" /></p>
+                </a>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                    <div class="flex items-center justify-between"><span class="rounded-full bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-200">03 · Dictamen</span><x-ui.icon name="shield" class="h-5 w-5 text-slate-600 dark:text-slate-300" /></div>
+                    <p class="mt-3 font-semibold text-slate-900 dark:text-slate-100">Decisión del supervisor</p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ $inspeccion->dictamen ? 'Resultado: '.$inspeccion->dictamen->decision : ($validada ? 'Listo para revisión del supervisor.' : 'Disponible después de validar la inspección.') }}</p>
+                    @if($validada && auth()->user()->hasPermission('calidad.ver'))
+                        <a class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 dark:text-brand-300" href="{{ route('calidad.show', $inspeccion->id_inspeccion) }}">Ver dictamen <x-ui.icon name="chevron-right" class="h-3.5 w-3.5" /></a>
+                    @endif
+                </div>
             </div>
         </x-ui.card>
-        <x-ui.card title="Información de inspección">
-            <div class="grid gap-4 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
-                <p><span class="font-semibold text-slate-900 dark:text-slate-100">Inspector:</span><br>{{ $inspeccion->inspector?->nombre_completo ?? 'Pendiente de asignación' }}</p>
-                <p><span class="font-semibold text-slate-900 dark:text-slate-100">Muestreo:</span><br><a class="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline dark:text-brand-300" href="{{ route('muestreos.show', $inspeccion->id_muestreo) }}">#{{ $inspeccion->id_muestreo }} <x-ui.icon name="chevron-right" class="h-4 w-4" /></a></p>
-                <p><span class="font-semibold text-slate-900 dark:text-slate-100">Validada en:</span><br>{{ $inspeccion->validada_en?->format('d/m/Y H:i') ?? 'Pendiente' }}</p>
-                <p class="sm:col-span-2"><span class="font-semibold text-slate-900 dark:text-slate-100">Observaciones:</span><br>{{ $inspeccion->observaciones ?: 'Sin observaciones' }}</p>
-            </div>
-        </x-ui.card>
+        <div class="grid gap-4 lg:grid-cols-2">
+            <x-ui.card title="Datos vinculados">
+                <dl class="grid gap-3 text-sm sm:grid-cols-2">
+                    <div><dt class="text-xs text-slate-500">Lote</dt><dd class="font-semibold text-slate-800 dark:text-slate-100">{{ $inspeccion->muestreo?->lote?->codigo_lote }}</dd></div>
+                    <div><dt class="text-xs text-slate-500">Muestreo</dt><dd><a class="inline-flex items-center gap-1 font-semibold text-brand-700 dark:text-brand-300" href="{{ route('muestreos.show', $inspeccion->id_muestreo) }}">#{{ $inspeccion->id_muestreo }} <x-ui.icon name="chevron-right" class="h-4 w-4" /></a></dd></div>
+                    <div><dt class="text-xs text-slate-500">Método</dt><dd class="text-slate-800 dark:text-slate-100">{{ $inspeccion->muestreo->metodo }}</dd></div>
+                    <div><dt class="text-xs text-slate-500">Validada en</dt><dd class="text-slate-800 dark:text-slate-100">{{ $inspeccion->validada_en?->format('d/m/Y H:i') ?: 'Aún sin validar' }}</dd></div>
+                </dl>
+            </x-ui.card>
+            <x-ui.card title="Observaciones técnicas"><p class="text-sm text-slate-600 dark:text-slate-300">{{ $inspeccion->observaciones ?: 'No se han registrado observaciones finales.' }}</p></x-ui.card>
+        </div>
     </div>
 </x-layouts.app>

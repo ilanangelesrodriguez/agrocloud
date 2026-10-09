@@ -19,7 +19,7 @@ return [
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
-            'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
+            'default_channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
 
@@ -30,6 +30,6 @@ return [
 
     'agrocloud_ai' => [
         'api_key' => env('AGROCLOUD_AI_API_KEY'),
+        'ca_bundle' => env('AGROCLOUD_AI_CA_BUNDLE', env('CLOUDINARY_CA_BUNDLE')),
     ],
-
 ];

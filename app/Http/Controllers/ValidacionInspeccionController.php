@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LoteEstado;
-use App\Models\EvidenciaInspeccion;
 use App\Models\HallazgoManual;
 use App\Models\Inspeccion;
 use App\Models\ValidacionDeteccion;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,12 +21,13 @@ class ValidacionInspeccionController extends Controller
         return view('inspecciones.validacion', compact('inspeccion'));
     }
 
-    public function validarDeteccion(Request $request, int $inspeccion, int $evidencia): RedirectResponse
+    public function validarDeteccion(Request $request, int $inspeccion, int $evidencia): RedirectResponse|JsonResponse
     {
         $inspeccion = $this->find($inspeccion);
         InspeccionController::canOperate($inspeccion, $request);
         $foto = $inspeccion->evidencias->firstWhere('id_evidencia', $evidencia);
         abort_unless($foto && $foto->estado_ia === 'COMPLETADO', 404);
+
         $detections = $foto->resultado_ia['detections'] ?? [];
         $data = $request->validate([
             'indice_deteccion' => ['required', 'integer', 'min:0'],
@@ -34,7 +35,8 @@ class ValidacionInspeccionController extends Controller
             'observaciones' => ['nullable', 'string', 'max:2000'],
         ]);
         abort_unless(isset($detections[$data['indice_deteccion']]), 422, 'Detección no encontrada.');
-        ValidacionDeteccion::updateOrCreate(
+
+        $validacion = ValidacionDeteccion::updateOrCreate(
             ['id_evidencia' => $foto->id_evidencia, 'indice_deteccion' => $data['indice_deteccion']],
             [
                 'id_empresa' => $foto->id_empresa,
@@ -43,10 +45,20 @@ class ValidacionInspeccionController extends Controller
                 'observaciones' => $data['observaciones'] ?? null,
             ]
         );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Validación guardada.',
+                'confirmada' => $validacion->confirmada,
+                'evidencia_id' => $foto->id_evidencia,
+                'indice_deteccion' => (int) $data['indice_deteccion'],
+            ]);
+        }
         return back()->with('success', 'Validación guardada.');
     }
 
-    public function hallazgo(Request $request, int $inspeccion): RedirectResponse
+    public function hallazgo(Request $request, int $inspeccion): RedirectResponse|JsonResponse
     {
         $inspeccion = $this->find($inspeccion);
         InspeccionController::canOperate($inspeccion, $request);
@@ -58,7 +70,8 @@ class ValidacionInspeccionController extends Controller
         $evidenciaId = $data['id_evidencia'] ?? null;
         abort_if($evidenciaId && ! $inspeccion->evidencias->contains('id_evidencia', (int) $evidenciaId), 422,
             'La evidencia no pertenece a esta inspección.');
-        HallazgoManual::create([
+
+        $hallazgo = HallazgoManual::create([
             'id_empresa' => $inspeccion->id_empresa,
             'id_inspeccion' => $inspeccion->id_inspeccion,
             'id_evidencia' => $evidenciaId,
@@ -66,6 +79,19 @@ class ValidacionInspeccionController extends Controller
             'clase' => $data['clase'],
             'observaciones' => $data['observaciones'],
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Hallazgo manual registrado.',
+                'hallazgo' => [
+                    'id' => $hallazgo->id_hallazgo,
+                    'clase' => $hallazgo->clase,
+                    'observaciones' => $hallazgo->observaciones,
+                    'evidencia_id' => $hallazgo->id_evidencia,
+                ],
+            ], 201);
+        }
         return back()->with('success', 'Hallazgo manual registrado.');
     }
 
@@ -75,6 +101,7 @@ class ValidacionInspeccionController extends Controller
         InspeccionController::canOperate($inspeccion, $request);
         $data = $request->validate(['observaciones' => ['nullable', 'string', 'max:3000']]);
         abort_if($inspeccion->evidencias->isEmpty(), 422, 'Registra al menos una fotografía.');
+
         foreach ($inspeccion->evidencias as $foto) {
             $detecciones = $foto->estado_ia === 'COMPLETADO' ? ($foto->resultado_ia['detections'] ?? []) : [];
             if ($foto->estado_ia !== 'COMPLETADO' && $inspeccion->hallazgos->isEmpty()) {
@@ -84,6 +111,7 @@ class ValidacionInspeccionController extends Controller
                 return back()->with('error', 'Faltan detecciones IA por confirmar o descartar.');
             }
         }
+
         DB::transaction(function () use ($inspeccion, $data) {
             $inspeccion->update([
                 'estado' => 'VALIDADA',
@@ -92,10 +120,13 @@ class ValidacionInspeccionController extends Controller
             ]);
             $muestra = $inspeccion->muestreo;
             $muestra->update(['estado' => 'COMPLETADO']);
+            // Se mantiene el valor de base de datos por compatibilidad; la interfaz
+            // lo comunica claramente como pendiente de dictamen del supervisor.
             $muestra->lote()->update(['estado' => LoteEstado::PENDIENTE_VALIDACION]);
         });
+
         return redirect()->route('inspecciones.show', $inspeccion->id_inspeccion)
-            ->with('success', 'Inspección validada y enviada al supervisor.');
+            ->with('success', 'Inspección validada. Ahora está pendiente del dictamen del supervisor.');
     }
 
     private function find(int $id): Inspeccion
