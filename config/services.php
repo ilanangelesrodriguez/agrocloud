@@ -28,4 +28,8 @@ return [
         'ca_bundle' => env('CLOUDINARY_CA_BUNDLE'),
     ],
 
+    'agrocloud_ai' => [
+        'api_key' => env('AGROCLOUD_AI_API_KEY'),
+    ],
+
 ];

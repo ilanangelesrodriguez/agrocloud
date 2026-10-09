@@ -1,0 +1,52 @@
+<x-layouts.app title="Muestreos">
+    <div class="space-y-6">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"><x-ui.icon name="clipboard-list" class="h-5 w-5" /></div>
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Muestreos</h1>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Selecciona un lote y da seguimiento a sus muestras de inspección.</p>
+                </div>
+            </div>
+            @if(auth()->user()->hasPermission('muestreos.crear'))
+                <a href="{{ route('muestreos.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
+                    <x-ui.icon name="plus" class="h-4 w-4" /> Crear muestreo
+                </a>
+            @endif
+        </div>
+        @include('inspecciones._mensajes')
+        <x-ui.card>
+            <form method="GET" action="{{ route('muestreos.index') }}" class="flex flex-wrap items-end gap-3">
+                <div class="min-w-48 flex-1">
+                    <label for="buscar" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200">Buscar por código de lote</label>
+                    <input id="buscar" name="buscar" value="{{ request('buscar') }}" placeholder="Ej. LOTE-2026-001" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
+                </div>
+                <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="search" class="h-4 w-4" />Buscar</span></x-ui.button>
+            </form>
+        </x-ui.card>
+        <x-ui.card title="Muestreos registrados" description="Muestras vinculadas con lotes de tu empresa.">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-left text-sm dark:divide-slate-700">
+                    <thead class="text-xs uppercase text-slate-500 dark:text-slate-400"><tr>
+                        <th class="px-3 py-3">Muestreo</th><th class="px-3 py-3">Lote</th><th class="px-3 py-3">Productor</th><th class="px-3 py-3">Frutos</th><th class="px-3 py-3">Estado</th><th class="px-3 py-3">Acción</th>
+                    </tr></thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                        @forelse($muestreos as $m)
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                <td class="px-3 py-3 font-semibold text-slate-900 dark:text-slate-100">#{{ $m->id_muestreo }}</td>
+                                <td class="px-3 py-3">{{ $m->lote?->codigo_lote }}</td>
+                                <td class="px-3 py-3">{{ $m->lote?->productor?->nombre_razon_social ?? 'Sin productor' }}</td>
+                                <td class="px-3 py-3">{{ $m->tamano_muestra }}</td>
+                                <td class="px-3 py-3"><span class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"><span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>{{ str_replace('_', ' ', $m->estado) }}</span></td>
+                                <td class="px-3 py-3"><a href="{{ route('muestreos.show', $m->id_muestreo) }}" class="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline dark:text-brand-300">Ver detalle <x-ui.icon name="chevron-right" class="h-4 w-4" /></a></td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Todavía no hay muestreos. Crea el primero a partir de un lote existente.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4">{{ $muestreos->links() }}</div>
+        </x-ui.card>
+    </div>
+</x-layouts.app>

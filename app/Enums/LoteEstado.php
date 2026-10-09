@@ -10,6 +10,8 @@ enum LoteEstado: string
     case PENDIENTE_VALIDACION = 'PENDIENTE_VALIDACION';
     case VALIDADO = 'VALIDADO';
     case CLASIFICADO = 'CLASIFICADO';
+    case OBSERVADO = 'OBSERVADO';
+    case RECHAZADO = 'RECHAZADO';
 
     public function label(): string
     {
@@ -20,6 +22,8 @@ enum LoteEstado: string
             self::PENDIENTE_VALIDACION => 'Pendiente de validación',
             self::VALIDADO => 'Validado',
             self::CLASIFICADO => 'Clasificado',
+            self::OBSERVADO => 'Observado',
+            self::RECHAZADO => 'Rechazado',
         };
     }
 }
