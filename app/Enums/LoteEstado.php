@@ -19,7 +19,8 @@ enum LoteEstado: string
             self::RECIBIDO => 'Recibido',
             self::EN_MUESTREO => 'En muestreo',
             self::EN_INSPECCION => 'En inspección',
-            self::PENDIENTE_VALIDACION => 'Pendiente de validación',
+            // Se conserva el código existente por compatibilidad con lotes guardados.
+            self::PENDIENTE_VALIDACION => 'Pendiente de dictamen del supervisor',
             self::VALIDADO => 'Validado',
             self::CLASIFICADO => 'Clasificado',
             self::OBSERVADO => 'Observado',

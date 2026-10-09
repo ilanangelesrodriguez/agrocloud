@@ -6,6 +6,7 @@ use App\Models\EvidenciaInspeccion;
 use App\Models\Inspeccion;
 use App\Services\AgrocloudAiService;
 use App\Services\CloudinaryService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -17,20 +18,27 @@ class EvidenciaController extends Controller
     public function index(int $inspeccion): View
     {
         $inspeccion = Inspeccion::query()->forCurrentCompany()
-            ->with(['muestreo.lote', 'evidencias.validaciones'])->findOrFail($inspeccion);
+            ->with(['muestreo.lote', 'evidencias.validaciones'])
+            ->findOrFail($inspeccion);
+
         return view('inspecciones.evidencias', compact('inspeccion'));
     }
 
-    public function store(Request $request, int $inspeccion, CloudinaryService $cloudinary): RedirectResponse
+    public function store(Request $request, int $inspeccion, CloudinaryService $cloudinary): RedirectResponse|JsonResponse
     {
         $inspeccion = Inspeccion::query()->forCurrentCompany()->findOrFail($inspeccion);
         InspeccionController::canOperate($inspeccion, $request);
-        $request->validate(['foto' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']]);
+
+        // Menos de 4 MB, considerando también el cuerpo de la petición a FastAPI/Vercel.
+        // La interfaz comprime a ~2,5 MiB y el backend impone 3 MiB aun sin JavaScript.
+        $request->validate([
+            'foto' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
+        ]);
 
         $upload = null;
         try {
             $upload = $cloudinary->uploadImage($request->file('foto'), 'agrocloud/inspecciones');
-            EvidenciaInspeccion::create([
+            $foto = EvidenciaInspeccion::create([
                 'id_empresa' => $inspeccion->id_empresa,
                 'id_inspeccion' => $inspeccion->id_inspeccion,
                 'imagen_url' => $upload['url'],
@@ -39,10 +47,24 @@ class EvidenciaController extends Controller
             ]);
         } catch (Throwable $exception) {
             if ($upload) {
-                try { $cloudinary->deleteImage($upload['public_id']); } catch (Throwable $cleanupError) { report($cleanupError); }
+                try {
+                    $cloudinary->deleteImage($upload['public_id']);
+                } catch (Throwable $cleanupError) {
+                    report($cleanupError);
+                }
             }
             report($exception);
-            return back()->with('error', 'No se pudo guardar la evidencia. Revisa Cloudinary.');
+            return $this->error($request, 'No se pudo guardar la fotografía. Revisa el servicio de almacenamiento.', 502);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Fotografía guardada. Ya puedes analizarla con IA.',
+                'evidencia_id' => $foto->id_evidencia,
+                'evidencias_count' => $inspeccion->evidencias()->count(),
+                'html' => $this->renderCard($foto, $inspeccion),
+            ], 201);
         }
 
         return back()->with('success', 'Fotografía guardada correctamente.');
@@ -53,16 +75,33 @@ class EvidenciaController extends Controller
         int $inspeccion,
         int $evidencia,
         AgrocloudAiService $ai
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $inspeccion = Inspeccion::query()->forCurrentCompany()->findOrFail($inspeccion);
         InspeccionController::canOperate($inspeccion, $request);
+
         $foto = EvidenciaInspeccion::query()->forCurrentCompany()
-            ->where('id_inspeccion', $inspeccion->id_inspeccion)->findOrFail($evidencia);
-        abort_if($foto->estado_ia === 'PROCESANDO', 409, 'Esta fotografía ya está en proceso.');
+            ->where('id_inspeccion', $inspeccion->id_inspeccion)
+            ->findOrFail($evidencia);
+
         abort_if($foto->estado_ia === 'COMPLETADO', 422, 'Esta fotografía ya fue analizada.');
-        $foto->update(['estado_ia' => 'PROCESANDO', 'error_ia' => null]);
+
+        // Cambio atómico: bloquea análisis simultáneos de la misma fotografía.
+        // También permite recuperar un trabajo PROCESANDO atascado más de 4 minutos.
+        $claimed = EvidenciaInspeccion::query()->forCurrentCompany()
+            ->where('id_evidencia', $foto->id_evidencia)
+            ->where(function ($query) {
+                $query->whereIn('estado_ia', ['PENDIENTE', 'ERROR'])
+                    ->orWhere(function ($stale) {
+                        $stale->where('estado_ia', 'PROCESANDO')
+                            ->where('updated_at', '<', now()->subMinutes(4));
+                    });
+            })
+            ->update(['estado_ia' => 'PROCESANDO', 'error_ia' => null]);
+
+        abort_if($claimed !== 1, 409, 'Esta fotografía ya se está analizando. Espera a que termine.');
 
         try {
+            // Este método utiliza exclusivamente POST /api/v1/detect (multipart) en AgroCloud AI.
             $data = $ai->detectFromImageUrl($foto->imagen_url);
             $foto->update([
                 'estado_ia' => 'COMPLETADO',
@@ -72,11 +111,50 @@ class EvidenciaController extends Controller
                 'resultado_ia' => $data['detection_result'],
                 'error_ia' => null,
             ]);
-            return back()->with('success', 'Análisis IA completado. Revisa las detecciones.');
+            $message = 'Análisis IA completado. Confirma o descarta las detecciones en Validación.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'ok' => true,
+                    'message' => $message,
+                    'evidencia_id' => $foto->id_evidencia,
+                    'html' => $this->renderCard($foto, $inspeccion),
+                ]);
+            }
+
+            return back()->with('success', $message);
         } catch (Throwable $exception) {
-            Log::warning('Fallo análisis IA', ['evidencia' => $foto->id_evidencia, 'error' => $exception->getMessage()]);
-            $foto->update(['estado_ia' => 'ERROR', 'error_ia' => 'No fue posible analizar la imagen.']);
-            return back()->with('error', 'No se pudo analizar la fotografía. Puedes reintentar o registrar hallazgos manuales.');
+            Log::warning('Fallo análisis IA', [
+                'evidencia' => $foto->id_evidencia,
+                'error' => $exception->getMessage(),
+            ]);
+            $foto->update([
+                'estado_ia' => 'ERROR',
+                'error_ia' => 'No fue posible completar el análisis. Reintenta o registra hallazgos manuales.',
+            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'El servicio IA no pudo analizar la imagen. Puedes reintentar.',
+                    'detail' => $exception->getMessage(),
+                    'evidencia_id' => $foto->id_evidencia,
+                    'html' => $this->renderCard($foto, $inspeccion),
+                ], 502);
+            }
+            return back()->with('error', 'El servicio IA no pudo analizar la fotografía. Puedes reintentar o registrar hallazgos manuales.');
         }
+    }
+
+    private function renderCard(EvidenciaInspeccion $foto, Inspeccion $inspeccion): string
+    {
+        $foto->load('validaciones');
+        return view('inspecciones._evidencia', compact('foto', 'inspeccion'))->render();
+    }
+
+    private function error(Request $request, string $message, int $status): RedirectResponse|JsonResponse
+    {
+        return $request->expectsJson()
+            ? response()->json(['ok' => false, 'message' => $message], $status)
+            : back()->with('error', $message);
     }
 }
