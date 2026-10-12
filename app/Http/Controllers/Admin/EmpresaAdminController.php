@@ -19,7 +19,17 @@ use Throwable;
 
 class EmpresaAdminController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request)
+    {
+        if ($request->query()) {
+            $data = $request->validate(['q' => ['nullable', 'string', 'max:150'], 'estado' => ['nullable', 'in:0,1'], 'tipo' => ['nullable', 'string', 'max:80']]);
+            $request->session()->put('admin.empresas.filters', $data);
+            return redirect()->route('admin.empresas.index');
+        }
+        return view('admin.empresas.index');
+    }
+
+    public function listingData(Request $request): array
     {
         $empresas = $this->filteredQuery($request)
             ->withCount([
@@ -29,7 +39,7 @@ class EmpresaAdminController extends Controller
             ])
             ->orderBy('nombre_comercial')
             ->paginate(12)
-            ->withQueryString();
+            ;
 
         $tipos = Empresa::query()
             ->whereNotNull('tipo_empresa')
@@ -45,7 +55,7 @@ class EmpresaAdminController extends Controller
             'usuarios' => User::query()->whereNotNull('id_empresa')->count(),
         ];
 
-        return view('admin.empresas.index', compact('empresas', 'tipos', 'stats'));
+        return compact('empresas', 'tipos', 'stats');
     }
 
     public function create(): View
@@ -56,6 +66,7 @@ class EmpresaAdminController extends Controller
     public function store(StoreCompanyRequest $request, CloudinaryService $cloudinary): RedirectResponse
     {
         $data = $request->safe()->except(['logo']);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['tipo_empresa' => 'tipo_empresa', 'rubro' => 'rubro', 'grupo_empresarial' => 'grupo'], null, isset($empresa) ? $empresa->toArray() : []);
         $data['estado'] = $request->boolean('estado');
         $upload = null;
 
@@ -119,6 +130,7 @@ class EmpresaAdminController extends Controller
         CloudinaryService $cloudinary,
     ): RedirectResponse {
         $data = $request->safe()->except(['logo']);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['tipo_empresa' => 'tipo_empresa', 'rubro' => 'rubro', 'grupo_empresarial' => 'grupo'], null, isset($empresa) ? $empresa->toArray() : []);
         $data['estado'] = $request->boolean('estado');
         $oldPublicId = $empresa->logo_public_id;
         $upload = null;
@@ -217,6 +229,7 @@ class EmpresaAdminController extends Controller
 
     private function filteredQuery(Request $request): Builder
     {
+        if (!$request->query()) $request->query->add(session('admin.empresas.filters', []));
         $search = trim((string) $request->string('q'));
         $estado = $request->string('estado')->toString();
         $tipo = trim((string) $request->string('tipo'));

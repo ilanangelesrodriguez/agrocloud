@@ -9,12 +9,12 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('usuarios.update', $usuario) }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('usuarios.update', $usuario) }}" enctype="multipart/form-data" data-ajax-form>
             @csrf
             @method('PUT')
             @include('usuarios._form')
             <div class="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-end sm:px-6">
-                <a href="{{ route('usuarios.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</a>
+                <a href="{{ route('usuarios.index') }}" wire:navigate class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</a>
                 <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="save" class="h-4 w-4" />Guardar cambios</span></x-ui.button>
             </div>
         </form>

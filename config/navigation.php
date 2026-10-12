@@ -37,6 +37,11 @@ return [
         ],
 
         [
+            'section' => 'ADMINISTRACIÓN', 'label' => 'Maestros', 'route' => 'maestros.index',
+            'active' => 'maestros.*', 'icon' => 'clipboard-list', 'company_admin_or_superadmin' => true,
+        ],
+
+        [
             'section' => 'ADMINISTRACIÓN',
             'label' => 'Usuarios',
             'route' => RouteNames::USUARIOS,

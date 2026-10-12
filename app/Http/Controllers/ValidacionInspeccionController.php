@@ -71,6 +71,7 @@ class ValidacionInspeccionController extends Controller
         abort_if($evidenciaId && ! $inspeccion->evidencias->contains('id_evidencia', (int) $evidenciaId), 422,
             'La evidencia no pertenece a esta inspección.');
 
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['clase' => 'defecto'], $inspeccion->id_empresa);
         $hallazgo = HallazgoManual::create([
             'id_empresa' => $inspeccion->id_empresa,
             'id_inspeccion' => $inspeccion->id_inspeccion,

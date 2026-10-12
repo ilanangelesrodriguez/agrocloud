@@ -16,7 +16,7 @@
         </div>
         @include('inspecciones._mensajes')
         <x-ui.card title="Datos de la muestra" description="El tamaño debe responder al protocolo de muestreo aprobado por tu empresa.">
-            <form method="POST" action="{{ route('muestreos.store') }}" class="space-y-5">
+            <form data-ajax-form method="POST" action="{{ route('muestreos.store') }}" class="space-y-5">
                 @csrf
                 <div>
                     <label for="id_lote" class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Lote <span class="text-red-500">*</span></label>
@@ -35,12 +35,7 @@
                     </div>
                     <div>
                         <label for="metodo" class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Método de selección *</label>
-                        <select name="metodo" id="metodo" required class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
-                            <option value="">Selecciona el método</option>
-                            @foreach(['ALEATORIO' => 'Aleatorio', 'SISTEMATICO' => 'Sistemático', 'DIRIGIDO' => 'Dirigido', 'OTRO' => 'Otro'] as $code => $name)
-                                <option value="{{ $code }}" @selected(old('metodo') === $code)>{{ $name }}</option>
-                            @endforeach
-                        </select>
+                        <x-ui.master-select name="metodo" kind="metodo" required />
                     </div>
                 </div>
                 <div>
@@ -48,7 +43,7 @@
                     <textarea name="observaciones" id="observaciones" rows="3" maxlength="3000" placeholder="Condiciones de la muestra..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">{{ old('observaciones') }}</textarea>
                 </div>
                 <div class="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-5 dark:border-slate-700">
-                    <a href="{{ route('muestreos.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+                    <a wire:navigate href="{{ route('muestreos.index') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
                         Cancelar
                     </a>
                     <x-ui.button type="submit" :disabled="$lotes->isEmpty()">

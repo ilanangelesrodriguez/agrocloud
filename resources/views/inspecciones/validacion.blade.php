@@ -27,7 +27,7 @@
                 <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">El modelo v1 detecta orugas/saltamontes, pero no está validado específicamente para palta. Una predicción de IA no determina la calidad comercial del lote.</div>
                 @forelse($inspeccion->evidencias as $foto)
                     <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                        <div class="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-700 sm:px-5"><p class="font-semibold text-slate-900 dark:text-slate-100">Evidencia #{{ $foto->id_evidencia }}</p><span class="text-xs text-slate-500 dark:text-slate-400">{{ $foto->estado_ia === 'COMPLETADO' ? 'Analizada' : 'Pendiente o error IA' }}</span></div>
+                        <div class="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-700 sm:px-5"><p class="font-semibold text-slate-900 dark:text-slate-100">Evidencia #{{ $foto->id_evidencia }}</p><x-ui.state-badge :state="$foto->estado_ia" :label="$foto->estado_ia === 'COMPLETADO' ? 'Analizada' : null" /></div>
                         <div class="grid gap-4 p-4 sm:grid-cols-[minmax(0,210px)_minmax(0,1fr)] sm:p-5">
                             <div class="flex items-center justify-center rounded-xl bg-slate-100 p-2 dark:bg-slate-800"><img class="max-h-64 w-full object-contain" src="{{ $foto->imagen_detectada_url ?: $foto->imagen_url }}" alt="Resultado visual de evidencia {{ $foto->id_evidencia }}" loading="lazy"></div>
                             <div class="min-w-0 space-y-3">
@@ -74,7 +74,7 @@
                     @if($editable)
                         <form data-hallazgo-form method="POST" action="{{ route('inspecciones.hallazgos.store', $inspeccion->id_inspeccion) }}" class="mt-4 space-y-3">
                             @csrf
-                            <div><label for="clase" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Clase o hallazgo *</label><input id="clase" name="clase" required maxlength="150" placeholder="Ej. Daño visual en fruto" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"></div>
+                            <div><label for="clase" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Clase o hallazgo *</label><x-ui.master-select name="clase" kind="defecto" required /></div>
                             <div><label for="id_evidencia" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Fotografía asociada</label><select id="id_evidencia" name="id_evidencia" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"><option value="">Hallazgo general</option>@foreach($inspeccion->evidencias as $foto)<option value="{{ $foto->id_evidencia }}">Evidencia #{{ $foto->id_evidencia }}</option>@endforeach</select></div>
                             <div><label for="observaciones-manuales" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Justificación *</label><textarea id="observaciones-manuales" name="observaciones" rows="3" required maxlength="2000" placeholder="Describe lo observado" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"></textarea></div>
                             <button type="submit" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200">+ Agregar hallazgo</button>
@@ -83,7 +83,7 @@
                 </x-ui.card>
                 @if($editable)
                     <x-ui.card title="Cerrar inspección" description="Finaliza la validación y envía el expediente al supervisor; aquí no se aprueba ni rechaza el lote.">
-                        <form method="POST" action="{{ route('inspecciones.finalizar', $inspeccion->id_inspeccion) }}" class="space-y-3">
+                        <form data-ajax-form method="POST" action="{{ route('inspecciones.finalizar', $inspeccion->id_inspeccion) }}" class="space-y-3">
                             @csrf
                             <p class="text-xs text-slate-500 dark:text-slate-400">Revisa todas las detecciones y los análisis pendientes antes de continuar.</p>
                             <label for="obs-final" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">Observaciones finales</label>
@@ -92,7 +92,7 @@
                         </form>
                     </x-ui.card>
                 @else
-                    <x-ui.card title="Inspección cerrada" description="Este expediente está validado. La decisión final pertenece al supervisor."><a class="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 dark:text-brand-300" href="{{ route('inspecciones.show', $inspeccion->id_inspeccion) }}">Ver resumen de inspección <x-ui.icon name="chevron-right" class="h-4 w-4" /></a></x-ui.card>
+                    <x-ui.card title="Inspección cerrada" description="Este expediente está validado. La decisión final pertenece al supervisor."><a wire:navigate class="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 dark:text-brand-300" href="{{ route('inspecciones.show', $inspeccion->id_inspeccion) }}">Ver resumen de inspección <x-ui.icon name="chevron-right" class="h-4 w-4" /></a></x-ui.card>
                 @endif
             </aside>
         </div>

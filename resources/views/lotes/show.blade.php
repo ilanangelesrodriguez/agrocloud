@@ -5,7 +5,7 @@
         @if(auth()->user()->hasPermission('muestreos.crear'))
             <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-900 dark:bg-brand-900/25">
                 <div><p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Control de calidad</p><p class="mt-1 text-xs text-slate-600 dark:text-slate-300">Crea una muestra sobre este lote y continúa con la inspección.</p></div>
-                <a href="{{ route('muestreos.create', ['lote' => $lote->id_lote]) }}" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">+ Crear muestreo</a>
+                <a wire:navigate href="{{ route('muestreos.create', ['lote' => $lote->id_lote]) }}" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">+ Crear muestreo</a>
             </div>
         @endif
 
@@ -13,7 +13,7 @@
         <div class="flex flex-col gap-3">
 
             <div>
-                <a
+                <a wire:navigate
                     href="{{ route('lotes.index') }}"
                     class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-brand-700 dark:hover:text-brand-300"
                 >
@@ -40,7 +40,7 @@
 
                 @if (auth()->user()->hasPermission('lotes.editar'))
 
-                    <a
+                    <a wire:navigate
                         href="{{ route('lotes.edit', $lote->id_lote) }}"
                         class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200 dark:focus:ring-brand-900/50"
                     >
@@ -59,13 +59,6 @@
         </div>
 
         {{-- Mensaje de éxito --}}
-        @if (session('success'))
-
-            <x-ui.alert type="success">
-                {{ session('success') }}
-            </x-ui.alert>
-
-        @endif
 
         {{-- Información principal --}}
         <x-ui.card
@@ -103,9 +96,7 @@
 
                     <div class="mt-1">
 
-                        <span class="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                            {{ $estado }}
-                        </span>
+                        <x-ui.state-badge :state="$estado" />
 
                     </div>
 
@@ -236,7 +227,7 @@
 
                     @if (auth()->user()->hasPermission('productores.ver'))
 
-                        <a
+                        <a wire:navigate
                             href="{{ route('productores.show', $lote->productor->id_productor) }}"
                             class="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300 transition hover:text-brand-800 dark:hover:text-brand-200"
                         >
@@ -334,7 +325,7 @@
         {{-- Acciones --}}
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
 
-            <a
+            <a wire:navigate
                 href="{{ route('lotes.index') }}"
                 class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-700"
             >
@@ -343,7 +334,7 @@
 
             @if (auth()->user()->hasPermission('lotes.editar'))
 
-                <a
+                <a wire:navigate
                     href="{{ route('lotes.edit', $lote->id_lote) }}"
                     class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200 dark:focus:ring-brand-900/50"
                 >

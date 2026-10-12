@@ -15,10 +15,7 @@ class CalidadController extends Controller
 {
     public function index(): View
     {
-        $inspecciones = Inspeccion::query()->forCurrentCompany()
-            ->where('estado', 'VALIDADA')->whereDoesntHave('dictamen')
-            ->with('muestreo.lote')->latest('id_inspeccion')->paginate(12);
-        return view('calidad.index', compact('inspecciones'));
+        return view('calidad.index');
     }
 
     public function show(int $inspeccion): View
@@ -34,9 +31,12 @@ class CalidadController extends Controller
         abort_unless($request->user()->rol?->codigo === 'SUPERVISOR', 403);
         $data = $request->validate([
             'decision' => ['required', Rule::in(['APROBADO', 'OBSERVADO', 'RECHAZADO'])],
+            'motivo' => ['nullable', 'string', 'max:200'],
             'categoria' => ['nullable', 'string', 'max:100'],
             'observaciones' => ['required', 'string', 'max:3000'],
         ]);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['categoria' => 'categoria', 'motivo' => 'motivo'], $request->user()->id_empresa);
+        if ($data['decision'] === 'APROBADO') $data['motivo'] = null;
         DB::transaction(function () use ($request, $inspeccion, $data) {
             $inspection = Inspeccion::query()->forCurrentCompany()->lockForUpdate()->findOrFail($inspeccion);
             abort_unless($inspection->estado === 'VALIDADA', 422, 'La inspección no ha sido validada.');

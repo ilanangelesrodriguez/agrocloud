@@ -77,6 +77,10 @@ class ProductorController extends Controller
                 'max:150',
             ],
 
+            'departamento' => ['nullable', 'string', 'max:100'],
+            'provincia' => ['nullable', 'string', 'max:100'],
+            'distrito' => ['nullable', 'string', 'max:100'],
+            'ubigeo' => ['nullable', 'digits:6'],
             'ubicacion' => [
                 'nullable',
                 'string',
@@ -128,6 +132,7 @@ class ProductorController extends Controller
         |
         */
 
+        $validated = app(\App\Services\UbigeoService::class)->normalize($validated);
         Productor::create($validated);
 
         return redirect()
@@ -216,6 +221,10 @@ class ProductorController extends Controller
                 'max:150',
             ],
 
+            'departamento' => ['nullable', 'string', 'max:100'],
+            'provincia' => ['nullable', 'string', 'max:100'],
+            'distrito' => ['nullable', 'string', 'max:100'],
+            'ubigeo' => ['nullable', 'digits:6'],
             'ubicacion' => [
                 'nullable',
                 'string',
@@ -262,6 +271,7 @@ class ProductorController extends Controller
                 ]);
         }
 
+        $validated = app(\App\Services\UbigeoService::class)->normalize($validated);
         $productorModel->update($validated);
 
         return redirect()

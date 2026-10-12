@@ -26,6 +26,7 @@ class Lote extends Model
         'producto',
         'variedad',
         'peso_kg',
+        'unidad_medida',
         'fecha_recepcion',
         'estado',
     ];

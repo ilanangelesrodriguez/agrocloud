@@ -14,11 +14,7 @@ class InspeccionController extends Controller
 {
     public function index(): View
     {
-        $inspecciones = Inspeccion::query()->forCurrentCompany()
-            ->with(['muestreo.lote', 'inspector'])->withCount('evidencias')
-            ->latest('id_inspeccion')->paginate(12);
-
-        return view('inspecciones.index', compact('inspecciones'));
+        return view('inspecciones.index');
     }
 
     public function store(Request $request, int $muestreo): RedirectResponse

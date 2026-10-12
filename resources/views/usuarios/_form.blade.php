@@ -21,11 +21,7 @@
                 <x-ui.input name="apellido" label="Apellido *" :value="$editing ? $usuario->apellido : null" placeholder="Ej. Pérez García" autocomplete="family-name" required />
                 <x-ui.input name="correo" label="Correo *" type="email" :value="$editing ? $usuario->correo : null" placeholder="Ej. juan.perez@empresa.pe" autocomplete="email" required />
                 <x-ui.input name="telefono" label="Teléfono" type="tel" :value="$editing ? $usuario->telefono : null" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" pattern="^\+?[0-9][0-9\s().-]*$" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
-                <x-ui.select name="cargo" label="Cargo" :value="$cargoActual" placeholder="Selecciona un cargo">
-                    @foreach (config('agrocloud.cargos', []) as $value => $label)
-                        <option value="{{ $value }}" @selected($cargoActual === $value)>{{ $label }}</option>
-                    @endforeach
-                </x-ui.select>
+                <x-ui.master-select name="cargo" kind="cargo" label="Cargo" :value="$cargoActual" :company-id="$editing ? $usuario->id_empresa : ($empresa->id_empresa ?? auth()->user()->id_empresa)" />
             </div>
         </section>
 
@@ -89,7 +85,7 @@
             <h3 id="user-status-title" class="text-base font-semibold text-slate-900 dark:text-slate-100">Estado de la cuenta</h3>
             @if ($isSelf)
                 <input type="hidden" name="estado" value="1">
-                <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">Tu propia cuenta se mantiene activa desde esta pantalla. Para tus datos personales usa también <a href="{{ route('perfil.edit') }}" class="font-semibold text-brand-700 dark:text-brand-300">Mi perfil</a>.</p>
+                <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">Tu propia cuenta se mantiene activa desde esta pantalla. Para tus datos personales usa también <a href="{{ route('perfil.edit') }}" wire:navigate class="font-semibold text-brand-700 dark:text-brand-300">Mi perfil</a>.</p>
             @else
                 <label class="mt-3 flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 dark:bg-slate-800 p-3.5">
                     <input type="hidden" name="estado" value="0">

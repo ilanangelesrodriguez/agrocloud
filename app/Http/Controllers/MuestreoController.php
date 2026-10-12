@@ -40,10 +40,11 @@ class MuestreoController extends Controller
         $data = $request->validate([
             'id_lote' => ['required', 'integer', Rule::exists('lote', 'id_lote')->where('id_empresa', $empresaId)],
             'tamano_muestra' => ['required', 'integer', 'min:1', 'max:100000'],
-            'metodo' => ['required', Rule::in(['ALEATORIO', 'SISTEMATICO', 'DIRIGIDO', 'OTRO'])],
+            'metodo' => ['required', 'string', 'max:80'],
             'observaciones' => ['nullable', 'string', 'max:3000'],
         ]);
 
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['metodo' => 'metodo'], $empresaId);
         $muestreo = DB::transaction(function () use ($data, $empresaId, $request) {
             $lote = Lote::query()->forCurrentCompany()->lockForUpdate()->findOrFail($data['id_lote']);
             abort_if(in_array($lote->estado->value, ['CLASIFICADO', 'RECHAZADO'], true), 422, 'Este lote no admite muestreos nuevos.');

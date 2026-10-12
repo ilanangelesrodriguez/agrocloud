@@ -6,7 +6,7 @@
         <div class="flex flex-col gap-3">
 
             <div>
-                <a
+                <a wire:navigate
                     href="{{ route('lotes.show', $lote->id_lote) }}"
                     class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-brand-700 dark:hover:text-brand-300"
                 >
@@ -58,7 +58,7 @@
             description="Modifica los datos que necesites actualizar."
         >
 
-            <form
+            <form data-ajax-form
                 method="POST"
                 action="{{ route('lotes.update', $lote->id_lote) }}"
                 class="space-y-6"
@@ -164,16 +164,7 @@
                             <span class="text-red-500">*</span>
                         </label>
 
-                        <input
-                            id="producto"
-                            name="producto"
-                            type="text"
-                            maxlength="150"
-                            value="{{ old('producto', $lote->producto) }}"
-                            placeholder="Ej. Arándano"
-                            required
-                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('producto') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
-                        >
+                        <x-ui.master-select name="producto" kind="producto" :value="$lote->producto" required />
 
                         @error('producto')
                             <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
@@ -193,15 +184,7 @@
                             Variedad
                         </label>
 
-                        <input
-                            id="variedad"
-                            name="variedad"
-                            type="text"
-                            maxlength="150"
-                            value="{{ old('variedad', $lote->variedad) }}"
-                            placeholder="Ej. Hass, Kent, Red Globe..."
-                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('variedad') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
-                        >
+                        <x-ui.master-select name="variedad" kind="variedad" :value="$lote->variedad" />
 
                         @error('variedad')
                             <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
@@ -218,7 +201,7 @@
                             for="peso_kg"
                             class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
-                            Peso recibido (kg)
+                            Peso recibido
                             <span class="text-red-500">*</span>
                         </label>
 
@@ -228,7 +211,7 @@
                             type="number"
                             min="0"
                             step="0.01"
-                            value="{{ old('peso_kg', $lote->peso_kg) }}"
+                            value="{{ old('peso_kg', (float) $lote->peso_kg / app(\App\Services\MaestroCatalog::class)->weightFactor($lote->unidad_medida)) }}"
                             placeholder="Ej. 1250.50"
                             required
                             class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('peso_kg') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
@@ -326,13 +309,15 @@
 
                 </div>
 
+                <x-ui.master-select name="unidad_medida" kind="unidad" label="Unidad de peso *" :value="$lote->unidad_medida" required weight-only />
+                <p class="text-xs text-slate-500 dark:text-slate-400">El peso se convierte automáticamente a kilogramos para los reportes.</p>
                 {{-- Separador --}}
                 <div class="border-t border-slate-100 dark:border-slate-700"></div>
 
                 {{-- Acciones --}}
                 <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
 
-                    <a
+                    <a wire:navigate
                         href="{{ route('lotes.show', $lote->id_lote) }}"
                         class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-700"
                     >

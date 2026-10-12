@@ -13,7 +13,7 @@
                 <h1 class="mt-3 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 sm:text-2xl">Captura de evidencias y análisis IA</h1>
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Inspección #{{ $inspeccion->id_inspeccion }} · Lote {{ $inspeccion->muestreo?->lote?->codigo_lote }} · {{ $inspeccion->muestreo?->tamano_muestra }} frutos seleccionados</p>
             </div>
-            <a href="{{ route('inspecciones.validacion', $inspeccion->id_inspeccion) }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700">
+            <a wire:navigate href="{{ route('inspecciones.validacion', $inspeccion->id_inspeccion) }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700">
                 Ir a validación <x-ui.icon name="chevron-right" class="h-4 w-4" />
             </a>
         </div>

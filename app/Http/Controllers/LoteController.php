@@ -94,6 +94,7 @@ class LoteController extends Controller
                 'max:150',
             ],
 
+            'unidad_medida' => ['nullable', 'string', 'max:40'],
             'peso_kg' => [
                 'required',
                 'numeric',
@@ -127,12 +128,18 @@ class LoteController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $data['variedad'] = $data['variedad'] ?? null;
+        $data['unidad_medida'] = $data['unidad_medida'] ?? 'Kilogramo';
+        $catalog = app(\App\Services\MaestroCatalog::class);
+        $data = $catalog->validate($data, ['producto' => 'producto', 'variedad' => 'variedad', 'unidad_medida' => 'unidad'], auth()->user()->id_empresa);
+        $data['peso_kg'] = $catalog->pesoKg((float) $data['peso_kg'], $data['unidad_medida']);
         Lote::create([
             'id_productor' => $productor->id_productor,
             'codigo_lote' => $data['codigo_lote'],
             'producto' => $data['producto'],
             'variedad' => $data['variedad'] ?? null,
             'peso_kg' => $data['peso_kg'],
+            'unidad_medida' => $data['unidad_medida'],
             'fecha_recepcion' => $data['fecha_recepcion'],
             'estado' => $data['estado'],
         ]);
@@ -226,6 +233,7 @@ class LoteController extends Controller
                 'max:150',
             ],
 
+            'unidad_medida' => ['nullable', 'string', 'max:40'],
             'peso_kg' => [
                 'required',
                 'numeric',
@@ -259,12 +267,18 @@ class LoteController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $data['variedad'] = $data['variedad'] ?? null;
+        $data['unidad_medida'] = $data['unidad_medida'] ?? 'Kilogramo';
+        $catalog = app(\App\Services\MaestroCatalog::class);
+        $data = $catalog->validate($data, ['producto' => 'producto', 'variedad' => 'variedad', 'unidad_medida' => 'unidad'], auth()->user()->id_empresa, $loteModel->toArray());
+        $data['peso_kg'] = $catalog->pesoKg((float) $data['peso_kg'], $data['unidad_medida']);
         $loteModel->update([
             'id_productor' => $productor->id_productor,
             'codigo_lote' => $data['codigo_lote'],
             'producto' => $data['producto'],
             'variedad' => $data['variedad'] ?? null,
             'peso_kg' => $data['peso_kg'],
+            'unidad_medida' => $data['unidad_medida'],
             'fecha_recepcion' => $data['fecha_recepcion'],
             'estado' => $data['estado'],
         ]);

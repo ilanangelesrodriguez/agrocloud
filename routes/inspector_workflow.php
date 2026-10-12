@@ -5,11 +5,12 @@ use App\Http\Controllers\EvidenciaController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\MuestreoController;
 use App\Http\Controllers\ValidacionInspeccionController;
+use App\Livewire\MuestreosIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active', \App\Http\Middleware\EnsureCompanyOperator::class])->group(function () {
     Route::prefix('muestreos')->name('muestreos.')->group(function () {
-        Route::get('/', [MuestreoController::class, 'index'])->middleware('permission:muestreos.ver')->name('index');
+        Route::get('/', MuestreosIndex::class)->middleware('permission:muestreos.ver')->name('index');
         Route::get('/crear', [MuestreoController::class, 'create'])->middleware('permission:muestreos.crear')->name('create');
         Route::post('/', [MuestreoController::class, 'store'])->middleware('permission:muestreos.crear')->name('store');
         Route::get('/{muestreo}', [MuestreoController::class, 'show'])->middleware('permission:muestreos.ver')->name('show');

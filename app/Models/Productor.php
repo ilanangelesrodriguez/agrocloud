@@ -20,6 +20,10 @@ class Productor extends \Illuminate\Database\Eloquent\Model
         'nombre_razon_social',
         'fundo',
         'ubicacion',
+        'departamento',
+        'provincia',
+        'distrito',
+        'ubigeo',
     ];
 
     /**

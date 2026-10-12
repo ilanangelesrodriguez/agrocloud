@@ -9,7 +9,7 @@
                 </div>
             </div>
             @if(auth()->user()->hasPermission('muestreos.crear'))
-                <a href="{{ route('muestreos.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
+                <a wire:navigate href="{{ route('muestreos.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
                     <x-ui.icon name="plus" class="h-4 w-4" /> Crear muestreo
                 </a>
             @endif
@@ -19,7 +19,7 @@
             <form method="GET" action="{{ route('muestreos.index') }}" class="flex flex-wrap items-end gap-3">
                 <div class="min-w-48 flex-1">
                     <label for="buscar" class="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200">Buscar por código de lote</label>
-                    <input id="buscar" name="buscar" value="{{ request('buscar') }}" placeholder="Ej. LOTE-2026-001" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
+                    <input data-search-input id="buscar" name="buscar" value="{{ request('buscar') }}" placeholder="Ej. LOTE-2026-001" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
                 </div>
                 <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="search" class="h-4 w-4" />Buscar</span></x-ui.button>
             </form>
@@ -37,8 +37,8 @@
                                 <td class="px-3 py-3">{{ $m->lote?->codigo_lote }}</td>
                                 <td class="px-3 py-3">{{ $m->lote?->productor?->nombre_razon_social ?? 'Sin productor' }}</td>
                                 <td class="px-3 py-3">{{ $m->tamano_muestra }}</td>
-                                <td class="px-3 py-3"><span class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"><span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>{{ str_replace('_', ' ', $m->estado) }}</span></td>
-                                <td class="px-3 py-3"><a href="{{ route('muestreos.show', $m->id_muestreo) }}" class="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline dark:text-brand-300">Ver detalle <x-ui.icon name="chevron-right" class="h-4 w-4" /></a></td>
+                                <td class="px-3 py-3"><x-ui.state-badge :state="$m->estado" /></td>
+                                <td class="px-3 py-3"><a wire:navigate href="{{ route('muestreos.show', $m->id_muestreo) }}" class="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline dark:text-brand-300">Ver detalle <x-ui.icon name="chevron-right" class="h-4 w-4" /></a></td>
                             </tr>
                         @empty
                             <tr><td colspan="6" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Todavía no hay muestreos. Crea el primero a partir de un lote existente.</td></tr>
