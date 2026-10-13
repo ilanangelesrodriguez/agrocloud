@@ -33,10 +33,14 @@ function applyTheme(preference = getPreference()) {
     document.documentElement.dataset.theme = resolved;
 
     document.querySelectorAll('[data-theme-switch]').forEach((button) => {
-        button.setAttribute('aria-checked', String(resolved === 'dark'));
+        button.setAttribute('aria-pressed', String(resolved === 'dark'));
+        button.setAttribute('aria-label', resolved === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro');
         button.title = resolved === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro';
         button.disabled = saving;
         button.setAttribute('aria-busy', String(saving));
+    });
+    document.querySelectorAll('[data-theme-action-label]').forEach((label) => {
+        label.textContent = resolved === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro';
     });
 
     const current = document.querySelector('[data-theme-current]');

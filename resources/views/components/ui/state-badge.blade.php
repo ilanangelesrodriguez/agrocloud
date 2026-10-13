@@ -4,7 +4,7 @@
     $tone = match ($code) {
         'ACTIVO', 'ACTIVA', 'VALIDADO', 'VALIDADA', 'CLASIFICADO', 'APROBADO', 'COMPLETADO', 'CONFIRMADA' => 'success',
         'EN_MUESTREO', 'EN_INSPECCION', 'EN_CAPTURA', 'PROCESANDO' => 'progress',
-        'PENDIENTE', 'PENDIENTE_VALIDACION', 'OBSERVADO', 'SIN_VALIDAR' => 'warning',
+        'PENDIENTE', 'PENDIENTE_VALIDACION', 'PENDIENTE_DICTAMEN', 'OBSERVADO', 'SIN_VALIDAR' => 'warning',
         'RECHAZADO', 'ERROR', 'DESCARTADA' => 'danger',
         default => 'neutral',
     };
@@ -18,6 +18,7 @@
     $text = $label ?? match ($code) {
         'EN_MUESTREO' => 'En muestreo', 'EN_INSPECCION' => 'En inspección',
         'EN_CAPTURA' => 'En captura', 'PENDIENTE_VALIDACION' => 'Pendiente de dictamen',
+        'PENDIENTE_DICTAMEN' => 'Pendiente de dictamen',
         'SIN_VALIDAR' => 'Sin validar',
         default => ucfirst(mb_strtolower(str_replace('_', ' ', $code ?: 'Sin estado'))),
     };

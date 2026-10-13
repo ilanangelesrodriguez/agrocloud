@@ -29,9 +29,17 @@ class EvidenciaController extends Controller
         $inspeccion = Inspeccion::query()->forCurrentCompany()->findOrFail($inspeccion);
         InspeccionController::canOperate($inspeccion, $request);
 
+        if ($request->filled('numero_fruto')) {
+            $request->validate(['numero_fruto' => 'integer|min:1|max:100000']);
+            $fruto = $inspeccion->muestreo->frutos()->where('numero', $request->integer('numero_fruto'))->first();
+            if (!$fruto) throw \Illuminate\Validation\ValidationException::withMessages(['numero_fruto' => 'El fruto no pertenece a este muestreo.']);
+            $request->merge(['id_fruto' => $fruto->id]);
+        }
+
         // Menos de 4 MB, considerando también el cuerpo de la petición a FastAPI/Vercel.
         // La interfaz comprime a ~2,5 MiB y el backend impone 3 MiB aun sin JavaScript.
         $request->validate([
+            'id_fruto' => [$inspeccion->muestreo->frutos()->exists() ? 'required' : 'nullable', 'integer', \Illuminate\Validation\Rule::exists('frutos_muestra', 'id')->where('id_empresa', $inspeccion->id_empresa)->where('id_muestreo', $inspeccion->id_muestreo)],
             'foto' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
         ]);
 
@@ -41,6 +49,7 @@ class EvidenciaController extends Controller
             $foto = EvidenciaInspeccion::create([
                 'id_empresa' => $inspeccion->id_empresa,
                 'id_inspeccion' => $inspeccion->id_inspeccion,
+                'id_fruto' => $request->input('id_fruto'),
                 'imagen_url' => $upload['url'],
                 'imagen_public_id' => $upload['public_id'],
                 'estado_ia' => 'PENDIENTE',
@@ -99,6 +108,8 @@ class EvidenciaController extends Controller
             ->update(['estado_ia' => 'PROCESANDO', 'error_ia' => null]);
 
         abort_if($claimed !== 1, 409, 'Esta fotografía ya se está analizando. Espera a que termine.');
+        app(\App\Observers\OperationalObserver::class)->record($foto, 'ANALISIS_SOLICITADO', ['estado_ia' => ['antes' => $foto->estado_ia, 'despues' => 'PROCESANDO']]);
+        $foto->refresh();
 
         try {
             // Este método utiliza exclusivamente POST /api/v1/detect (multipart) en AgroCloud AI.

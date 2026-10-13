@@ -32,7 +32,7 @@ class MaestrosTest extends TestCase
     {
         $admin = $this->account();
         $this->actingAs($admin)->postJson(route('maestros.store', 'producto'), ['nombre' => 'Café'])->assertForbidden();
-        $this->get(route('maestros.show', 'producto'))->assertOk()->assertSee('Consulta de solo lectura');
+        $this->get(route('maestros.show', 'producto'))->assertOk()->assertSee('Solo lectura')->assertDontSee('Acciones');
         $root = $this->account('SUPERADMIN');
         $this->actingAs($root)->postJson(route('maestros.store', 'producto'), ['nombre' => 'Café'])->assertRedirect();
         $this->assertDatabaseHas('maestro_valores', ['tipo' => 'producto', 'nombre' => 'Café', 'id_empresa' => null]);

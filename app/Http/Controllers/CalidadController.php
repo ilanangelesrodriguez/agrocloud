@@ -51,8 +51,10 @@ class CalidadController extends Controller
                 ...$data,
             ]);
             if ($data['decision'] === 'APROBADO') {
+                $muestra->update(['estado' => 'COMPLETADO']);
                 $lote->update(['estado' => LoteEstado::CLASIFICADO]);
             } elseif ($data['decision'] === 'RECHAZADO') {
+                $muestra->update(['estado' => 'COMPLETADO']);
                 $lote->update(['estado' => LoteEstado::RECHAZADO]);
             } else {
                 $lote->update(['estado' => LoteEstado::OBSERVADO]);

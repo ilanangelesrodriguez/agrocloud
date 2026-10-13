@@ -1,8 +1,9 @@
 <x-layouts.app title="Detalle del lote">
 
     <div class="space-y-6">
+        @if(auth()->user()->hasPermission('trazabilidad.ver'))<a wire:navigate href="{{ route('trazabilidad.show', $lote->id_lote) }}" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-700"><x-ui.icon name="clipboard-list" class="h-4 w-4" />Ver expediente e historial de trazabilidad</a>@endif
         {{-- AGROCLOUD INSPECTOR: acceso directo al muestreo --}}
-        @if(auth()->user()->hasPermission('muestreos.crear'))
+        @if(auth()->user()->hasPermission('muestreos.crear') && $lote->recepcion()->exists() && $lote->estado->value === 'RECIBIDO')
             <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-900 dark:bg-brand-900/25">
                 <div><p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Control de calidad</p><p class="mt-1 text-xs text-slate-600 dark:text-slate-300">Crea una muestra sobre este lote y continúa con la inspección.</p></div>
                 <a wire:navigate href="{{ route('muestreos.create', ['lote' => $lote->id_lote]) }}" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">+ Crear muestreo</a>
@@ -38,7 +39,7 @@
                     </p>
                 </div>
 
-                @if (auth()->user()->hasPermission('lotes.editar'))
+                @if (auth()->user()->hasPermission('lotes.editar') && !$lote->recepcion()->exists() && !$lote->muestreos()->exists())
 
                     <a wire:navigate
                         href="{{ route('lotes.edit', $lote->id_lote) }}"
@@ -332,7 +333,7 @@
                 Regresar a lotes
             </a>
 
-            @if (auth()->user()->hasPermission('lotes.editar'))
+            @if (auth()->user()->hasPermission('lotes.editar') && !$lote->recepcion()->exists() && !$lote->muestreos()->exists())
 
                 <a wire:navigate
                     href="{{ route('lotes.edit', $lote->id_lote) }}"

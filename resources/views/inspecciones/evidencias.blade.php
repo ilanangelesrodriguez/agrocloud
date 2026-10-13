@@ -30,6 +30,10 @@
                     <x-ui.card title="Añadir fotografía" description="Selecciona una imagen, revisa la vista previa y guárdala. Después podrás solicitar el análisis con IA.">
                         <form data-upload-form action="{{ route('inspecciones.evidencias.store', $inspeccion->id_inspeccion) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                             @csrf
+                            @if($inspeccion->muestreo->frutos()->exists())
+                                <label class="block text-sm font-semibold">Número del fruto (1 a {{ $inspeccion->muestreo->tamano_muestra }})<input type="number" name="numero_fruto" min="1" max="{{ $inspeccion->muestreo->tamano_muestra }}" required class="mt-2 w-full rounded-xl border border-slate-300 bg-transparent p-2.5"></label>
+                                <p class="text-xs text-slate-500">Etiqueta cada fruto como M{{ $inspeccion->id_muestreo }}-F00001, M{{ $inspeccion->id_muestreo }}-F00002… Una o más fotos por fruto; conserva su número en las reinspecciones.</p>
+                            @else<p class="text-xs text-amber-700">Muestreo histórico: las fotografías anteriores no tienen identificación individual.</p>@endif
                             <div class="space-y-2">
                                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="foto">Imagen del fruto</label>
                                 <input id="foto" name="foto" type="file" accept="image/jpeg,image/png,image/webp" required data-file-input class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 file:mr-2 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-brand-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:file:bg-brand-900/30 dark:file:text-brand-300">

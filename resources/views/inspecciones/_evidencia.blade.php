@@ -12,6 +12,7 @@
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-700 sm:px-5">
         <div>
             <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Evidencia #{{ $foto->id_evidencia }}</p>
+            <p class="text-xs font-mono text-brand-700">{{ $foto->fruto?->codigo ?? 'Evidencia histórica sin fruto individual' }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-400">{{ $foto->created_at?->format('d/m/Y H:i') }}</p>
         </div>
         <x-ui.state-badge :state="$foto->estado_ia" :label="match ($foto->estado_ia) { 'COMPLETADO' => 'Analizada', 'PROCESANDO' => 'Procesando', 'ERROR' => 'Error IA', default => 'Pendiente de IA' }" />

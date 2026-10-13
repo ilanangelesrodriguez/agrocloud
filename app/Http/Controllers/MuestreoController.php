@@ -27,6 +27,7 @@ class MuestreoController extends Controller
     public function create(Request $request): View
     {
         $lotes = Lote::query()->forCurrentCompany()->with('productor')
+            ->whereHas('recepcion')
             ->whereNotIn('estado', ['CLASIFICADO', 'RECHAZADO'])
             ->orderByDesc('id_lote')->get();
         $loteSeleccionado = $request->integer('lote');
@@ -36,6 +37,7 @@ class MuestreoController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        abort_unless($request->user()->rol?->codigo === 'INSPECTOR', 403);
         $empresaId = (int) $request->user()->id_empresa;
         $data = $request->validate([
             'id_lote' => ['required', 'integer', Rule::exists('lote', 'id_lote')->where('id_empresa', $empresaId)],
@@ -47,13 +49,22 @@ class MuestreoController extends Controller
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['metodo' => 'metodo'], $empresaId);
         $muestreo = DB::transaction(function () use ($data, $empresaId, $request) {
             $lote = Lote::query()->forCurrentCompany()->lockForUpdate()->findOrFail($data['id_lote']);
-            abort_if(in_array($lote->estado->value, ['CLASIFICADO', 'RECHAZADO'], true), 422, 'Este lote no admite muestreos nuevos.');
+            abort_if(!$lote->recepcion()->exists(), 422, 'Confirma la recepción del lote antes de crear el muestreo.');
+            abort_if($lote->estado->value !== 'RECIBIDO', 422, 'Este lote ya inició su muestreo. Las reinspecciones se solicitan desde el dictamen.');
             $muestreo = Muestreo::create([
                 ...$data,
                 'id_empresa' => $empresaId,
                 'id_inspector' => $request->user()->id_usuario,
                 'estado' => 'REGISTRADO',
             ]);
+            $now = now();
+            for ($start = 1; $start <= $data['tamano_muestra']; $start += 500) {
+                $rows = [];
+                for ($n = $start; $n <= min($start + 499, $data['tamano_muestra']); $n++) {
+                    $rows[] = ['id_empresa' => $empresaId, 'id_muestreo' => $muestreo->id_muestreo, 'numero' => $n, 'codigo' => 'M'.$muestreo->id_muestreo.'-F'.str_pad((string) $n, 5, '0', STR_PAD_LEFT), 'created_at' => $now, 'updated_at' => $now];
+                }
+                \App\Models\FrutoMuestra::insert($rows);
+            }
             if ($lote->estado === LoteEstado::RECIBIDO) {
                 $lote->update(['estado' => LoteEstado::EN_MUESTREO]);
             }
@@ -70,6 +81,7 @@ class MuestreoController extends Controller
             ->with(['lote.productor', 'inspector', 'inspecciones.inspector', 'inspecciones.dictamen'])
             ->findOrFail($muestreo);
 
-        return view('muestreos.show', compact('muestreo'));
+        $frutos = $muestreo->frutos()->withCount('evidencias')->orderBy('numero')->paginate(30);
+        return view('muestreos.show', compact('muestreo', 'frutos'));
     }
 }

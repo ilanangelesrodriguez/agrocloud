@@ -129,12 +129,9 @@
                 </div>
 
                 <div class="flex shrink-0 items-center gap-2 sm:gap-4">
-                    <button type="button" role="switch" aria-checked="false" aria-label="Modo oscuro" data-theme-switch title="Activar modo oscuro" class="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-slate-500 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:text-slate-300 dark:hover:bg-slate-800">
-                        <x-ui.icon name="sun" class="hidden h-4 w-4 sm:block" />
-                        <span aria-hidden="true" class="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-300 transition-colors dark:bg-brand-600">
-                            <span class="ml-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 motion-reduce:transition-none dark:translate-x-5"></span>
-                        </span>
-                        <x-ui.icon name="moon" class="h-4 w-4" />
+                    <button type="button" aria-pressed="false" aria-label="Activar modo oscuro" data-theme-switch title="Activar modo oscuro" class="hidden h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-wait dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:inline-flex">
+                        <x-ui.icon name="moon" class="h-5 w-5 dark:hidden" />
+                        <x-ui.icon name="sun" class="hidden h-5 w-5 dark:block" />
                     </button>
                     <div class="relative shrink-0" data-user-menu>
                     <button type="button" data-user-menu-toggle aria-label="Abrir menú de cuenta" aria-controls="user-menu-panel" class="flex items-center gap-3 rounded-xl px-2 py-1.5 text-left transition hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" aria-expanded="false">
@@ -174,6 +171,12 @@
 
 
 
+                        <div class="border-t border-slate-100 p-2 dark:border-slate-700 lg:hidden">
+                            <button type="button" data-theme-switch aria-pressed="false" aria-label="Activar modo oscuro" class="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:cursor-wait dark:text-slate-200 dark:hover:bg-slate-800">
+                                <span class="flex items-center gap-3"><x-ui.icon name="moon" class="h-4 w-4 dark:hidden" /><x-ui.icon name="sun" class="hidden h-4 w-4 dark:block" /><span data-theme-action-label>Activar modo oscuro</span></span>
+                                <x-ui.icon name="chevron-right" class="h-4 w-4 text-slate-400" />
+                            </button>
+                        </div>
                         <form data-ajax-form method="POST" action="{{ route(\App\Constants\RouteNames::LOGOUT) }}" class="border-t border-slate-100 dark:border-slate-700 p-2">
                             @csrf
                             <button type="submit" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-red-600 dark:hover:text-red-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">

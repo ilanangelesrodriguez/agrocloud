@@ -19,6 +19,7 @@ class InspeccionController extends Controller
 
     public function store(Request $request, int $muestreo): RedirectResponse
     {
+        abort_unless($request->user()->rol?->codigo === 'INSPECTOR', 403);
         $inspeccion = DB::transaction(function () use ($request, $muestreo) {
             $muestra = Muestreo::query()->forCurrentCompany()->lockForUpdate()->findOrFail($muestreo);
             abort_if($muestra->estado === 'COMPLETADO', 422, 'Este muestreo ya fue completado.');
@@ -36,7 +37,7 @@ class InspeccionController extends Controller
                 'estado' => 'EN_CAPTURA',
             ]);
             $muestra->update(['estado' => 'EN_INSPECCION']);
-            $muestra->lote()->update(['estado' => LoteEstado::EN_INSPECCION]);
+            $muestra->lote->update(['estado' => LoteEstado::EN_INSPECCION]);
             return $nueva;
         });
 

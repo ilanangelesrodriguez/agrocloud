@@ -57,6 +57,8 @@ return [
         |--------------------------------------------------------------------------
         */
 
+        ['section' => 'OPERACIONES', 'label' => 'Recepción de lotes', 'route' => 'recepciones.index', 'active' => 'recepciones.*', 'icon' => 'briefcase', 'permission' => 'recepciones.ver', 'requires_company' => true],
+        ['section' => 'OPERACIONES', 'label' => 'Reportes operativos', 'route' => 'reportes.operativos', 'active' => 'reportes.*', 'icon' => 'clipboard-list', 'permission' => 'reportes.operativos', 'requires_company' => true],
         [
             'section' => 'OPERACIONES',
             'label' => 'Productores',

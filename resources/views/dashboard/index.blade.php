@@ -1,35 +1,54 @@
 <x-layouts.app title="Dashboard">
     @if ($user?->isSuperAdmin())
         <div class="space-y-6">
-            <section class="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-brand-900 p-6 text-white shadow-sm sm:p-8">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                    <div>
-                        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-brand-100 ring-1 ring-white/10">
-                            <x-ui.icon name="shield" class="h-4 w-4" /> Administración global
-                        </div>
-                        <h2 class="mt-4 text-2xl font-semibold sm:text-3xl">Bienvenido, {{ $user->nombre }}</h2>
-                        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Gestiona empresas, usuarios por tenant y la seguridad global de AgroCloud AI sin pertenecer a una empresa específica.</p>
-                    </div>
-                    <a wire:navigate href="{{ route('admin.empresas.index') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100 shadow-sm transition hover:bg-slate-100 dark:hover:bg-slate-700">
-                        <x-ui.icon name="building-plus" class="h-4 w-4" /> Gestionar empresas
-                    </a>
+            <div class="flex flex-col gap-4 rounded-2xl border border-brand-100 bg-brand-50/60 px-5 py-5 sm:flex-row sm:items-end sm:justify-between dark:border-brand-900/50 dark:bg-brand-950/20">
+                <div class="border-l-4 border-brand-500 pl-4">
+                    <p class="text-sm font-medium text-brand-700 dark:text-brand-300">Administración global</p>
+                    <h1 class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">Bienvenido, {{ $user->nombre }}</h1>
+                    <p class="mt-1 max-w-2xl text-sm text-slate-500 dark:text-slate-400">Consulta el estado general de AgroCloud y accede rápidamente a la administración de la plataforma.</p>
                 </div>
-            </section>
+                <a wire:navigate href="{{ route('admin.empresas.index') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200 dark:focus:ring-brand-900/50">
+                    <x-ui.icon name="building-plus" class="h-4 w-4" /> Gestionar empresas
+                </a>
+            </div>
 
-            <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section aria-label="Indicadores globales" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 @foreach ([
-                    ['label' => 'Empresas', 'value' => $globalStats['empresas'], 'icon' => 'building'],
-                    ['label' => 'Empresas activas', 'value' => $globalStats['empresas_activas'], 'icon' => 'power'],
-                    ['label' => 'Usuarios empresariales', 'value' => $globalStats['usuarios'], 'icon' => 'users'],
-                    ['label' => 'Administradores', 'value' => $globalStats['administradores'], 'icon' => 'shield'],
+                    ['label' => 'Empresas', 'value' => $globalStats['empresas'], 'icon' => 'building', 'tone' => 'brand'],
+                    ['label' => 'Empresas activas', 'value' => $globalStats['empresas_activas'], 'icon' => 'power', 'tone' => 'emerald'],
+                    ['label' => 'Usuarios empresariales', 'value' => $globalStats['usuarios'], 'icon' => 'users', 'tone' => 'sky'],
+                    ['label' => 'Administradores', 'value' => $globalStats['administradores'], 'icon' => 'shield', 'tone' => 'violet'],
+                    ['label' => 'Recepciones de hoy (global)', 'value' => $globalStats['recepciones_hoy'], 'icon' => 'briefcase', 'tone' => 'amber'],
+                    ['label' => 'Lotes en operación (global)', 'value' => $globalStats['lotes_activos'], 'icon' => 'clipboard-list', 'tone' => 'orange'],
+                    ['label' => 'Inspecciones en captura (global)', 'value' => $globalStats['inspecciones_pendientes'], 'icon' => 'camera', 'tone' => 'cyan'],
+                    ['label' => 'Dictámenes pendientes (global)', 'value' => $globalStats['dictamenes_pendientes'], 'icon' => 'shield', 'tone' => 'rose'],
                 ] as $metric)
-                    <x-ui.card>
-                        <div class="flex items-start justify-between gap-4">
+                    <x-ui.card class="relative overflow-hidden bg-white dark:bg-slate-900">
+                        <div class="absolute inset-x-0 top-0 h-1 {{ match ($metric['tone']) {
+                            'emerald' => 'bg-emerald-500',
+                            'sky' => 'bg-sky-500',
+                            'violet' => 'bg-violet-500',
+                            'amber' => 'bg-amber-500',
+                            'orange' => 'bg-orange-500',
+                            'cyan' => 'bg-cyan-500',
+                            'rose' => 'bg-rose-500',
+                            default => 'bg-brand-500',
+                        } }}"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl {{ match ($metric['tone']) {
+                                'emerald' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/35 dark:text-emerald-300',
+                                'sky' => 'bg-sky-100 text-sky-700 dark:bg-sky-900/35 dark:text-sky-300',
+                                'violet' => 'bg-violet-100 text-violet-700 dark:bg-violet-900/35 dark:text-violet-300',
+                                'amber' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/35 dark:text-amber-300',
+                                'orange' => 'bg-orange-100 text-orange-700 dark:bg-orange-900/35 dark:text-orange-300',
+                                'cyan' => 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/35 dark:text-cyan-300',
+                                'rose' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/35 dark:text-rose-300',
+                                default => 'bg-brand-100 text-brand-700 dark:bg-brand-900/35 dark:text-brand-300',
+                            } }}"><x-ui.icon :name="$metric['icon']" class="h-5 w-5" /></div>
                             <div>
                                 <p class="text-sm text-slate-500 dark:text-slate-400">{{ $metric['label'] }}</p>
-                                <p class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">{{ $metric['value'] }}</p>
+                                <p class="mt-1 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">{{ number_format($metric['value']) }}</p>
                             </div>
-                            <div class="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 dark:bg-brand-900/35 text-brand-700 dark:text-brand-300"><x-ui.icon :name="$metric['icon']" class="h-5 w-5" /></div>
                         </div>
                     </x-ui.card>
                 @endforeach

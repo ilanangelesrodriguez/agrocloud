@@ -38,6 +38,7 @@ class LotesIndex extends Component
         $lotes = Lote::query()
             ->forCurrentCompany()
             ->with('productor')
+            ->withExists(['recepcion', 'muestreos'])
             ->when($this->filtro !== '', function ($query) {
                 $query->where(function ($query) {
                     $query

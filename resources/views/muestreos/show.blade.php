@@ -20,6 +20,9 @@
             @endif
         </div>
         @include('inspecciones._mensajes')
+        <x-ui.card title="Frutos de la muestra" description="Usa estos códigos como etiquetas físicas y conserva la identidad durante las inspecciones.">
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">@forelse($frutos as $fruto)<div class="rounded-xl border border-slate-200 p-3 dark:border-slate-700"><p class="font-mono text-sm font-semibold">{{ $fruto->codigo }}</p><p class="mt-1 text-xs text-slate-500">Fruto {{ $fruto->numero }} · {{ $fruto->evidencias_count }} fotografías</p></div>@empty<p class="text-sm text-slate-500">Muestreo histórico sin identificación individual de frutos.</p>@endforelse</div><div class="mt-4">{{ $frutos->links() }}</div>
+        </x-ui.card>
         <div class="grid gap-4 md:grid-cols-2">
             <x-ui.card title="Datos del lote"><div class="space-y-3 text-sm text-slate-700 dark:text-slate-200">
                 <p><span class="font-semibold text-slate-900 dark:text-slate-100">Código:</span> {{ $muestreo->lote?->codigo_lote }}</p>

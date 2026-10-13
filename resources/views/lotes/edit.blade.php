@@ -261,6 +261,7 @@
                             class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
                             Estado
+                            <span class="block text-xs font-normal text-slate-500">El estado se gestiona desde el flujo operativo.</span>
                             <span class="text-red-500">*</span>
                         </label>
 

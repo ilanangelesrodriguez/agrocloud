@@ -235,4 +235,17 @@ document.addEventListener('submit', async (event) => {
 });
 
 import './echo';
+document.addEventListener('submit', (event) => {
+    const form = event.target.closest?.('form[data-report-filter]');
+    if (!form || !window.Livewire || event.defaultPrevented) return;
+    event.preventDefault();
+    const data = new FormData(form);
+    if (data.get('desde') > data.get('hasta')) {
+        showToast('La fecha final debe ser igual o posterior a la inicial.', 'error');
+        return;
+    }
+    const url = new URL(form.action);
+    url.search = new URLSearchParams(data).toString();
+    window.Livewire.navigate(url.href);
+});
 import './theme';
