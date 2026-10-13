@@ -307,4 +307,55 @@ class LoteController extends Controller
                 );
         });
     }
+
+
+/**
+ * Eliminar un lote que no tenga registros asociados.
+ */
+public function destroy(int $lote): RedirectResponse
+{
+    $loteModel = Lote::query()
+        ->forCurrentCompany()
+        ->findOrFail($lote);
+
+    // Impedir la eliminación si el lote tiene muestreos.
+    if (
+        \Illuminate\Support\Facades\DB::table('muestreo')
+            ->where('id_lote', $loteModel->id_lote)
+            ->exists()
+    ) {
+        return redirect()
+            ->route('lotes.index')
+            ->with(
+                'error',
+                'No se puede eliminar este lote porque tiene muestreos asociados.'
+            );
+    }
+
+    // Impedir la eliminación si el lote tiene dictámenes de calidad.
+    if (
+        \Illuminate\Support\Facades\DB::table('dictamen_calidad')
+            ->where('id_lote', $loteModel->id_lote)
+            ->exists()
+    ) {
+        return redirect()
+            ->route('lotes.index')
+            ->with(
+                'error',
+                'No se puede eliminar este lote porque tiene dictámenes de calidad asociados.'
+            );
+    }
+
+    $codigoLote = $loteModel->codigo_lote;
+
+    $loteModel->delete();
+
+    return redirect()
+        ->route('lotes.index')
+        ->with(
+            'success',
+            "El lote {$codigoLote} fue eliminado correctamente."
+        );
+}
+
 }
