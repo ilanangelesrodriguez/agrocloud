@@ -143,6 +143,14 @@ class EvidenciaController extends Controller
                 'estado_ia' => 'ERROR',
                 'error_ia' => 'No fue posible completar el análisis. Reintenta o registra hallazgos manuales.',
             ]);
+            // AGROCLOUD_NOTIFICATIONS_INSTALLED
+            \App\Services\OperationalNotifier::user(
+                (int) $inspeccion->id_empresa, (int) $inspeccion->id_inspector,
+                'IA_ERROR', 'Error en análisis de imagen',
+                'No se pudo analizar la evidencia #'.$foto->id_evidencia.'. Reintenta el análisis.',
+                '/inspecciones/'.$inspeccion->id_inspeccion.'/evidencias',
+                'alta', (int) $inspeccion->muestreo->id_lote
+            );
             if ($request->expectsJson()) {
                 return response()->json([
                     'ok' => false,

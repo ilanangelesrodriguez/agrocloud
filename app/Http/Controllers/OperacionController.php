@@ -28,6 +28,14 @@ class OperacionController extends Controller
             $lot->update(['peso_kg' => $data['peso_recibido_kg'], 'fecha_recepcion' => $data['recibido_en']]);
         });
 
+        // AGROCLOUD_NOTIFICATIONS_INSTALLED
+        $loteConfirmado = Lote::forCurrentCompany()->findOrFail($lote);
+        \App\Services\OperationalNotifier::roles(
+            (int) $loteConfirmado->id_empresa, ['INSPECTOR'], 'LOTE_RECIBIDO',
+            'Lote disponible para muestreo',
+            'Se confirmó la recepción del lote '.$loteConfirmado->codigo_lote.'. Ya puedes crear su muestreo.',
+            '/muestreos/crear?lote='.$loteConfirmado->id_lote, 'normal', (int) $loteConfirmado->id_lote
+        );
         return redirect()->route('recepciones.index')->with('success', 'Recepción confirmada. El lote está disponible para muestreo.');
     }
 

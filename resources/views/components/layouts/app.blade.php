@@ -133,6 +133,7 @@
                         <x-ui.icon name="moon" class="h-5 w-5 dark:hidden" />
                         <x-ui.icon name="sun" class="hidden h-5 w-5 dark:block" />
                     </button>
+                    @include('notificaciones.bell') {{-- AGROCLOUD_NOTIFICATIONS_INSTALLED --}}
                     <div class="relative shrink-0" data-user-menu>
                     <button type="button" data-user-menu-toggle aria-label="Abrir menú de cuenta" aria-controls="user-menu-panel" class="flex items-center gap-3 rounded-xl px-2 py-1.5 text-left transition hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" aria-expanded="false">
                         @if ($currentUser?->foto_perfil_url)

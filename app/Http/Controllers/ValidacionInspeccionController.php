@@ -131,6 +131,14 @@ class ValidacionInspeccionController extends Controller
                 // Se mantiene el valor de base de datos por compatibilidad; la interfaz
                 // lo comunica claramente como pendiente de dictamen del supervisor.
                 $muestra->lote->update(['estado' => LoteEstado::PENDIENTE_VALIDACION]);
+                // AGROCLOUD_NOTIFICATIONS_INSTALLED
+                \App\Services\OperationalNotifier::roles(
+                    (int) $inspeccion->id_empresa, ['SUPERVISOR'], 'INSPECCION_VALIDADA',
+                    'Inspección pendiente de dictamen',
+                    'La inspección #'.$inspeccion->id_inspeccion.' del lote '.$muestra->lote->codigo_lote.' está lista para revisión.',
+                    '/calidad/inspecciones/'.$inspeccion->id_inspeccion,
+                    'alta', (int) $muestra->lote->id_lote
+                );
             });
 
             return redirect()->route('inspecciones.show', $inspeccion->id_inspeccion)

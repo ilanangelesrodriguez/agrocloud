@@ -69,6 +69,24 @@ class CalidadController extends Controller
                 $muestra->update(['estado' => 'EN_INSPECCION']);
                 $lote->update(['estado' => LoteEstado::EN_INSPECCION]);
             }
+            // AGROCLOUD_NOTIFICATIONS_INSTALLED
+            $decision = $data['decision'];
+            $roles = $decision === 'OBSERVADO' ? ['INSPECTOR', 'ADMIN'] : ['PRODUCCION', 'ADMIN'];
+            $tipo = $decision === 'OBSERVADO' ? 'REINSPECCION_SOLICITADA' : 'DICTAMEN_'.$decision;
+            $titulo = match ($decision) {
+                'APROBADO' => 'Lote aprobado para producción',
+                'RECHAZADO' => 'Lote rechazado por calidad',
+                default => 'Reinspección solicitada',
+            };
+            $mensaje = 'El lote '.$lote->codigo_lote.' recibió un dictamen '.strtolower($decision).'.';
+            $destino = $decision === 'OBSERVADO'
+                ? '/muestreos/'.$muestra->id_muestreo
+                : '/lotes/'.$lote->id_lote;
+            \App\Services\OperationalNotifier::roles(
+                (int) $inspection->id_empresa, $roles, $tipo, $titulo,
+                $mensaje, $destino,
+                $decision === 'APROBADO' ? 'normal' : 'alta', (int) $lote->id_lote
+            );
         });
         return redirect()->route('calidad.index')->with('success', 'Dictamen guardado correctamente.');
     }

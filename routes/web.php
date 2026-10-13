@@ -15,3 +15,4 @@ require __DIR__.'/app.php';
 require __DIR__.'/inspector_workflow.php';
 require __DIR__.'/maestros.php';
 require __DIR__.'/operaciones.php';
+require __DIR__.'/notificaciones.php'; // AGROCLOUD_NOTIFICATIONS_INSTALLED

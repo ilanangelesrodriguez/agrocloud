@@ -91,6 +91,12 @@ class EmpresaAdminController extends Controller
         }
 
         CompanySecurityUpdated::dispatch($empresa->id_empresa, 'empresa', 'created', $empresa->id_empresa);
+        // AGROCLOUD_NOTIFICATIONS_INSTALLED: avisar a otros superadministradores.
+        \App\Services\OperationalNotifier::platform(
+            'EMPRESA_REGISTRADA', 'Empresa registrada',
+            'Se registró la empresa '.$empresa->nombre_comercial.'.',
+            '/admin/empresas/'.$empresa->id_empresa, (int) auth()->id()
+        );
 
         return redirect()
             ->route('admin.empresas.show', $empresa)
@@ -168,6 +174,11 @@ class EmpresaAdminController extends Controller
     {
         $empresa->update(['estado' => ! $empresa->estado]);
         CompanySecurityUpdated::dispatch($empresa->id_empresa, 'empresa', 'status_changed', $empresa->id_empresa);
+        \App\Services\OperationalNotifier::platform(
+            'EMPRESA_ESTADO', 'Estado de empresa actualizado',
+            'Cambió el estado de la empresa '.$empresa->nombre_comercial.'.',
+            '/admin/empresas/'.$empresa->id_empresa, (int) auth()->id()
+        );
 
         return back()->with('success', 'Estado de la empresa actualizado.');
     }

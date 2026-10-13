@@ -4,6 +4,7 @@ import './masters';
 import './master-dialog';
 
 let appListeners;
+let securitySubscribedChannel = null;
 const initializeApp = () => {
     appListeners?.abort();
     appListeners = new AbortController();
@@ -129,11 +130,15 @@ const initializeApp = () => {
     }
 
     const empresaId = document.querySelector('meta[name="empresa-id"]')?.content;
-    if (empresaId && window.Echo) {
-        window.Echo.private(`empresa.${empresaId}.security`)
-            .listen('.security.updated', (event) => {
+    const securityChannel = empresaId ? `empresa.${empresaId}.security` : null;
+    if (window.Echo && securitySubscribedChannel !== securityChannel) {
+        if (securitySubscribedChannel) window.Echo.leave(securitySubscribedChannel);
+        securitySubscribedChannel = securityChannel;
+        if (securityChannel) {
+            window.Echo.private(securityChannel).listen('.security.updated', (event) => {
                 window.dispatchEvent(new CustomEvent('agrocloud:security-updated', { detail: event }));
             });
+        }
     }
 };
 
@@ -235,6 +240,7 @@ document.addEventListener('submit', async (event) => {
 });
 
 import './echo';
+import './notifications'; // AGROCLOUD_NOTIFICATIONS_INSTALLED
 document.addEventListener('submit', (event) => {
     const form = event.target.closest?.('form[data-report-filter]');
     if (!form || !window.Livewire || event.defaultPrevented) return;

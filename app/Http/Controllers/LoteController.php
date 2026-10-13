@@ -135,7 +135,7 @@ class LoteController extends Controller
         $catalog = app(MaestroCatalog::class);
         $data = $catalog->validate($data, ['producto' => 'producto', 'variedad' => 'variedad', 'unidad_medida' => 'unidad'], auth()->user()->id_empresa);
         $data['peso_kg'] = $catalog->pesoKg((float) $data['peso_kg'], $data['unidad_medida']);
-        Lote::create([
+        $loteCreado = Lote::create([
             'id_productor' => $productor->id_productor,
             'codigo_lote' => $data['codigo_lote'],
             'producto' => $data['producto'],
@@ -145,6 +145,14 @@ class LoteController extends Controller
             'fecha_recepcion' => $data['fecha_recepcion'],
             'estado' => $data['estado'],
         ]);
+
+        // AGROCLOUD_NOTIFICATIONS_INSTALLED
+        \App\Services\OperationalNotifier::roles(
+            (int) $loteCreado->id_empresa, ['RECEPCION'], 'LOTE_REGISTRADO',
+            'Nuevo lote pendiente de recepción',
+            'El lote '.$loteCreado->codigo_lote.' requiere confirmación de ingreso físico.',
+            '/recepciones', 'normal', (int) $loteCreado->id_lote, (int) auth()->id()
+        );
 
         return redirect()
             ->route(auth()->user()->hasPermission('recepciones.crear') ? 'recepciones.index' : 'lotes.index')
