@@ -71,7 +71,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->name('usuarios.')
         ->group(function () {
 
-            Route::get('/', [UsuarioController::class, 'index'])
+            Route::get('/', \App\Livewire\UsuariosIndex::class)
                 ->middleware('permission:usuarios.ver')
                 ->name('index');
 
@@ -115,7 +115,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             |--------------------------------------------------------------------------
             */
 
-            Route::get('/', [ProductorController::class, 'index'])
+            Route::get('/', \App\Livewire\ProductoresIndex::class)
                 ->middleware('permission:productores.ver')
                 ->name('index');
 
@@ -200,7 +200,7 @@ Route::middleware(['auth', 'active'])->group(function () {
                 |--------------------------------------------------------------------------
                 */
 
-                Route::get('/', [LoteController::class, 'index'])
+                Route::get('/', \App\Livewire\LotesIndex::class)
                     ->middleware('permission:lotes.ver')
                     ->name('index');
 

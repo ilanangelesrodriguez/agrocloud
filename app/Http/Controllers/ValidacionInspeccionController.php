@@ -6,6 +6,7 @@ use App\Enums\LoteEstado;
 use App\Models\HallazgoManual;
 use App\Models\Inspeccion;
 use App\Models\ValidacionDeteccion;
+use App\Services\MaestroCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class ValidacionInspeccionController extends Controller
     public function index(int $inspeccion): View
     {
         $inspeccion = $this->find($inspeccion);
+
         return view('inspecciones.validacion', compact('inspeccion'));
     }
 
@@ -55,6 +57,7 @@ class ValidacionInspeccionController extends Controller
                 'indice_deteccion' => (int) $data['indice_deteccion'],
             ]);
         }
+
         return back()->with('success', 'Validación guardada.');
     }
 
@@ -71,6 +74,7 @@ class ValidacionInspeccionController extends Controller
         abort_if($evidenciaId && ! $inspeccion->evidencias->contains('id_evidencia', (int) $evidenciaId), 422,
             'La evidencia no pertenece a esta inspección.');
 
+        $data = app(MaestroCatalog::class)->validate($data, ['clase' => 'defecto'], $inspeccion->id_empresa);
         $hallazgo = HallazgoManual::create([
             'id_empresa' => $inspeccion->id_empresa,
             'id_inspeccion' => $inspeccion->id_inspeccion,
@@ -92,41 +96,54 @@ class ValidacionInspeccionController extends Controller
                 ],
             ], 201);
         }
+
         return back()->with('success', 'Hallazgo manual registrado.');
     }
 
     public function finalizar(Request $request, int $inspeccion): RedirectResponse
     {
-        $inspeccion = $this->find($inspeccion);
-        InspeccionController::canOperate($inspeccion, $request);
-        $data = $request->validate(['observaciones' => ['nullable', 'string', 'max:3000']]);
-        abort_if($inspeccion->evidencias->isEmpty(), 422, 'Registra al menos una fotografía.');
+        return DB::transaction(function () use ($request, $inspeccion) {
+            $inspeccion = Inspeccion::query()->forCurrentCompany()->lockForUpdate()->with(['muestreo.lote', 'evidencias.validaciones', 'hallazgos', 'dictamen'])->findOrFail($inspeccion);
+            InspeccionController::canOperate($inspeccion, $request);
+            $data = $request->validate(['observaciones' => ['nullable', 'string', 'max:3000']]);
+            abort_if($inspeccion->evidencias->isEmpty(), 422, 'Registra al menos una fotografía.');
+            $sinEvidencia = $inspeccion->muestreo->frutos()->whereDoesntHave('evidencias', fn ($q) => $q->where('id_inspeccion', $inspeccion->id_inspeccion))->count();
+            abort_if($sinEvidencia > 0, 422, "Faltan fotografías de {$sinEvidencia} frutos de la muestra. Registra cada fruto antes de finalizar.");
 
-        foreach ($inspeccion->evidencias as $foto) {
-            $detecciones = $foto->estado_ia === 'COMPLETADO' ? ($foto->resultado_ia['detections'] ?? []) : [];
-            if ($foto->estado_ia !== 'COMPLETADO' && $inspeccion->hallazgos->isEmpty()) {
-                return back()->with('error', 'Analiza las fotografías o documenta un hallazgo manual si la IA no está disponible.');
+            foreach ($inspeccion->evidencias as $foto) {
+                $detecciones = $foto->estado_ia === 'COMPLETADO' ? ($foto->resultado_ia['detections'] ?? []) : [];
+                if ($foto->estado_ia !== 'COMPLETADO' && $inspeccion->hallazgos->isEmpty()) {
+                    return back()->with('error', 'Analiza las fotografías o documenta un hallazgo manual si la IA no está disponible.');
+                }
+                if (count($detecciones) !== $foto->validaciones->count()) {
+                    return back()->with('error', 'Faltan detecciones IA por confirmar o descartar.');
+                }
             }
-            if (count($detecciones) !== $foto->validaciones->count()) {
-                return back()->with('error', 'Faltan detecciones IA por confirmar o descartar.');
-            }
-        }
 
-        DB::transaction(function () use ($inspeccion, $data) {
-            $inspeccion->update([
-                'estado' => 'VALIDADA',
-                'observaciones' => $data['observaciones'] ?? null,
-                'validada_en' => now(),
-            ]);
-            $muestra = $inspeccion->muestreo;
-            $muestra->update(['estado' => 'COMPLETADO']);
-            // Se mantiene el valor de base de datos por compatibilidad; la interfaz
-            // lo comunica claramente como pendiente de dictamen del supervisor.
-            $muestra->lote()->update(['estado' => LoteEstado::PENDIENTE_VALIDACION]);
+            DB::transaction(function () use ($inspeccion, $data) {
+                $inspeccion->update([
+                    'estado' => 'VALIDADA',
+                    'observaciones' => $data['observaciones'] ?? null,
+                    'validada_en' => now(),
+                ]);
+                $muestra = $inspeccion->muestreo;
+                $muestra->update(['estado' => 'PENDIENTE_DICTAMEN']);
+                // Se mantiene el valor de base de datos por compatibilidad; la interfaz
+                // lo comunica claramente como pendiente de dictamen del supervisor.
+                $muestra->lote->update(['estado' => LoteEstado::PENDIENTE_VALIDACION]);
+                // AGROCLOUD_NOTIFICATIONS_INSTALLED
+                \App\Services\OperationalNotifier::roles(
+                    (int) $inspeccion->id_empresa, ['SUPERVISOR'], 'INSPECCION_VALIDADA',
+                    'Inspección pendiente de dictamen',
+                    'La inspección #'.$inspeccion->id_inspeccion.' del lote '.$muestra->lote->codigo_lote.' está lista para revisión.',
+                    '/calidad/inspecciones/'.$inspeccion->id_inspeccion,
+                    'alta', (int) $muestra->lote->id_lote
+                );
+            });
+
+            return redirect()->route('inspecciones.show', $inspeccion->id_inspeccion)
+                ->with('success', 'Inspección validada. Ahora está pendiente del dictamen del supervisor.');
         });
-
-        return redirect()->route('inspecciones.show', $inspeccion->id_inspeccion)
-            ->with('success', 'Inspección validada. Ahora está pendiente del dictamen del supervisor.');
     }
 
     private function find(int $id): Inspeccion

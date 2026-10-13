@@ -27,7 +27,7 @@ function element(value = '') {
   };
 }
 
-function context({ existing = {}, failFetch = false } = {}) {
+function context({ existing = {}, failFetch = false, selects = false } = {}) {
   const geo = {
     departamento: element(existing.departamento),
     provincia: element(existing.provincia),
@@ -35,6 +35,7 @@ function context({ existing = {}, failFetch = false } = {}) {
     ubigeo: element(existing.ubigeo),
   };
   const status = element();
+  if (selects) for (const field of ['departamento', 'provincia', 'distrito']) geo[field].tagName = 'SELECT';
   const lists = ['company-departments', 'company-provinces', 'company-districts'].map(() => element());
   const logoInput = element();
   const logoImage = element();
@@ -82,9 +83,23 @@ function context({ existing = {}, failFetch = false } = {}) {
   };
   vm.runInNewContext(SRC,env);
   doc.handlers.DOMContentLoaded();
-  return { geo, status, lists, root, parent, logoInput, logoImage, logoEmpty, logoFeedback, counter };
+  return { doc, geo, status, lists, root, parent, logoInput, logoImage, logoEmpty, logoFeedback, counter };
 }
 const flush = () => new Promise(resolve => setTimeout(resolve, 10));
+
+test('listas dependientes calculan UBIGEO y no duplican eventos al navegar', async () => {
+  const ctx = context({selects: true, existing: {departamento: 'Lima', provincia: 'Lima', distrito: 'Miraflores'}});
+  await flush();
+  assert.equal(ctx.geo.ubigeo.value, '150122');
+  assert.ok(ctx.geo.departamento.children.length >= 26);
+  ctx.doc.handlers['livewire:navigated']();
+  await flush();
+  assert.equal(ctx.geo.departamento.handlers.change.length, 1);
+  ctx.geo.departamento.value = 'REGION 2';
+  ctx.geo.departamento.dispatch('change');
+  assert.equal(ctx.geo.distrito.value, '');
+  assert.equal(ctx.geo.ubigeo.value, '');
+});
 
 test('al editar una empresa resuelve UBIGEO y opciones relacionadas', async () => {
   const ctx = context({existing:{departamento:'Lima',provincia:'Lima',distrito:'Miraflores',ubigeo:''}});

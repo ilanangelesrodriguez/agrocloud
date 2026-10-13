@@ -11,10 +11,10 @@
                 <x-ui.card>
                     <div class="flex items-start justify-between gap-3">
                         <div><p class="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{{ $rol->codigo }}</p><h3 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ $rol->nombre }}</h3><p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ $rol->descripcion }}</p></div>
-                        <span class="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs text-slate-600 dark:text-slate-300">{{ $rol->estado ? 'Activo' : 'Inactivo' }}</span>
+                        <x-ui.status-badge :active="$rol->estado" />
                     </div>
                     <div class="mt-5 flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-4 text-sm text-slate-500 dark:text-slate-400"><span>{{ $rol->usuarios_count }} usuarios</span><span>{{ $rol->permisos_count }} permisos</span></div>
-                    <a href="{{ route('roles.edit', $rol) }}" class="mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-brand-200 dark:hover:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/35 hover:text-brand-700 dark:hover:text-brand-300"><x-ui.icon name="pencil" class="h-4 w-4" />Configurar</a>
+                    <a wire:navigate href="{{ route('roles.edit', $rol) }}" class="mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-brand-200 dark:hover:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/35 hover:text-brand-700 dark:hover:text-brand-300"><x-ui.icon name="pencil" class="h-4 w-4" />Configurar</a>
                 </x-ui.card>
             @endforeach
         </div>

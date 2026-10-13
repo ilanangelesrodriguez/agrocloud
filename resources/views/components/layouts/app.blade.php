@@ -1,14 +1,14 @@
 @props(['title' => 'AgroCloud AI'])
 
 <!DOCTYPE html>
-<html lang="es" data-theme-user="{{ auth()->id() }}">
+<html lang="es" data-theme-user="{{ auth()->id() }}" data-theme-preference="{{ auth()->user()?->theme_preference ?? 'system' }}">
 <head>
     {{-- Tema aplicado antes del CSS para evitar parpadeo blanco al cargar. --}}
     <script data-agrocloud-theme-init>
         (function () {
             try {
                 var storageKey = 'agrocloud.theme.' + (document.documentElement.dataset.themeUser || 'guest');
-                var preference = localStorage.getItem(storageKey);
+                var preference = document.documentElement.dataset.themePreference || localStorage.getItem(storageKey);
                 var isDark = preference === 'dark' || ((preference === 'system' || !preference) && window.matchMedia('(prefers-color-scheme: dark)').matches);
                 document.documentElement.classList.toggle('dark', isDark);
                 document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
@@ -20,6 +20,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-preference-url" content="{{ route('perfil.tema.update') }}">
     <meta name="empresa-id" content="{{ auth()->user()?->id_empresa }}">
     @if (config('broadcasting.default') === 'reverb')
         <meta name="reverb-key" content="{{ config('broadcasting.connections.reverb.key') }}">
@@ -28,6 +29,7 @@
         <meta name="reverb-scheme" content="{{ config('broadcasting.connections.reverb.client.scheme') }}">
     @endif
     <title>{{ $title }} · AgroCloud AI</title>
+    @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 antialiased">
@@ -66,6 +68,7 @@
                         $requiresCompany = $item['requires_company'] ?? false;
                     @endphp
                     @continue($superadminOnly && ! $currentUser?->isSuperAdmin())
+                    @continue(($item['company_admin_or_superadmin'] ?? false) && !($currentUser?->isSuperAdmin() || ($currentUser?->isCompanyAdmin() && $currentUser?->id_empresa)))
                     @continue($requiresCompany && ! $currentUser?->empresa)
                     @continue($permission && ! $currentUser?->hasPermission($permission))
 
@@ -113,7 +116,7 @@
                     <div class="min-w-0">
                         @if ($currentUser?->hasPermission('dashboard.ver') && ! request()->routeIs(\App\Constants\RouteNames::DASHBOARD))
                             <nav aria-label="Ruta de navegación" class="hidden min-w-0 items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 sm:flex">
-                                <a href="{{ route(\App\Constants\RouteNames::DASHBOARD) }}" class="shrink-0 hover:text-brand-700 dark:hover:text-brand-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">Inicio</a>
+                                <a href="{{ route(\App\Constants\RouteNames::DASHBOARD) }}" wire:navigate class="shrink-0 hover:text-brand-700 dark:hover:text-brand-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">Inicio</a>
                                 <span aria-hidden="true">/</span>
                                 <span aria-current="page" class="truncate">{{ $title }}</span>
                             </nav>
@@ -125,8 +128,14 @@
                     </div>
                 </div>
 
-                <div class="relative shrink-0" data-user-menu>
-                    <button type="button" data-user-menu-toggle aria-controls="user-menu-panel" class="flex items-center gap-3 rounded-xl px-2 py-1.5 text-left transition hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" aria-expanded="false">
+                <div class="flex shrink-0 items-center gap-2 sm:gap-4">
+                    <button type="button" aria-pressed="false" aria-label="Activar modo oscuro" data-theme-switch title="Activar modo oscuro" class="hidden h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-wait dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:inline-flex">
+                        <x-ui.icon name="moon" class="h-5 w-5 dark:hidden" />
+                        <x-ui.icon name="sun" class="hidden h-5 w-5 dark:block" />
+                    </button>
+                    @include('notificaciones.bell') {{-- AGROCLOUD_NOTIFICATIONS_INSTALLED --}}
+                    <div class="relative shrink-0" data-user-menu>
+                    <button type="button" data-user-menu-toggle aria-label="Abrir menú de cuenta" aria-controls="user-menu-panel" class="flex items-center gap-3 rounded-xl px-2 py-1.5 text-left transition hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600" aria-expanded="false">
                         @if ($currentUser?->foto_perfil_url)
                             <img src="{{ $currentUser->foto_perfil_url }}" alt="Foto de perfil" class="h-9 w-9 rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-700">
                         @else
@@ -151,26 +160,25 @@
                         </div>
 
                         <div class="p-2">
-                            <a href="{{ route(\App\Constants\RouteNames::PROFILE) }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
+                            <a href="{{ route(\App\Constants\RouteNames::PROFILE) }}" wire:navigate class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
                                 <x-ui.icon name="user" class="h-4 w-4" /> Mi perfil
                             </a>
                             @if ($currentUser?->empresa && $currentUser->hasPermission('empresa.ver'))
-                                <a href="{{ route(\App\Constants\RouteNames::EMPRESA) }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
+                                <a href="{{ route(\App\Constants\RouteNames::EMPRESA) }}" wire:navigate class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
                                     <x-ui.icon name="building" class="h-4 w-4" /> Mi empresa
                                 </a>
                             @endif
                         </div>
-                        {{-- Apariencia: preferencia en este navegador para la cuenta actual. --}}
-                        <div class="border-t border-slate-100 dark:border-slate-700 px-2 py-2" aria-label="Apariencia">
-                            <p class="px-3 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Apariencia <span class="normal-case font-normal" data-theme-current>Sistema</span></p>
-                            <button type="button" data-theme-option="light" aria-pressed="false" class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600"><x-ui.icon name="sun" class="h-4 w-4" /> Claro</button>
-                            <button type="button" data-theme-option="dark" aria-pressed="false" class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600"><x-ui.icon name="moon" class="h-4 w-4" /> Oscuro</button>
-                            <button type="button" data-theme-option="system" aria-pressed="false" class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600"><x-ui.icon name="monitor" class="h-4 w-4" /> Sistema</button>
+
+
+
+                        <div class="border-t border-slate-100 p-2 dark:border-slate-700 lg:hidden">
+                            <button type="button" data-theme-switch aria-pressed="false" aria-label="Activar modo oscuro" class="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:cursor-wait dark:text-slate-200 dark:hover:bg-slate-800">
+                                <span class="flex items-center gap-3"><x-ui.icon name="moon" class="h-4 w-4 dark:hidden" /><x-ui.icon name="sun" class="hidden h-4 w-4 dark:block" /><span data-theme-action-label>Activar modo oscuro</span></span>
+                                <x-ui.icon name="chevron-right" class="h-4 w-4 text-slate-400" />
+                            </button>
                         </div>
-
-
-
-                        <form method="POST" action="{{ route(\App\Constants\RouteNames::LOGOUT) }}" class="border-t border-slate-100 dark:border-slate-700 p-2">
+                        <form data-ajax-form method="POST" action="{{ route(\App\Constants\RouteNames::LOGOUT) }}" class="border-t border-slate-100 dark:border-slate-700 p-2">
                             @csrf
                             <button type="submit" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-red-600 dark:hover:text-red-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">
                                 <x-ui.icon name="logout" class="h-4 w-4" /> Cerrar sesión
@@ -178,13 +186,11 @@
                         </form>
                     </div>
                 </div>
+                </div>
             </header>
 
             <main class="p-4 sm:p-6 lg:p-8">
                 <div class="mx-auto max-w-7xl">
-                    @if (session('success'))
-                        <div class="mb-5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/35 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-200">{{ session('success') }}</div>
-                    @endif
                     {{ $slot }}
                 </div>
             </main>
@@ -192,5 +198,8 @@
     </div>
 
     <div data-sidebar-backdrop aria-hidden="true" class="pointer-events-none invisible fixed inset-0 z-40 bg-slate-950/40 opacity-0 transition-[opacity,visibility] duration-300 ease-out motion-reduce:transition-none lg:hidden"></div>
+    <x-app.feedback />
+    <x-app.master-dialog />
+    @livewireScripts
 </body>
 </html>

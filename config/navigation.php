@@ -37,6 +37,11 @@ return [
         ],
 
         [
+            'section' => 'ADMINISTRACIÓN', 'label' => 'Maestros', 'route' => 'maestros.index',
+            'active' => 'maestros.*', 'icon' => 'clipboard-list', 'company_admin_or_superadmin' => true,
+        ],
+
+        [
             'section' => 'ADMINISTRACIÓN',
             'label' => 'Usuarios',
             'route' => RouteNames::USUARIOS,
@@ -52,6 +57,8 @@ return [
         |--------------------------------------------------------------------------
         */
 
+        ['section' => 'OPERACIONES', 'label' => 'Recepción de lotes', 'route' => 'recepciones.index', 'active' => 'recepciones.*', 'icon' => 'briefcase', 'permission' => 'recepciones.ver', 'requires_company' => true],
+        ['section' => 'OPERACIONES', 'label' => 'Reportes operativos', 'route' => 'reportes.operativos', 'active' => 'reportes.*', 'icon' => 'clipboard-list', 'permission' => 'reportes.operativos', 'requires_company' => true],
         [
             'section' => 'OPERACIONES',
             'label' => 'Productores',

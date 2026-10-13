@@ -8,12 +8,12 @@
                     <h2 class="mt-2 break-words text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-3xl">{{ $empresa->nombre_comercial }}</h2>
                     <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">Tu cuenta siempre trabaja dentro de esta empresa. No se selecciona empresa al iniciar sesión.</p>
                 </div>
-                <span @class(['inline-flex w-fit shrink-0 rounded-full px-3 py-1 text-xs font-semibold','bg-emerald-50 dark:bg-emerald-950/35 text-emerald-700 dark:text-emerald-300' => $empresa->estado,'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' => ! $empresa->estado])>{{ $empresa->estado ? 'Empresa activa' : 'Empresa inactiva' }}</span>
+                <x-ui.status-badge :active="$empresa->estado" active-label="Empresa activa" inactive-label="Empresa inactiva" />
             </div>
         </div>
 
         @if ($canEdit)
-            <form method="POST" action="{{ route('empresa.update') }}" enctype="multipart/form-data" data-company-form>
+            <form method="POST" action="{{ route('empresa.update') }}" enctype="multipart/form-data" data-company-form data-ajax-form>
                 @csrf
                 @method('PUT')
                 <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -27,9 +27,9 @@
                                 <x-ui.input name="ruc" label="RUC *" :value="$empresa->ruc" placeholder="Ej. 20550844321" maxlength="11" required />
                                 <x-ui.input name="nombre_comercial" label="Nombre comercial *" :value="$empresa->nombre_comercial" placeholder="Ej. Agroexportadora del Sur" required />
                                 <div class="sm:col-span-2"><x-ui.input name="razon_social" label="Razón social *" :value="$empresa->razon_social" placeholder="Ej. Agroexportadora del Sur S.A.C." required /></div>
-                                <x-ui.input name="grupo_empresarial" label="Grupo empresarial" :value="$empresa->grupo_empresarial" placeholder="Ej. Grupo Agrícola del Sur" />
-                                <x-ui.input name="tipo_empresa" label="Tipo de empresa" :value="$empresa->tipo_empresa" placeholder="Ej. Productora, acopio o empaque" />
-                                <div class="sm:col-span-2"><x-ui.input name="rubro" label="Rubro o actividad principal" :value="$empresa->rubro" placeholder="Ej. Producción y exportación de arándanos" /></div>
+                                <x-ui.master-select kind="grupo" name="grupo_empresarial" label="Grupo empresarial" :value="$empresa->grupo_empresarial" placeholder="Ej. Grupo Agrícola del Sur" />
+                                <x-ui.master-select kind="tipo_empresa" name="tipo_empresa" label="Tipo de empresa" :value="$empresa->tipo_empresa" placeholder="Ej. Productora, acopio o empaque" />
+                                <div class="sm:col-span-2"><x-ui.master-select kind="rubro" name="rubro" label="Rubro o actividad principal" :value="$empresa->rubro" placeholder="Ej. Producción y exportación de arándanos" /></div>
                             </div>
                         </section>
 
@@ -44,19 +44,19 @@
                                 <x-ui.input name="sitio_web" label="Sitio web" type="url" :value="$empresa->sitio_web" placeholder="https://www.empresa.pe" />
                                 <div>
                                     <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200" for="departamento">Departamento</label>
-                                    <input id="departamento" name="departamento" type="text" list="company-departments" data-geo-field="departamento" value="{{ old('departamento', $empresa->departamento) }}" placeholder="Escribe o selecciona, ej. LIMA" maxlength="100" autocomplete="off" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('departamento') border-red-400 @enderror" aria-describedby="geo-status">
+                                    <select id="departamento" name="departamento" data-geo-field="departamento" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50" aria-describedby="geo-status"><option value="{{ old('departamento', $empresa->departamento) }}">{{ old('departamento', $empresa->departamento) ?: 'Selecciona una opción' }}</option></select>
                                     <datalist id="company-departments"></datalist>
                                     @error('departamento')<p class="mt-1 text-sm text-red-600 dark:text-red-300">{{ $message }}</p>@enderror
                                 </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200" for="provincia">Provincia</label>
-                                    <input id="provincia" name="provincia" type="text" list="company-provinces" data-geo-field="provincia" value="{{ old('provincia', $empresa->provincia) }}" placeholder="Primero elige un departamento" maxlength="100" autocomplete="off" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('provincia') border-red-400 @enderror" aria-describedby="geo-status">
+                                    <select id="provincia" name="provincia" data-geo-field="provincia" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50" aria-describedby="geo-status"><option value="{{ old('provincia', $empresa->provincia) }}">{{ old('provincia', $empresa->provincia) ?: 'Selecciona una opción' }}</option></select>
                                     <datalist id="company-provinces"></datalist>
                                     @error('provincia')<p class="mt-1 text-sm text-red-600 dark:text-red-300">{{ $message }}</p>@enderror
                                 </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200" for="distrito">Distrito</label>
-                                    <input id="distrito" name="distrito" type="text" list="company-districts" data-geo-field="distrito" value="{{ old('distrito', $empresa->distrito) }}" placeholder="Primero elige una provincia" maxlength="100" autocomplete="off" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('distrito') border-red-400 @enderror" aria-describedby="geo-status">
+                                    <select id="distrito" name="distrito" data-geo-field="distrito" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50" aria-describedby="geo-status"><option value="{{ old('distrito', $empresa->distrito) }}">{{ old('distrito', $empresa->distrito) ?: 'Selecciona una opción' }}</option></select>
                                     <datalist id="company-districts"></datalist>
                                     @error('distrito')<p class="mt-1 text-sm text-red-600 dark:text-red-300">{{ $message }}</p>@enderror
                                 </div>
@@ -103,7 +103,7 @@
                     </aside>
                 </div>
                 <div class="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-end sm:px-6">
-                    <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</a>
+                    <a href="{{ route('dashboard') }}" wire:navigate class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</a>
                     <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="save" class="h-4 w-4" />Guardar empresa</span></x-ui.button>
                 </div>
             </form>
@@ -122,7 +122,7 @@
                     });
                 })();
             </script>
-            <script defer src="{{ asset('js/empresa-form.js') }}?v=20261008-2"></script>
+            <script defer src="{{ asset('js/empresa-form.js') }}?v=20261012-geo"></script>
         @else
             <section class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm" aria-labelledby="company-readonly-title">
                 <div class="border-b border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60 px-5 py-3.5">

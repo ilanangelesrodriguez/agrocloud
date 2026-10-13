@@ -21,14 +21,24 @@ use Throwable;
 
 class EmpresaUsuarioController extends Controller
 {
-    public function index(Request $request, Empresa $empresa): View
+    public function index(Request $request, Empresa $empresa)
+    {
+        if ($request->query()) {
+            $data = $request->validate(['q' => ['nullable', 'string', 'max:150'], 'estado' => ['nullable', 'in:0,1'], 'rol' => ['nullable', 'integer']]);
+            $request->session()->put('admin.empresa.'.$empresa->id_empresa.'.usuarios.filters', $data);
+            return redirect()->route('admin.empresas.usuarios.index', $empresa);
+        }
+        return view('admin.empresas.usuarios.index', compact('empresa'));
+    }
+
+    public function listingData(Request $request, Empresa $empresa): array
     {
         $usuarios = $this->filteredQuery($request, $empresa)
             ->with('rol')
             ->orderBy('nombre')
             ->orderBy('apellido')
             ->paginate(15)
-            ->withQueryString();
+            ;
 
         $roles = $this->companyRoles();
         $stats = [
@@ -40,7 +50,7 @@ class EmpresaUsuarioController extends Controller
                 ->count(),
         ];
 
-        return view('admin.empresas.usuarios.index', compact('empresa', 'usuarios', 'roles', 'stats'));
+        return compact('empresa', 'usuarios', 'roles', 'stats');
     }
 
     public function create(Empresa $empresa): View
@@ -56,6 +66,7 @@ class EmpresaUsuarioController extends Controller
         CloudinaryService $cloudinary,
     ): RedirectResponse {
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $empresa->id_empresa, isset($usuario) ? $usuario->toArray() : []);
         $data['id_empresa'] = $empresa->id_empresa;
         $data['password_hash'] = $request->string('password')->toString();
         $data['estado'] = $request->boolean('estado');
@@ -104,6 +115,7 @@ class EmpresaUsuarioController extends Controller
     ): RedirectResponse {
         $this->assertBelongsToCompany($empresa, $usuario);
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $empresa->id_empresa, isset($usuario) ? $usuario->toArray() : []);
         $data['estado'] = $request->boolean('estado');
 
         if ($request->filled('password')) {
@@ -214,6 +226,7 @@ class EmpresaUsuarioController extends Controller
 
     private function filteredQuery(Request $request, Empresa $empresa): Builder
     {
+        if (!$request->query()) $request->query->add(session('admin.empresa.'.$empresa->id_empresa.'.usuarios.filters', []));
         $search = trim((string) $request->string('q'));
         $estado = $request->string('estado')->toString();
         $rolId = $request->integer('rol');

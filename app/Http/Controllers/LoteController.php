@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\LoteEstado;
 use App\Models\Lote;
 use App\Models\Productor;
+use App\Services\MaestroCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -53,7 +55,7 @@ class LoteController extends Controller
             ->orderBy('nombre_razon_social')
             ->get();
 
-        $estados = LoteEstado::cases();
+        $estados = [LoteEstado::RECIBIDO];
 
         return view('lotes.create', compact('productores', 'estados'));
     }
@@ -94,6 +96,7 @@ class LoteController extends Controller
                 'max:150',
             ],
 
+            'unidad_medida' => ['nullable', 'string', 'max:40'],
             'peso_kg' => [
                 'required',
                 'numeric',
@@ -107,7 +110,7 @@ class LoteController extends Controller
 
             'estado' => [
                 'required',
-                Rule::enum(LoteEstado::class),
+                Rule::in(['RECIBIDO']),
             ],
         ]);
 
@@ -127,18 +130,32 @@ class LoteController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        Lote::create([
+        $data['variedad'] = $data['variedad'] ?? null;
+        $data['unidad_medida'] = $data['unidad_medida'] ?? 'Kilogramo';
+        $catalog = app(MaestroCatalog::class);
+        $data = $catalog->validate($data, ['producto' => 'producto', 'variedad' => 'variedad', 'unidad_medida' => 'unidad'], auth()->user()->id_empresa);
+        $data['peso_kg'] = $catalog->pesoKg((float) $data['peso_kg'], $data['unidad_medida']);
+        $loteCreado = Lote::create([
             'id_productor' => $productor->id_productor,
             'codigo_lote' => $data['codigo_lote'],
             'producto' => $data['producto'],
             'variedad' => $data['variedad'] ?? null,
             'peso_kg' => $data['peso_kg'],
+            'unidad_medida' => $data['unidad_medida'],
             'fecha_recepcion' => $data['fecha_recepcion'],
             'estado' => $data['estado'],
         ]);
 
+        // AGROCLOUD_NOTIFICATIONS_INSTALLED
+        \App\Services\OperationalNotifier::roles(
+            (int) $loteCreado->id_empresa, ['RECEPCION'], 'LOTE_REGISTRADO',
+            'Nuevo lote pendiente de recepción',
+            'El lote '.$loteCreado->codigo_lote.' requiere confirmación de ingreso físico.',
+            '/recepciones', 'normal', (int) $loteCreado->id_lote, (int) auth()->id()
+        );
+
         return redirect()
-            ->route('lotes.index')
+            ->route(auth()->user()->hasPermission('recepciones.crear') ? 'recepciones.index' : 'lotes.index')
             ->with(
                 'success',
                 'El lote fue registrado correctamente.'
@@ -169,12 +186,14 @@ class LoteController extends Controller
             ->forCurrentCompany()
             ->findOrFail($lote);
 
+        abort_if($loteModel->recepcion()->exists() || $loteModel->muestreos()->exists(), 422, 'El lote ya ingresó al flujo operativo. Sus datos se conservan para trazabilidad.');
+
         $productores = Productor::query()
             ->forCurrentCompany()
             ->orderBy('nombre_razon_social')
             ->get();
 
-        $estados = LoteEstado::cases();
+        $estados = [$loteModel->estado];
 
         return view('lotes.edit', [
             'lote' => $loteModel,
@@ -190,91 +209,103 @@ class LoteController extends Controller
         Request $request,
         int $lote
     ): RedirectResponse {
-        $loteModel = Lote::query()
-            ->forCurrentCompany()
-            ->findOrFail($lote);
+        return DB::transaction(function () use ($request, $lote) {
+            $loteModel = Lote::query()
+                ->forCurrentCompany()
+                ->lockForUpdate()
+                ->findOrFail($lote);
 
-        $data = $request->validate([
-            'id_productor' => [
-                'required',
-                'integer',
-            ],
+            abort_if($loteModel->recepcion()->exists() || $loteModel->muestreos()->exists(), 422, 'El lote ya ingresó al flujo operativo. Sus datos se conservan para trazabilidad.');
 
-            'codigo_lote' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('lote', 'codigo_lote')
-                    ->where(function ($query) {
-                        return $query->where(
-                            'id_empresa',
-                            auth()->user()->id_empresa
-                        );
-                    })
-                    ->ignore($loteModel->id_lote, 'id_lote'),
-            ],
+            $data = $request->validate([
+                'id_productor' => [
+                    'required',
+                    'integer',
+                ],
 
-            'producto' => [
+                'codigo_lote' => [
+                    'required',
+                    'string',
+                    'max:50',
+                    Rule::unique('lote', 'codigo_lote')
+                        ->where(function ($query) {
+                            return $query->where(
+                                'id_empresa',
+                                auth()->user()->id_empresa
+                            );
+                        })
+                        ->ignore($loteModel->id_lote, 'id_lote'),
+                ],
+
+                'producto' => [
                 'required',
                 'string',
                 'max:150',
             ],
 
-            'variedad' => [
+                'variedad' => [
                 'nullable',
                 'string',
                 'max:150',
             ],
 
-            'peso_kg' => [
+                'unidad_medida' => ['nullable', 'string', 'max:40'],
+                'peso_kg' => [
                 'required',
                 'numeric',
                 'min:0',
             ],
 
-            'fecha_recepcion' => [
+                'fecha_recepcion' => [
                 'required',
                 'date',
             ],
 
-            'estado' => [
+                'estado' => [
                 'required',
-                Rule::enum(LoteEstado::class),
+                Rule::in([$loteModel->estado->value]),
             ],
-        ]);
+            ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Verificar que el productor pertenece a la empresa actual
-        |--------------------------------------------------------------------------
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | Verificar que el productor pertenece a la empresa actual
+            |--------------------------------------------------------------------------
+            */
 
-        $productor = Productor::query()
-            ->forCurrentCompany()
-            ->findOrFail($data['id_productor']);
+            $productor = Productor::query()
+                ->forCurrentCompany()
+                ->findOrFail($data['id_productor']);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Actualizar
-        |--------------------------------------------------------------------------
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | Actualizar
+            |--------------------------------------------------------------------------
+            */
 
-        $loteModel->update([
-            'id_productor' => $productor->id_productor,
-            'codigo_lote' => $data['codigo_lote'],
-            'producto' => $data['producto'],
-            'variedad' => $data['variedad'] ?? null,
-            'peso_kg' => $data['peso_kg'],
-            'fecha_recepcion' => $data['fecha_recepcion'],
-            'estado' => $data['estado'],
-        ]);
+            $data['variedad'] = $data['variedad'] ?? null;
+            $data['unidad_medida'] = $data['unidad_medida'] ?? 'Kilogramo';
+            $catalog = app(MaestroCatalog::class);
+            $data = $catalog->validate($data, ['producto' => 'producto', 'variedad' => 'variedad', 'unidad_medida' => 'unidad'], auth()->user()->id_empresa, $loteModel->toArray());
+            $data['peso_kg'] = $catalog->pesoKg((float) $data['peso_kg'], $data['unidad_medida']);
+            $loteModel->update([
+                'id_productor' => $productor->id_productor,
+                'codigo_lote' => $data['codigo_lote'],
+                'producto' => $data['producto'],
+                'variedad' => $data['variedad'] ?? null,
+                'peso_kg' => $data['peso_kg'],
+                'unidad_medida' => $data['unidad_medida'],
+                'fecha_recepcion' => $data['fecha_recepcion'],
+                'estado' => $data['estado'],
+            ]);
 
-        return redirect()
-            ->route('lotes.show', $loteModel->id_lote)
-            ->with(
-                'success',
-                'El lote fue actualizado correctamente.'
-            );
+            return redirect()
+                ->route('lotes.show', $loteModel->id_lote)
+                ->with(
+                    'success',
+                    'El lote fue actualizado correctamente.'
+                );
+        });
     }
 
 

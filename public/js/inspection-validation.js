@@ -1,8 +1,11 @@
 /** Guardar revisiones y hallazgos sin perder el contexto de la página. */
 (() => {
     'use strict';
+    if (window.agrocloudInitValidation) { window.agrocloudInitValidation(); return; }
+    const initialize = () => {
     const root = document.querySelector('[data-validation-workspace]');
-    if (!root) return;
+    if (!root || root.dataset.inspectionReady === 'true') return;
+    root.dataset.inspectionReady = 'true';
     const notification = root.querySelector('[data-validation-message]');
 
     function show(message, error = false) {
@@ -61,4 +64,8 @@
             button.textContent = label;
         }
     });
+    };
+    window.agrocloudInitValidation = initialize;
+    document.addEventListener('livewire:navigated', initialize);
+    initialize();
 })();

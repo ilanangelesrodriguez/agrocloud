@@ -15,10 +15,7 @@ class CalidadController extends Controller
 {
     public function index(): View
     {
-        $inspecciones = Inspeccion::query()->forCurrentCompany()
-            ->where('estado', 'VALIDADA')->whereDoesntHave('dictamen')
-            ->with('muestreo.lote')->latest('id_inspeccion')->paginate(12);
-        return view('calidad.index', compact('inspecciones'));
+        return view('calidad.index');
     }
 
     public function show(int $inspeccion): View
@@ -34,9 +31,12 @@ class CalidadController extends Controller
         abort_unless($request->user()->rol?->codigo === 'SUPERVISOR', 403);
         $data = $request->validate([
             'decision' => ['required', Rule::in(['APROBADO', 'OBSERVADO', 'RECHAZADO'])],
+            'motivo' => ['nullable', 'string', 'max:200'],
             'categoria' => ['nullable', 'string', 'max:100'],
             'observaciones' => ['required', 'string', 'max:3000'],
         ]);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['categoria' => 'categoria', 'motivo' => 'motivo'], $request->user()->id_empresa);
+        if ($data['decision'] === 'APROBADO') $data['motivo'] = null;
         DB::transaction(function () use ($request, $inspeccion, $data) {
             $inspection = Inspeccion::query()->forCurrentCompany()->lockForUpdate()->findOrFail($inspeccion);
             abort_unless($inspection->estado === 'VALIDADA', 422, 'La inspección no ha sido validada.');
@@ -51,8 +51,10 @@ class CalidadController extends Controller
                 ...$data,
             ]);
             if ($data['decision'] === 'APROBADO') {
+                $muestra->update(['estado' => 'COMPLETADO']);
                 $lote->update(['estado' => LoteEstado::CLASIFICADO]);
             } elseif ($data['decision'] === 'RECHAZADO') {
+                $muestra->update(['estado' => 'COMPLETADO']);
                 $lote->update(['estado' => LoteEstado::RECHAZADO]);
             } else {
                 $lote->update(['estado' => LoteEstado::OBSERVADO]);
@@ -67,6 +69,24 @@ class CalidadController extends Controller
                 $muestra->update(['estado' => 'EN_INSPECCION']);
                 $lote->update(['estado' => LoteEstado::EN_INSPECCION]);
             }
+            // AGROCLOUD_NOTIFICATIONS_INSTALLED
+            $decision = $data['decision'];
+            $roles = $decision === 'OBSERVADO' ? ['INSPECTOR', 'ADMIN'] : ['PRODUCCION', 'ADMIN'];
+            $tipo = $decision === 'OBSERVADO' ? 'REINSPECCION_SOLICITADA' : 'DICTAMEN_'.$decision;
+            $titulo = match ($decision) {
+                'APROBADO' => 'Lote aprobado para producción',
+                'RECHAZADO' => 'Lote rechazado por calidad',
+                default => 'Reinspección solicitada',
+            };
+            $mensaje = 'El lote '.$lote->codigo_lote.' recibió un dictamen '.strtolower($decision).'.';
+            $destino = $decision === 'OBSERVADO'
+                ? '/muestreos/'.$muestra->id_muestreo
+                : '/lotes/'.$lote->id_lote;
+            \App\Services\OperationalNotifier::roles(
+                (int) $inspection->id_empresa, $roles, $tipo, $titulo,
+                $mensaje, $destino,
+                $decision === 'APROBADO' ? 'normal' : 'alta', (int) $lote->id_lote
+            );
         });
         return redirect()->route('calidad.index')->with('success', 'Dictamen guardado correctamente.');
     }

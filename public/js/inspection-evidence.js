@@ -4,9 +4,12 @@
  */
 (() => {
     'use strict';
+    if (window.agrocloudInitEvidence) { window.agrocloudInitEvidence(); return; }
+    const initialize = () => {
 
     const root = document.querySelector('[data-evidence-workspace]');
-    if (!root) return;
+    if (!root || root.dataset.inspectionReady === 'true') return;
+    root.dataset.inspectionReady = 'true';
 
     const list = root.querySelector('[data-evidence-list]');
     const empty = root.querySelector('[data-evidence-empty]');
@@ -222,4 +225,8 @@
             }
         }
     });
+    };
+    window.agrocloudInitEvidence = initialize;
+    document.addEventListener('livewire:navigated', initialize);
+    initialize();
 })();

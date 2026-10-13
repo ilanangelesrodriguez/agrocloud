@@ -24,6 +24,11 @@ class EmpresaController extends Controller
     {
         $empresa = $this->currentCompany();
         $data = $request->safe()->except(['logo']);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['tipo_empresa' => 'tipo_empresa', 'rubro' => 'rubro', 'grupo_empresarial' => 'grupo'], null, isset($empresa) ? $empresa->toArray() : []);
+        $geoFields = ['departamento', 'provincia', 'distrito', 'ubigeo'];
+        if (collect($geoFields)->contains(fn ($field) => ($data[$field] ?? null) !== $empresa->$field)) {
+            $data = app(\App\Services\UbigeoService::class)->normalize($data);
+        }
 
         // Un ADMIN de empresa puede editar sus datos, pero no activar/desactivar el tenant.
         unset($data['estado']);

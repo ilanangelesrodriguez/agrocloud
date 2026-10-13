@@ -54,6 +54,7 @@ class UsuarioController extends Controller
     public function store(StoreUserRequest $request, CloudinaryService $cloudinary): RedirectResponse
     {
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $this->empresaId(), isset($usuario) ? $usuario->toArray() : []);
         $data['id_empresa'] = $this->empresaId();
         $data['password_hash'] = $request->string('password')->toString();
         $data['estado'] = $request->boolean('estado');
@@ -96,6 +97,7 @@ class UsuarioController extends Controller
     {
         $this->assertManageableUser($usuario);
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $this->empresaId(), isset($usuario) ? $usuario->toArray() : []);
 
         // Un administrador no puede dejar su propia cuenta sin acceso desde este módulo.
         if ($usuario->is($request->user())) {

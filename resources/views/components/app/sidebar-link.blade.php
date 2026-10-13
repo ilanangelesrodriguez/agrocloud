@@ -6,6 +6,7 @@
 
 <a
     href="{{ route($route) }}"
+    wire:navigate
     aria-label="{{ $label }}"
     title="{{ $label }}"
     @if ($isActive) aria-current="page" @endif

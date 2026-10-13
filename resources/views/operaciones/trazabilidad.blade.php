@@ -1,0 +1,13 @@
+<x-layouts.app title="Trazabilidad del lote">
+    <div class="space-y-6"><x-ui.back-link :href="route('lotes.show', $lote->id_lote)" label="Volver al lote" />
+        <div><h1 class="text-2xl font-semibold">Trazabilidad · {{ $lote->codigo_lote }}</h1><p class="mt-1 text-sm text-slate-500">{{ $lote->productor?->nombre_razon_social }} · {{ $lote->producto }} · {{ $lote->peso_kg }} kg</p><div class="mt-2"><x-ui.state-badge :state="$lote->estado" /></div></div>
+        <x-ui.card title="Expediente operativo"><div class="space-y-3 text-sm"><p>Recepción: {{ $lote->recepcion ? $lote->recepcion->documento.' · '.$lote->recepcion->responsable?->nombre_completo : 'Registro histórico / recepción independiente pendiente' }}</p>
+            @forelse($lote->muestreos as $m)<div class="rounded-xl border border-slate-200 p-3 dark:border-slate-700"><a wire:navigate class="font-semibold text-brand-700" href="{{ route('muestreos.show', $m->id_muestreo) }}">Muestreo #{{ $m->id_muestreo }}</a> · {{ $m->tamano_muestra }} frutos · {{ $m->metodo }}
+                @foreach($m->inspecciones as $i)<p class="mt-2">Inspección #{{ $i->id_inspeccion }} · {{ $i->estado }} · {{ $i->dictamen?->decision ?? 'Sin dictamen' }} {{ $i->dictamen?->categoria }}</p>@endforeach
+            </div>@empty<p class="text-slate-500">Sin muestreos registrados.</p>@endforelse
+        </div></x-ui.card>
+        <x-ui.card title="Historial de eventos" description="Se registran automáticamente las operaciones desde la habilitación de este historial. Los registros anteriores se conservan en el expediente.">
+            <ol class="space-y-4">@forelse($eventos as $e)<li class="border-l-2 border-brand-300 pl-4"><p class="text-sm font-semibold">{{ $e->entidad }} #{{ $e->registro }} · {{ ucfirst(mb_strtolower(str_replace('_', ' ', $e->evento))) }}</p><p class="mt-1 text-xs text-slate-500">{{ \Carbon\Carbon::parse($e->created_at)->format('d/m/Y H:i:s') }} · {{ trim($e->nombre.' '.$e->apellido) ?: 'Sistema' }}</p><details class="mt-2 text-xs"><summary class="cursor-pointer text-brand-700">Ver datos del evento</summary><dl class="mt-2 space-y-1">@foreach(json_decode($e->cambios, true) ?? [] as $key => $value)<div><dt class="inline font-semibold">{{ str_replace('_', ' ', $key) }}:</dt><dd class="inline break-words">{{ is_array($value) ? (is_scalar($value['antes'] ?? null) ? $value['antes'] : '—').' → '.(is_scalar($value['despues'] ?? null) ? $value['despues'] : '—') : $value }}</dd></div>@endforeach</dl></details></li>@empty<li class="text-sm text-slate-500">Este lote aún no tiene eventos nuevos registrados.</li>@endforelse</ol><div class="mt-4">{{ $eventos->links() }}</div>
+        </x-ui.card>
+    </div>
+</x-layouts.app>

@@ -1,7 +1,7 @@
 <x-layouts.app title="Permisos del rol">
-    <div class="mx-auto max-w-5xl space-y-6">
+    <div class="space-y-6">
         <div class="space-y-2"><x-ui.back-link :href="route('roles.index')" label="Volver a roles" /><div><h2 class="text-2xl font-semibold text-slate-950 dark:text-slate-100">{{ $rol->nombre }}</h2><p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Configuración global reservada para SUPERADMIN.</p></div></div>
-        <form method="POST" action="{{ route('roles.update', $rol) }}">@csrf @method('PUT')
+        <form data-ajax-form method="POST" action="{{ route('roles.update', $rol) }}">@csrf @method('PUT')
             <div class="space-y-5">
                 @foreach ($permisos as $modulo => $items)
                     <x-ui.card :title="$modulo"><div class="grid gap-3 md:grid-cols-2">@foreach ($items as $permiso)<label class="flex gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4"><input type="checkbox" name="permisos[]" value="{{ $permiso->id_permiso }}" @checked($rol->permisos->contains('id_permiso', $permiso->id_permiso)) class="mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-brand-600 dark:text-brand-400 focus:ring-brand-500"><span><span class="block text-sm font-medium text-slate-900 dark:text-slate-100">{{ $permiso->nombre }}</span><span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">{{ $permiso->codigo }} · {{ $permiso->estado ? 'activo' : 'inactivo' }}</span></span></label>@endforeach</div></x-ui.card>

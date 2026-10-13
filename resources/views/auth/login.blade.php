@@ -21,7 +21,7 @@
         <x-ui.alert type="success" class="mb-5">{{ session('status') }}</x-ui.alert>
     @endif
 
-    <form method="POST" action="{{ route(\App\Constants\RouteNames::LOGIN_STORE) }}" class="space-y-5">
+    <form data-ajax-form method="POST" action="{{ route(\App\Constants\RouteNames::LOGIN_STORE) }}" class="space-y-5">
         @csrf
 
         <x-ui.input

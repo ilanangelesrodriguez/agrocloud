@@ -32,10 +32,10 @@
                     <div class="sm:col-span-2">
                         <x-ui.input name="razon_social" label="Razón social *" :value="$empresaActual?->razon_social" placeholder="Ej. Agroexportadora del Sur S.A.C." maxlength="200" required />
                     </div>
-                    <x-ui.input name="grupo_empresarial" label="Grupo empresarial" :value="$empresaActual?->grupo_empresarial" placeholder="Ej. Grupo Agrícola del Sur (opcional)" maxlength="150" />
-                    <x-ui.input name="tipo_empresa" label="Tipo de empresa" :value="$empresaActual?->tipo_empresa" placeholder="Ej. Productora, acopio o empaque" maxlength="80" />
+                    <x-ui.master-select kind="grupo" name="grupo_empresarial" label="Grupo empresarial" :value="$empresaActual?->grupo_empresarial" placeholder="Ej. Grupo Agrícola del Sur (opcional)" maxlength="150" />
+                    <x-ui.master-select kind="tipo_empresa" name="tipo_empresa" label="Tipo de empresa" :value="$empresaActual?->tipo_empresa" placeholder="Ej. Productora, acopio o empaque" maxlength="80" />
                     <div class="sm:col-span-2">
-                        <x-ui.input name="rubro" label="Rubro o actividad principal" :value="$empresaActual?->rubro" placeholder="Ej. Producción y exportación de arándanos" maxlength="150" />
+                        <x-ui.master-select kind="rubro" name="rubro" label="Rubro o actividad principal" :value="$empresaActual?->rubro" placeholder="Ej. Producción y exportación de arándanos" maxlength="150" />
                     </div>
                 </div>
             </section>

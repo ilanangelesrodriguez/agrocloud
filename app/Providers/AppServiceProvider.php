@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        foreach ([\App\Models\Lote::class, \App\Models\Recepcion::class, \App\Models\Muestreo::class, \App\Models\Inspeccion::class, \App\Models\EvidenciaInspeccion::class, \App\Models\ValidacionDeteccion::class, \App\Models\HallazgoManual::class, \App\Models\DictamenCalidad::class] as $model) {
+            $model::observe(\App\Observers\OperationalObserver::class);
+        }
     }
 }

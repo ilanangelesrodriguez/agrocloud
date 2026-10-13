@@ -188,3 +188,24 @@ html.dark [data-theme-option][aria-pressed='true'] {
 }
 /* --- AGROCLOUD DARK MODE: FIN --- */
 
+/* Los avisos de búsqueda no deben cambiar el centro vertical de los iconos. */
+.relative:has(> [data-search-input]) > .absolute {
+    top: 0;
+    bottom: auto;
+    height: 2.75rem;
+    translate: none;
+    transform: none;
+}
+
+[data-search-input][aria-invalid='true'] {
+    border-color: var(--color-red-500);
+}
+
+[data-search-input][aria-invalid='true']:focus {
+    --tw-ring-color: var(--color-red-100);
+}
+
+html.dark [data-search-input][aria-invalid='true']:focus {
+    --tw-ring-color: var(--color-red-900);
+}
+

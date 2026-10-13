@@ -4,8 +4,9 @@
 
         {{-- Regresar --}}
         <div>
-            <a
+            <a wire:navigate
                 href="{{ route('productores.show', $productorModel->id_productor) }}"
+                wire:navigate
                 class="inline-flex items-center gap-2 rounded-lg px-1 py-1 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-brand-700 dark:hover:text-brand-300"
             >
                 <x-ui.icon
@@ -82,7 +83,7 @@
                     </p>
 
                     <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
-                        {{ $productorModel->ubicacion ?: 'No registrada' }}
+                        {{ implode(' · ', array_filter([$productorModel->distrito, $productorModel->provincia, $productorModel->departamento])) ?: 'Ubicación por completar' }}
                     </p>
 
                 </div>
@@ -193,10 +194,7 @@
                                     @endphp
 
                                     @if ($estado)
-                                        <x-ui.status-badge
-                                            :active="$estado === 'RECIBIDO'"
-                                            :label="$estado"
-                                        />
+                                        <x-ui.state-badge :state="$estado" />
                                     @else
                                         <span class="text-sm text-slate-500 dark:text-slate-400">
                                             —

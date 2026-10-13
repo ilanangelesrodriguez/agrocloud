@@ -16,7 +16,7 @@
             </div>
 
             @if (auth()->user()->hasPermission('lotes.crear'))
-                <a
+                <a wire:navigate
                     href="{{ route('lotes.create') }}"
                     class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200 dark:focus:ring-brand-900/50"
                 >
@@ -28,23 +28,13 @@
         </div>
 
         {{-- Mensaje de éxito --}}
-        @if (session('success'))
-            <x-ui.alert type="success">
-                {{ session('success') }}
-            </x-ui.alert>
-        @endif
 
         {{-- Mensaje de error --}}
-        @if (session('error'))
-            <x-ui.alert type="error">
-                {{ session('error') }}
-            </x-ui.alert>
-        @endif
 
         {{-- Buscador --}}
         <x-ui.card>
 
-            <form
+            <form data-ajax-form
                 method="GET"
                 action="{{ route('lotes.index') }}"
                 class="flex flex-col gap-4 sm:flex-row sm:items-end"
@@ -68,7 +58,7 @@
                             />
                         </div>
 
-                        <input
+                        <input data-search-input
                             id="buscar"
                             name="buscar"
                             type="text"
@@ -92,7 +82,7 @@
                     </x-ui.button>
 
                     @if (request()->filled('buscar'))
-                        <a
+                        <a wire:navigate
                             href="{{ route('lotes.index') }}"
                             class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-700"
                         >
@@ -253,9 +243,7 @@
                                             : $lote->estado;
                                     @endphp
 
-                                    <span class="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                                        {{ $estado }}
-                                    </span>
+                                    <x-ui.state-badge :state="$estado" />
 
                                 </td>
 
@@ -266,7 +254,7 @@
 
                                         @if (auth()->user()->hasPermission('lotes.ver'))
 
-                                            <a
+                                            <a wire:navigate
                                                 href="{{ route('lotes.show', $lote->id_lote) }}"
                                                 class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-300"
                                             >
@@ -281,7 +269,7 @@
 
                                         @if (auth()->user()->hasPermission('lotes.editar'))
 
-                                            <a
+                                            <a wire:navigate
                                                 href="{{ route('lotes.edit', $lote->id_lote) }}"
                                                 class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-300"
                                             >
@@ -364,7 +352,7 @@
                                             auth()->user()->hasPermission('lotes.crear')
                                         )
 
-                                            <a
+                                            <a wire:navigate
                                                 href="{{ route('lotes.create') }}"
                                                 class="mt-4 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
                                             >

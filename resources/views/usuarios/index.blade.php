@@ -1,25 +1,35 @@
-<x-layouts.app title="Usuarios">
     <div class="space-y-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <p class="text-sm font-semibold text-brand-700 dark:text-brand-300">Administración de empresa</p>
                 <h2 class="mt-1 text-2xl font-semibold text-slate-950 dark:text-slate-100">Usuarios de {{ auth()->user()->empresa?->nombre_comercial }}</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Administra cuentas de tu empresa. SUPERADMIN no se gestiona desde este módulo.</p>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Administra los usuarios, roles y accesos de tu empresa.</p>
             </div>
 
             @if (auth()->user()->hasPermission('usuarios.crear'))
-                <a href="{{ route('usuarios.create') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
+                <a href="{{ route('usuarios.create') }}" wire:navigate class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
                     <x-ui.icon name="plus" class="h-4 w-4" /> Nuevo usuario
                 </a>
             @endif
         </div>
 
-        <form method="GET" class="flex flex-col gap-2 sm:flex-row">
-            <div class="relative w-full max-w-lg">
-                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400"><x-ui.icon name="search" class="h-4 w-4" /></span>
-                <input type="search" name="q" value="{{ $search }}" placeholder="Buscar por nombre, correo o cargo" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-2.5 pl-10 pr-3.5 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50">
+        <form wire:submit="buscarUsuarios" class="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <div data-search-field class="w-full sm:max-w-lg">
+                <label for="buscar-usuario" class="sr-only">Buscar usuarios por nombre, correo o cargo</label>
+                <div class="relative">
+                    <span class="pointer-events-none absolute left-3 top-0 flex h-11 items-center text-slate-400"><x-ui.icon name="search" class="h-4 w-4" /></span>
+                    <input id="buscar-usuario" data-search-input type="search" wire:model="buscar" placeholder="Nombre, correo o cargo" class="h-11 w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 pl-10 pr-3.5 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50">
+                </div>
             </div>
-            <x-ui.button type="submit" variant="secondary">Buscar</x-ui.button>
+            <div class="flex shrink-0 gap-2">
+                <x-ui.button type="submit" wire:loading.attr="disabled" wire:target="buscarUsuarios" class="h-11 w-full sm:w-auto">
+                    <span wire:loading.remove wire:target="buscarUsuarios">Buscar</span>
+                    <span wire:loading wire:target="buscarUsuarios">Buscando…</span>
+                </x-ui.button>
+                @if ($filtro !== '')
+                    <x-ui.button type="button" variant="secondary" wire:click="limpiarBusqueda" class="h-11">Limpiar</x-ui.button>
+                @endif
+            </div>
         </form>
 
         <x-ui.card>
@@ -47,10 +57,10 @@
                                 <td class="px-3 py-4">
                                     <div class="flex justify-end gap-2">
                                         @if (auth()->user()->hasPermission('usuarios.editar'))
-                                            <a href="{{ route('usuarios.edit', $usuario) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 transition hover:border-brand-200 dark:hover:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/35 hover:text-brand-700 dark:hover:text-brand-300"><x-ui.icon name="pencil" class="h-3.5 w-3.5" />Editar</a>
+                                            <a href="{{ route('usuarios.edit', $usuario) }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 transition hover:border-brand-200 dark:hover:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/35 hover:text-brand-700 dark:hover:text-brand-300"><x-ui.icon name="pencil" class="h-3.5 w-3.5" />Editar</a>
                                         @endif
                                         @if (auth()->user()->hasPermission('usuarios.estado') && ! $usuario->is(auth()->user()))
-                                            <form method="POST" action="{{ route('usuarios.toggle-status', $usuario) }}">@csrf @method('PATCH')<button type="submit" class="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">{{ $usuario->estado ? 'Desactivar' : 'Activar' }}</button></form>
+                                            <form method="POST" action="{{ route('usuarios.toggle-status', $usuario) }}" data-ajax-form>@csrf @method('PATCH')<button type="submit" class="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">{{ $usuario->estado ? 'Desactivar' : 'Activar' }}</button></form>
                                         @endif
                                     </div>
                                 </td>
@@ -64,4 +74,3 @@
             <div class="mt-5">{{ $usuarios->links() }}</div>
         </x-ui.card>
     </div>
-</x-layouts.app>

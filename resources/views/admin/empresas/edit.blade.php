@@ -11,14 +11,14 @@
                 <div class="shrink-0"><x-ui.status-badge :active="$empresa->estado" active-label="Empresa activa" inactive-label="Empresa inactiva" /></div>
             </div>
         </div>
-        <form method="POST" action="{{ route('admin.empresas.update', $empresa) }}" enctype="multipart/form-data">
+        <form data-ajax-form method="POST" action="{{ route('admin.empresas.update', $empresa) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             @include('admin.empresas._form')
             <div class="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <p class="text-xs leading-5 text-slate-500 dark:text-slate-400">Revisa los cambios antes de guardarlos. El logo solo se reemplaza al seleccionar otro archivo.</p>
                 <div class="flex flex-col-reverse gap-2 sm:flex-row">
-                    <a href="{{ route('admin.empresas.show', $empresa) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</a>
+                    <a wire:navigate href="{{ route('admin.empresas.show', $empresa) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</a>
                     <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="save" class="h-4 w-4" />Guardar cambios</span></x-ui.button>
                 </div>
             </div>

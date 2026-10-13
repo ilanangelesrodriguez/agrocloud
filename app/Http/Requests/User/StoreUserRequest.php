@@ -26,7 +26,7 @@ class StoreUserRequest extends FormRequest
             'correo' => ['required', 'email', 'max:255', Rule::unique('usuario', 'correo')],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'telefono' => ['nullable', 'string', 'max:30', 'regex:/^(?=(?:.*\d){7,15}$)\+?[0-9][0-9\s().-]*$/'],
-            'cargo' => ['nullable', Rule::in(array_keys(config('agrocloud.cargos', [])))],
+            'cargo' => ['nullable', 'string', 'max:150'],
             'foto_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'estado' => ['nullable', 'boolean'],
         ];

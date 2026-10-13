@@ -26,6 +26,7 @@ class Lote extends Model
         'producto',
         'variedad',
         'peso_kg',
+        'unidad_medida',
         'fecha_recepcion',
         'estado',
     ];
@@ -47,4 +48,7 @@ class Lote extends Model
             'id_productor'
         );
     }
+
+    public function recepcion() { return $this->hasOne(Recepcion::class, 'id_lote'); }
+    public function muestreos() { return $this->hasMany(Muestreo::class, 'id_lote'); }
 }

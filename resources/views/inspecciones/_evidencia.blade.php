@@ -12,15 +12,10 @@
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-700 sm:px-5">
         <div>
             <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Evidencia #{{ $foto->id_evidencia }}</p>
+            <p class="text-xs font-mono text-brand-700">{{ $foto->fruto?->codigo ?? 'Evidencia histórica sin fruto individual' }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-400">{{ $foto->created_at?->format('d/m/Y H:i') }}</p>
         </div>
-        <span class="rounded-full px-2.5 py-1 text-xs font-semibold
-            @if($completa) bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300
-            @elseif($foto->estado_ia === 'ERROR') bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300
-            @elseif($foto->estado_ia === 'PROCESANDO') bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300
-            @else bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 @endif">
-            {{ match ($foto->estado_ia) { 'COMPLETADO' => 'Analizada', 'PROCESANDO' => 'Procesando', 'ERROR' => 'Error IA', default => 'Pendiente de IA' } }}
-        </span>
+        <x-ui.state-badge :state="$foto->estado_ia" :label="match ($foto->estado_ia) { 'COMPLETADO' => 'Analizada', 'PROCESANDO' => 'Procesando', 'ERROR' => 'Error IA', default => 'Pendiente de IA' }" />
     </div>
     <div class="grid grid-cols-2 gap-px bg-slate-200 dark:bg-slate-700">
         <div class="min-w-0 bg-slate-50 p-2 dark:bg-slate-800">

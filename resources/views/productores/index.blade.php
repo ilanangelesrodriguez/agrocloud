@@ -1,5 +1,3 @@
-<x-layouts.app title="Productores">
-
     <div class="space-y-6">
 
         {{-- Encabezado --}}
@@ -11,42 +9,32 @@
                 </h1>
 
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    Consulta y administra los productores registrados en tu empresa.
+                    Encuentra productores, revisa sus datos y consulta los lotes asociados.
                 </p>
             </div>
 
             @if (auth()->user()->hasPermission('productores.crear'))
                 <a
                     href="{{ route('productores.create') }}"
+                    wire:navigate
                     class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-200 dark:focus:ring-brand-900/50"
                 >
                     <x-ui.icon name="plus" class="h-4 w-4" />
-                    <span>Nuevo productor</span>
+                    <span>Registrar productor</span>
                 </a>
             @endif
 
         </div>
 
        {{-- Mensaje de éxito --}}
-       @if (session('success'))
-           <x-ui.alert type="success">
-               {{ session('success') }}
-           </x-ui.alert>
-       @endif
 
        {{-- Mensaje de error --}}
-       @if (session('error'))
-           <x-ui.alert type="error">
-               {{ session('error') }}
-           </x-ui.alert>
-       @endif
 
         {{-- Buscador --}}
         <x-ui.card>
 
             <form
-                method="GET"
-                action="{{ route('productores.index') }}"
+                wire:submit="buscarProductores"
                 class="flex flex-col gap-4 sm:flex-row sm:items-end"
             >
 
@@ -68,12 +56,11 @@
                             />
                         </div>
 
-                        <input
+                        <input data-search-input
                             id="buscar"
-                            name="buscar"
+                            wire:model="buscar"
                             type="text"
-                            value="{{ request('buscar') }}"
-                            placeholder="RUC, nombre, fundo o ubicación..."
+                            placeholder="Nombre, RUC, fundo o ubicación"
                             class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-2.5 pl-10 pr-3.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50"
                         >
 
@@ -91,13 +78,14 @@
                         Buscar
                     </x-ui.button>
 
-                    @if (request()->filled('buscar'))
-                        <a
-                            href="{{ route('productores.index') }}"
+                    @if ($filtro !== '')
+                        <button
+                            type="button"
+                            wire:click="limpiarBusqueda"
                             class="inline-flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-100 dark:focus:ring-slate-700"
                         >
                             Limpiar
-                        </a>
+                        </button>
                     @endif
 
                 </div>
@@ -158,7 +146,7 @@
 
                         @forelse ($productores as $productor)
 
-                            <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-700">
+                            <tr wire:key="productor-{{ $productor->id_productor }}" class="transition hover:bg-slate-50 dark:hover:bg-slate-700">
 
                                 {{-- RUC --}}
                                 <td class="whitespace-nowrap px-4 py-4">
@@ -189,7 +177,12 @@
 
                                 {{-- Ubicación --}}
                                 <td class="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                    {{ $productor->ubicacion ?: '—' }}
+                                    @if ($productor->departamento || $productor->provincia || $productor->distrito)
+                                        <p>{{ implode(' · ', array_filter([$productor->distrito, $productor->provincia])) }}</p>
+                                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ $productor->departamento }}</p>
+                                    @else
+                                        <span class="text-xs text-slate-400">Ubicación por completar</span>
+                                    @endif
                                 </td>
 
                                 {{-- Acciones --}}
@@ -201,6 +194,7 @@
 
                                             <a
                                                 href="{{ route('productores.show', $productor->id_productor) }}"
+                                                wire:navigate
                                                 class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-300"
                                             >
                                                 <x-ui.icon
@@ -216,6 +210,7 @@
 
                                             <a
                                                 href="{{ route('productores.edit', $productor->id_productor) }}"
+                                                wire:navigate
                                                 class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-700 dark:hover:text-brand-300"
                                             >
                                                 <x-ui.icon
@@ -232,7 +227,8 @@
                                             <form
                                                 method="POST"
                                                 action="{{ route('productores.destroy', $productor->id_productor) }}"
-                                                onsubmit="return confirm('¿Estás seguro de que deseas eliminar este productor?');"
+                                                data-ajax-form
+                                                data-confirm="¿Estás seguro de que deseas eliminar este productor?"
                                                 class="inline"
                                             >
                                                 @csrf
@@ -285,10 +281,10 @@
 
                                         <p class="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
 
-                                            @if (request()->filled('buscar'))
+                                            @if ($filtro !== '')
 
                                                 No encontramos productores que coincidan con
-                                                "{{ request('buscar') }}".
+                                                "{{ $filtro }}".
 
                                             @else
 
@@ -300,12 +296,13 @@
                                         </p>
 
                                         @if (
-                                            !request()->filled('buscar') &&
+                                            $filtro === '' &&
                                             auth()->user()->hasPermission('productores.crear')
                                         )
 
                                             <a
                                                 href="{{ route('productores.create') }}"
+                                                wire:navigate
                                                 class="mt-4 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
                                             >
 
@@ -314,7 +311,7 @@
                                                     class="h-4 w-4"
                                                 />
 
-                                                Nuevo productor
+                                                Registrar productor
 
                                             </a>
 
@@ -348,5 +345,3 @@
         </x-ui.card>
 
     </div>
-
-</x-layouts.app>
