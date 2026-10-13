@@ -241,6 +241,16 @@ Route::middleware(['auth', 'active'])->group(function () {
                 Route::get('/{lote}', [LoteController::class, 'show'])
                     ->middleware('permission:lotes.ver')
                     ->name('show');
+
+                /*
+                |--------------------------------------------------------------------------
+                | ELIMINAR
+                |--------------------------------------------------------------------------
+                */
+
+                Route::delete('/{lote}', [LoteController::class, 'destroy'])
+                    ->middleware('permission:lotes.eliminar')
+                    ->name('destroy');
             });
 
     /*
