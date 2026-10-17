@@ -42,12 +42,14 @@ jobs:
       - name: Descargar AgroCloud
         uses: actions/checkout@v4
 
+      
       - name: Configurar PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           extensions: mbstring, pdo_pgsql, pgsql, dom, zip, gd, intl
           coverage: none
+
 
       - name: Verificar base Neon de pruebas
         run: |
