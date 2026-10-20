@@ -71,7 +71,11 @@ class SuperadminListsTest extends TestCase
         $role = Rol::create(['codigo' => 'ADMIN', 'nombre' => 'Administrador', 'estado' => true]);
         User::create(['id_empresa' => $company->id_empresa, 'id_rol' => $role->id_rol, 'nombre' => 'Encontrable', 'correo' => 'find@example.test', 'password_hash' => 'password', 'estado' => true]);
         Livewire::test(AdminEmpresaUsuariosIndex::class, ['empresaId' => $company->id_empresa])->set('q', 'Encontrable')->call('filtrar')->assertHasNoErrors()->assertSee('Encontrable')->assertDontSee('root@example.test');
-        $this->get(route('maestros.index'))->assertOk()->assertDontSee('→')->assertSee('<svg', false);
+        $this->get(route('maestros.index'))
+            ->assertOk()
+            ->assertSee('Catálogos maestros')
+            ->assertSee('Ubicaciones geográficas')
+            ->assertSee('<svg', false);
     }
     public function test_permission_filters_and_conditional_clear_button(): void
     {

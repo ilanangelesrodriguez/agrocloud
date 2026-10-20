@@ -53,7 +53,16 @@ class OperationalWorkflowTest extends TestCase
             'seleccion_frutos' => 'Selección aleatoria en toda la cobertura del lote.',
         ];
         $this->actingAs($inspector)->postJson('/muestreos', $sample)->assertStatus(422);
-        $receipt = ['documento' => 'GUIA-001', 'peso_recibido_kg' => 95, 'recibido_en' => now()->subMinute()->format('Y-m-d H:i:s')];
+        $receipt = [
+            'documento' => 'GUIA-001',
+            'peso_recibido_kg' => 95,
+            'recibido_en' => now()->subMinute()->format('Y-m-d H:i:s'),
+            'observaciones' => 'Se recibieron 95 kg de los 100 kg declarados. Los 5 kg restantes corresponden a una diferencia de peso registrada durante la recepción.',
+        ];
+        $this->actingAs($receiver)->postJson('/recepciones/'.$lot->id_lote, [
+            ...$receipt,
+            'observaciones' => null,
+        ])->assertStatus(422)->assertJsonValidationErrors('observaciones');
         $this->actingAs($receiver)->post('/recepciones/'.$lot->id_lote, $receipt)->assertRedirect('/recepciones');
         $this->post('/recepciones/'.$lot->id_lote, $receipt)->assertStatus(422);
         $this->assertDatabaseCount('recepciones', 1);
