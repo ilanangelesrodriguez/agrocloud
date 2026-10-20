@@ -33,6 +33,7 @@ Route::middleware(['auth', 'active', \App\Http\Middleware\EnsureCompanyOperator:
     Route::prefix('calidad')->name('calidad.')->group(function () {
         Route::get('/pendientes', [CalidadController::class, 'index'])->middleware('permission:calidad.ver')->name('index');
         Route::get('/inspecciones/{inspeccion}', [CalidadController::class, 'show'])->middleware('permission:calidad.ver')->name('show');
+        Route::get('/inspecciones/{inspeccion}/documento', [CalidadController::class, 'documento'])->middleware('permission:calidad.ver')->name('documento');
         Route::post('/inspecciones/{inspeccion}/dictamen', [CalidadController::class, 'store'])->middleware('permission:calidad.clasificar')->name('dictamen.store');
     });
 });

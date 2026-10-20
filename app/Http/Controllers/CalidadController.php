@@ -21,11 +21,25 @@ class CalidadController extends Controller
     public function show(int $inspeccion): View
     {
         $inspeccion = Inspeccion::query()->forCurrentCompany()->with([
-            'muestreo.lote.productor', 'evidencias.validaciones', 'hallazgos', 'dictamen',
+            'muestreo.lote.productor', 'evidencias.validaciones', 'hallazgos', 'dictamen.supervisor', 'inspector',
         ])->findOrFail($inspeccion);
         $revisiones = app(\App\Services\RevisionEvidencias::class)->revisiones($inspeccion);
         $naturalezas = app(\App\Services\RevisionEvidencias::class)->naturalezas($inspeccion);
-        return view('calidad.show', compact('inspeccion', 'revisiones', 'naturalezas'));
+        $bloqueado = app(\App\Services\IncidenciasOperativas::class)->bloqueaLiberacion($inspeccion->id_empresa, $inspeccion->muestreo->id_lote);
+        $revisionCompleta = $inspeccion->evidencias->isNotEmpty() && count($revisiones) === $inspeccion->evidencias->count();
+        $distintoInspector = (int) $inspeccion->id_inspector !== (int) auth()->id();
+        $evento = $inspeccion->dictamen ? DB::table('eventos_trazabilidad')->where('id_empresa', $inspeccion->id_empresa)->where('entidad', 'DictamenCalidad')->where('registro', $inspeccion->dictamen->id_dictamen)->where('evento', 'REVISION_SUPERVISOR')->latest('id')->first() : null;
+        $revisionSupervisor = $evento ? json_decode($evento->cambios, true) : [];
+        return view('calidad.show', compact('inspeccion', 'revisiones', 'naturalezas', 'bloqueado', 'revisionCompleta', 'distintoInspector', 'revisionSupervisor'));
+    }
+
+    public function documento(int $inspeccion): View
+    {
+        $inspeccion = Inspeccion::forCurrentCompany()->with(['muestreo.lote.productor', 'inspector', 'dictamen.supervisor'])->findOrFail($inspeccion);
+        abort_unless($inspeccion->dictamen, 404, 'La inspección todavía no tiene un dictamen registrado.');
+        $evento = DB::table('eventos_trazabilidad')->where('id_empresa', $inspeccion->id_empresa)->where('entidad', 'DictamenCalidad')->where('registro', $inspeccion->dictamen->id_dictamen)->where('evento', 'REVISION_SUPERVISOR')->latest('id')->first();
+        $revisionSupervisor = $evento ? json_decode($evento->cambios, true) : [];
+        return view('calidad.documento', compact('inspeccion', 'revisionSupervisor'));
     }
 
     public function store(Request $request, int $inspeccion): RedirectResponse
@@ -49,7 +63,7 @@ class CalidadController extends Controller
             abort_if($inspection->dictamen()->exists(), 422, 'Esta inspección ya tiene un dictamen.');
             $muestra = $inspection->muestreo;
             $lote = \App\Models\Lote::forCurrentCompany()->lockForUpdate()->findOrFail($muestra->id_lote);
-            abort_if($inspection->id_inspector === $request->user()->id_usuario, 422, 'El dictamen requiere un supervisor distinto del inspector.');
+            abort_if((int) $inspection->id_inspector === (int) $request->user()->id_usuario, 422, 'El dictamen requiere un supervisor distinto del inspector.');
             $inspection->load(['evidencias.validaciones', 'hallazgos']);
             abort_if($data['decision'] === 'APROBADO' && app(\App\Services\IncidenciasOperativas::class)->bloqueaLiberacion($inspection->id_empresa, $lote->id_lote), 422, 'El lote tiene incidencias altas o críticas sin cierre del supervisor. Atiéndelas antes de liberar.');
             if ($data['decision'] !== 'OBSERVADO') {

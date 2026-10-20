@@ -11,6 +11,7 @@ import './users';
 import './catalogs';
 import './workspace-drawer';
 import './operational-workspace';
+import './quality-decision';
 
 let appListeners;
 let securitySubscribedChannel = null;

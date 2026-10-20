@@ -1,8 +1,8 @@
-@props(['estados', 'productos'])
-<div class="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-slate-700">
+@props(['estados', 'productos', 'active' => false])
+<details wire:ignore.self class="mt-3 border-t border-slate-100 pt-3 dark:border-slate-700"><summary class="cursor-pointer text-sm font-semibold text-brand-700 dark:text-brand-300">Filtros avanzados · estado, producto y fechas @if($active)<span class="ml-2 text-xs font-medium">Filtros aplicados</span>@endif</summary><div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
     <label class="text-sm font-medium dark:text-slate-200">Estado<select wire:model.live="estado" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-2.5 dark:border-slate-600 dark:bg-slate-900"><option value="">Todos</option>@foreach($estados as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
     <label class="text-sm font-medium dark:text-slate-200">Producto<select wire:model.live="producto" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-2.5 dark:border-slate-600 dark:bg-slate-900"><option value="">Todos</option>@foreach($productos as $value)<option value="{{ $value }}">{{ $value }}</option>@endforeach</select></label>
     <label class="text-sm font-medium dark:text-slate-200">Desde<input wire:model.live="desde" type="date" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-2.5 dark:border-slate-600 dark:bg-slate-900"></label>
     <label class="text-sm font-medium dark:text-slate-200">Hasta<input wire:model.live="hasta" type="date" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-2.5 dark:border-slate-600 dark:bg-slate-900"></label>
-</div>
+</div></details>
 <div class="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm"><button type="button" wire:click="limpiarBusqueda" class="font-semibold text-brand-700 dark:text-brand-300">Limpiar búsqueda y filtros</button><label class="text-slate-500">Por página <select wire:model.live="porPagina" class="ml-2 rounded-lg border border-slate-300 bg-transparent p-2 dark:border-slate-600">@foreach([15,30,50] as $n)<option value="{{ $n }}">{{ $n }}</option>@endforeach</select></label></div>

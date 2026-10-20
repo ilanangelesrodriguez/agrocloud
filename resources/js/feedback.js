@@ -68,6 +68,12 @@ export function confirmForm(form, submitter) {
     dialog.querySelector('[data-confirm-description]').textContent = form.dataset.confirm;
     dialog.querySelector('#confirm-title').textContent = form.dataset.confirmTitle || 'Confirmar eliminación';
     dialog.querySelector('[data-confirm-accept]').textContent = form.dataset.confirmLabel || 'Eliminar';
+    const accept = dialog.querySelector('[data-confirm-accept]');
+    const primary = form.dataset.confirmTone === 'primary';
+    accept.classList.toggle('bg-red-600', !primary);
+    accept.classList.toggle('hover:bg-red-700', !primary);
+    accept.classList.toggle('bg-brand-600', primary);
+    accept.classList.toggle('hover:bg-brand-700', primary);
     dialog.showModal();
 }
 

@@ -28,7 +28,7 @@
                 @endif
             </div>
         </form>
-        <x-ui.operational-filters :estados="$estados" :productos="$productos" />
+        <x-ui.operational-filters :estados="$estados" :productos="$productos" :active="$estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" />
     </x-ui.card>
 
     <x-ui.card>
@@ -56,7 +56,7 @@
                             </div></td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="px-4 py-12 text-center text-sm text-slate-500 dark:text-slate-400"><x-ui.icon name="briefcase" class="mx-auto h-6 w-6 text-slate-400" /><h3 class="mt-4 font-semibold text-slate-900 dark:text-slate-100">No hay lotes registrados</h3><p class="mt-1">No encontramos lotes que coincidan con la búsqueda.</p></td></tr>
+                        <tr><td colspan="6" class="px-4 py-12 text-center text-sm text-slate-500 dark:text-slate-400"><x-ui.icon name="briefcase" class="mx-auto h-6 w-6 text-slate-400" /><h3 class="mt-4 font-semibold text-slate-900 dark:text-slate-100">{{ $filtro || $estado || $producto || $desde || $hasta ? 'Ningún lote coincide con los filtros' : 'Aún no hay lotes registrados' }}</h3><p class="mt-1">{{ $filtro || $estado || $producto || $desde || $hasta ? 'Limpia los filtros o cambia la búsqueda para consultar otros lotes.' : 'Registra un lote para preparar su recepción física.' }}</p></td></tr>
                     @endforelse
                 </tbody>
             </table>

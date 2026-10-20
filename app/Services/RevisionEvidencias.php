@@ -18,9 +18,9 @@ class RevisionEvidencias
         ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
     }
 
-    public function revisiones(Inspeccion $inspeccion): array
+    public function revisiones(Inspeccion $inspeccion, ?\Illuminate\Support\Collection $eventos = null): array
     {
-        $eventos = DB::table('eventos_trazabilidad')
+        $eventos ??= DB::table('eventos_trazabilidad')
             ->where('id_empresa', $inspeccion->id_empresa)
             ->where('entidad', 'EvidenciaInspeccion')->where('evento', 'REVISION_IMAGEN')
             ->whereIn('registro', $inspeccion->evidencias->modelKeys())
