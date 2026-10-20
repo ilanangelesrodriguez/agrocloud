@@ -1,4 +1,4 @@
-@props(['title' => 'AgroCloud AI', 'landing' => false])
+@props(['title' => 'AgroCloud AI', 'landing' => false, 'description' => null])
 
 <!DOCTYPE html>
 <html lang="es">
@@ -21,6 +21,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }} · AgroCloud AI</title>
+    @if($description)<meta name="description" content="{{ $description }}">@endif
+    @if($landing && request()->is('/'))
+        <link rel="canonical" href="{{ url('/') }}">
+        <meta property="og:locale" content="es_PE">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="AgroCloud AI">
+        <meta property="og:title" content="{{ $title }} · AgroCloud AI">
+        <meta property="og:description" content="{{ $description }}">
+        <meta property="og:url" content="{{ url('/') }}">
+        <meta property="og:image" content="{{ asset('images/agrocloud/logo-mark.png') }}">
+        <meta property="og:image:alt" content="AgroCloud AI">
+        <meta name="twitter:card" content="summary">
+    @endif
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=2">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}?v=2">

@@ -10,6 +10,12 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertOk()->assertSee('Calidad que se ve.')->assertSee(route('login'));
+        $response->assertOk()->assertSee('Del ingreso de la palta al dictamen de calidad,')->assertSee(route('login'))
+            ->assertSee(route('acceso.create'))
+            ->assertSee('data-public-menu', false)
+            ->assertSee('og:description', false)
+            ->assertSee('Modelo de prueba')
+            ->assertSee('orugas y saltamontes')
+            ->assertSee('Esquema del proceso de AgroCloud AI.');
     }
 }

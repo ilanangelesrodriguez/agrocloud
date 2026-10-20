@@ -344,3 +344,16 @@ document.addEventListener('error', (event) => {
     image.src = image.dataset.logoFallback;
     image.alt = 'AgroCloud AI';
 }, true);
+
+// El menú público vuelve a cerrarse al elegir una sección o pulsar Escape.
+document.addEventListener('click', (event) => {
+    const link = event.target.closest?.('[data-public-menu] a');
+    link?.closest('[data-public-menu]')?.removeAttribute('open');
+});
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    const menu = document.querySelector('[data-public-menu][open]');
+    if (!menu) return;
+    menu.removeAttribute('open');
+    menu.querySelector('summary')?.focus();
+});
