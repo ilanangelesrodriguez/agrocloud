@@ -21,16 +21,21 @@ jobs:
   tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-
+    
     env:
       APP_ENV: testing
       APP_DEBUG: true
+
       DB_CONNECTION: pgsql
       DB_URL: ${{ secrets.NEON_TEST_DATABASE_URL }}
       DB_SSLMODE: require
 
       NEON_TEST_HOST: ${{ vars.NEON_TEST_HOST }}
       NEON_PROD_HOST: ${{ vars.NEON_PROD_HOST }}
+      NEON_TEST_DATABASE: ${{ vars.NEON_TEST_DATABASE }}
+      NEON_TEST_USER: ${{ vars.NEON_TEST_USER }}
+
+      AGROCLOUD_ALLOW_PG_TESTS: "1"
 
       CACHE_STORE: array
       SESSION_DRIVER: array
