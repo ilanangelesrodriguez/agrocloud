@@ -89,10 +89,22 @@ class OperationalWorkflowTest extends TestCase
         }
         $this->actingAs($inspector)->post('/inspecciones/'.$i->id_inspeccion.'/finalizar')->assertRedirect();
         $this->assertSame('PENDIENTE_DICTAMEN', $m->fresh()->estado);
+        
         $supervisor = $this->user('SUPERVISOR', $company);
-        $this->actingAs($supervisor)->post('/calidad/inspecciones/'.$i->id_inspeccion.'/dictamen', ['decision' => 'APROBADO', 'observaciones' => 'Revisión completa.'])->assertRedirect();
+
+        $this->actingAs($supervisor)
+            ->post('/calidad/inspecciones/'.$i->id_inspeccion.'/dictamen', [
+                'decision' => 'APROBADO',
+                'observaciones' => 'Revisión completa.',
+                'protocolo_calidad' => 'Protocolo de control de calidad v1',
+                'revision_independiente' => '1',
+            ])
+            ->assertRedirect(route('calidad.index'))
+            ->assertSessionHasNoErrors();
+
         $this->assertSame('COMPLETADO', $m->fresh()->estado);
         $this->assertSame('CLASIFICADO', $lot->fresh()->estado->value);
+
         $this->assertDatabaseHas('eventos_trazabilidad', ['id_lote' => $lot->id_lote, 'entidad' => 'DictamenCalidad', 'id_usuario' => $supervisor->id_usuario]);
         foreach (['recepciones', 'muestreos', 'calidad'] as $tipo) {
             $this->get('/reportes/operativos?tipo='.$tipo)->assertOk()->assertSee('LOTE-001');
