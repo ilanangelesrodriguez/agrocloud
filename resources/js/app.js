@@ -9,6 +9,8 @@ import './masters';
 import './master-dialog';
 import './users';
 import './catalogs';
+import './workspace-drawer';
+import './operational-workspace';
 
 let appListeners;
 let securitySubscribedChannel = null;
@@ -186,6 +188,7 @@ document.addEventListener('submit', async (event) => {
             },
         };
 
+        if (form.matches('[data-workspace-drawer-form], [data-workspace-inline-form]')) requestOptions.headers['X-Workspace-Drawer'] = 'true';
         if (form.matches('[data-user-drawer-form], [data-user-inline-form]')) requestOptions.headers['X-User-Module'] = 'true';
         if (form.matches('[data-catalog-modal-form], [data-catalog-inline-form]')) requestOptions.headers['X-Master-Module'] = 'true';
 
@@ -224,6 +227,10 @@ document.addEventListener('submit', async (event) => {
         }
         if (response.headers.get('content-type')?.includes('application/json')) {
             const result = await response.json();
+            if (result.saved && form.matches('[data-workspace-drawer-form], [data-workspace-inline-form]')) {
+                form.dispatchEvent(new CustomEvent('workspace:saved', { bubbles: true, detail: result }));
+                return;
+            }
             if (result.saved && form.matches('[data-catalog-modal-form], [data-catalog-inline-form]')) {
                 form.dispatchEvent(new CustomEvent('catalog:saved', { bubbles: true, detail: result }));
                 return;

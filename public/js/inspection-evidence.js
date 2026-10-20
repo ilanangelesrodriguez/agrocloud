@@ -123,6 +123,12 @@
             total.textContent = String(data.evidencias_count);
         }
         if (analyzed) analyzed.textContent = String(list.querySelectorAll('[data-evidencia-id][data-analyzed="1"]').length);
+        const count = list.querySelectorAll('[data-evidencia-id]').length;
+        const done = list.querySelectorAll('[data-analyzed="1"]').length;
+        const progress = root.querySelector('[data-analysis-progress]');
+        if (progress) { progress.max = Math.max(1, count); progress.value = done; }
+        const progressLabel = root.querySelector('[data-analysis-progress-label]');
+        if (progressLabel) progressLabel.textContent = `${done} de ${count} fotografías analizadas con IA. La revisión humana es una etapa independiente.`;
     }
 
     function clearPreview(form) {
@@ -152,6 +158,29 @@
             }
         });
     }
+
+    function useFile(form, files) {
+        if (!files?.length) return;
+        if (uploadBusy || root.dataset.analysisBusy === '1') { notify('Espera a que termine el proceso actual.', 'info'); return; }
+        if (files.length !== 1) { notify('Selecciona una fotografía por vez para conservar su vínculo con el fruto.', 'error'); return; }
+        const input = form.querySelector('[data-file-input]');
+        try { const transfer = new DataTransfer(); transfer.items.add(files[0]); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true })); }
+        catch (_) { notify('Utiliza el selector de archivos de tu navegador.', 'error'); }
+    }
+    for (const form of uploadForms) {
+        form.querySelector('[data-camera-input]')?.addEventListener('change', event => useFile(form, event.target.files));
+        const dropzone = form.querySelector('[data-photo-dropzone]');
+        dropzone?.addEventListener('dragover', event => { event.preventDefault(); dropzone.classList.add('ring-2', 'ring-emerald-500'); });
+        dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('ring-2', 'ring-emerald-500'));
+        dropzone?.addEventListener('drop', event => { event.preventDefault(); dropzone.classList.remove('ring-2', 'ring-emerald-500'); useFile(form, event.dataTransfer.files); });
+    }
+    root.addEventListener('click', event => {
+        const button = event.target.closest('[data-photo-view]');
+        if (!button) return;
+        const card = button.closest('[data-evidencia-id]');
+        card.querySelectorAll('[data-photo-panel]').forEach(panel => panel.classList.toggle('hidden', panel.dataset.photoPanel !== button.dataset.photoView));
+        card.querySelectorAll('[data-photo-view]').forEach(control => control.setAttribute('aria-pressed', String(control === button)));
+    });
 
     root.addEventListener('submit', async event => {
         const form = event.target;

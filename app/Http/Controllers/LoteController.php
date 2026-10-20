@@ -169,10 +169,12 @@ class LoteController extends Controller
     {
         $loteModel = Lote::query()
             ->forCurrentCompany()
-            ->with(['productor', 'recepcion'])
+            ->with(['productor', 'recepcion.responsable', 'muestreos.inspecciones.dictamen'])
             ->findOrFail($lote);
 
+        $eventos = auth()->user()->hasPermission('trazabilidad.ver') ? DB::table('eventos_trazabilidad')->where('id_empresa', auth()->user()->id_empresa)->where('id_lote', $loteModel->id_lote)->latest('id')->limit(15)->get() : collect();
         return view('lotes.show', [
+            'eventos' => $eventos,
             'lote' => $loteModel,
         ]);
     }

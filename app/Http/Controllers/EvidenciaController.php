@@ -21,7 +21,8 @@ class EvidenciaController extends Controller
             ->with(['muestreo.lote', 'evidencias.validaciones'])
             ->findOrFail($inspeccion);
 
-        return view('inspecciones.evidencias', compact('inspeccion'));
+        $revisiones = app(\App\Services\RevisionEvidencias::class)->revisiones($inspeccion->loadMissing('hallazgos'));
+        return view('inspecciones.evidencias', compact('inspeccion', 'revisiones'));
     }
 
     public function store(Request $request, int $inspeccion, CloudinaryService $cloudinary): RedirectResponse|JsonResponse
@@ -180,7 +181,9 @@ class EvidenciaController extends Controller
     private function renderCard(EvidenciaInspeccion $foto, Inspeccion $inspeccion): string
     {
         $foto->load('validaciones');
-        return view('inspecciones._evidencia', compact('foto', 'inspeccion'))->render();
+        $inspeccion->load(['evidencias.validaciones', 'hallazgos']);
+        $revisiones = app(\App\Services\RevisionEvidencias::class)->revisiones($inspeccion);
+        return view('inspecciones._evidencia', compact('foto', 'inspeccion', 'revisiones'))->render();
     }
 
     private function error(Request $request, string $message, int $status): RedirectResponse|JsonResponse

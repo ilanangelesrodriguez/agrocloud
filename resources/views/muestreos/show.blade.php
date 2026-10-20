@@ -19,6 +19,7 @@
                 </form>
             @endif
         </div>
+        <x-ui.steps :steps="['Muestra registrada', 'Inspección', 'Dictamen']" :active="$muestreo->estado === 'REGISTRADO' ? 1 : ($muestreo->estado === 'EN_INSPECCION' ? 2 : 3)" />
         @include('inspecciones._mensajes')
         <x-ui.card title="Protocolo de muestreo" description="El protocolo y su justificación quedan conservados en la trazabilidad.">
             @if($protocolo)<dl class="grid gap-4 text-sm md:grid-cols-2">@foreach(['protocolo' => 'Protocolo y versión', 'criterio_muestra' => 'Criterio del tamaño', 'seleccion_frutos' => 'Selección y cobertura', 'poblacion_estimada' => 'Población estimada de frutos'] as $key => $label)<div><dt class="font-semibold dark:text-slate-100">{{ $label }}</dt><dd class="mt-1 whitespace-pre-line text-slate-600 dark:text-slate-300">{{ $protocolo[$key] ?? 'No estimada' }}</dd></div>@endforeach</dl>@else<p class="text-sm text-slate-500">Muestreo anterior al registro del protocolo. Su información original se conserva.</p>@endif

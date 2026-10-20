@@ -33,6 +33,7 @@
                 </button>
             @endif
         </form>
+        <x-ui.operational-filters :estados="$estados" :productos="$productos" />
     </x-ui.card>
 
     <x-ui.card title="Muestreos registrados" description="Muestras vinculadas con lotes de tu empresa.">

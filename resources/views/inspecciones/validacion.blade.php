@@ -16,6 +16,7 @@
             </div>
             <span class="rounded-xl bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">{{ $editable ? 'En revisión del inspector' : 'Expediente cerrado / solo lectura' }}</span>
         </div>
+        <x-ui.steps :steps="['Captura y análisis', 'Revisión humana', 'Dictamen del supervisor']" :active="2" />
         @include('inspecciones._mensajes')
         <div data-validation-message class="hidden rounded-xl border px-4 py-3 text-sm" role="status" aria-live="polite"></div>
         <div class="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
@@ -29,8 +30,12 @@
                 @forelse($inspeccion->evidencias as $foto)
                     <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <div class="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-700 sm:px-5"><p class="font-semibold text-slate-900 dark:text-slate-100">Evidencia #{{ $foto->id_evidencia }}</p><x-ui.state-badge :state="$foto->estado_ia" :label="$foto->estado_ia === 'COMPLETADO' ? 'Analizada' : null" /></div>
-                        <div class="grid gap-4 p-4 sm:grid-cols-[minmax(0,210px)_minmax(0,1fr)] sm:p-5">
-                            <div class="flex items-center justify-center rounded-xl bg-slate-100 p-2 dark:bg-slate-800"><img class="max-h-64 w-full object-contain" src="{{ $foto->imagen_detectada_url ?: $foto->imagen_url }}" alt="Resultado visual de evidencia {{ $foto->id_evidencia }}" loading="lazy"></div>
+                        <div class="grid gap-4 p-4 lg:grid-cols-2 sm:p-5">
+                            <div class="grid grid-cols-2 gap-3 lg:grid-cols-1">
+                                @foreach(['Original' => $foto->imagen_url, 'Resultado IA' => $foto->imagen_detectada_url] as $label => $url)
+                                    @if($url)<div class="rounded-xl bg-slate-100 p-2 dark:bg-slate-800"><a href="{{ $url }}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar {{ $label }} de evidencia {{ $foto->id_evidencia }}"><img class="max-h-80 w-full object-contain" src="{{ $url }}" alt="{{ $label }} de evidencia {{ $foto->id_evidencia }}" loading="lazy"></a><p class="mt-2 text-center text-xs text-slate-500">{{ $label }} · pulsa para ampliar</p></div>@endif
+                                @endforeach
+                            </div>
                             <div class="min-w-0 space-y-3">
                                 @if($foto->estado_ia !== 'COMPLETADO')
                                     <p class="text-sm text-amber-700 dark:text-amber-300">Esta fotografía no tiene resultado IA completo. Puedes registrar un hallazgo manual si el microservicio no está disponible.</p>

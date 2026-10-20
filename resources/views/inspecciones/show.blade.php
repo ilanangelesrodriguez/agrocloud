@@ -13,6 +13,7 @@
             </div>
             <x-ui.state-badge :state="$inspeccion->estado" :label="$validada ? 'Validada por inspector' : 'En captura y análisis'" />
         </div>
+        <x-ui.steps :steps="['Captura y análisis', 'Revisión humana', 'Dictamen del supervisor']" :active="$validada ? 3 : 1" />
         @include('inspecciones._mensajes')
         <div class="grid gap-3 sm:grid-cols-4">
             <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500">Frutos de muestra</p><p class="mt-1 text-2xl font-semibold dark:text-slate-100">{{ $inspeccion->muestreo->tamano_muestra }}</p></div>

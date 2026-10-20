@@ -11,10 +11,13 @@ class OperacionController extends Controller
 {
     public function recepciones()
     {
-        $pendientes = Lote::forCurrentCompany()->whereIn('estado', ['PENDIENTE_RECEPCION', 'RECIBIDO'])->whereDoesntHave('recepcion')->with('productor')->latest('id_lote')->paginate(15);
-        $recibidas = Recepcion::forCurrentCompany()->with(['lote', 'responsable'])->latest('recibido_en')->limit(20)->get();
+        return redirect()->route('recepciones.index');
+    }
 
-        return view('operaciones.recepciones', compact('pendientes', 'recibidas'));
+    public function revisar(Request $request, int $lote)
+    {
+        $lote = Lote::forCurrentCompany()->with(['productor', 'recepcion.responsable'])->findOrFail($lote);
+        return view($request->header('X-Workspace-Drawer') ? 'operaciones._recepcion' : 'operaciones.recepcion', compact('lote'));
     }
 
     public function recibir(Request $request, int $lote)
@@ -24,7 +27,7 @@ class OperacionController extends Controller
         DB::transaction(function () use ($lote, $data, $request) {
             $lot = Lote::forCurrentCompany()->lockForUpdate()->findOrFail($lote);
             abort_if($lot->recepcion()->exists() || $lot->muestreos()->exists() || !in_array($lot->estado->value, ['PENDIENTE_RECEPCION', 'RECIBIDO'], true), 422, 'El lote ya fue recibido o inició su operación.');
-            if (abs((float) $lot->peso_kg - (float) $data['peso_recibido_kg']) >= 0.01 && blank($data['observaciones'] ?? null)) {
+            if ((int) round((float) $lot->peso_kg * 100) !== (int) round((float) $data['peso_recibido_kg'] * 100) && blank($data['observaciones'] ?? null)) {
                 throw \Illuminate\Validation\ValidationException::withMessages(['observaciones' => 'Explica la diferencia entre el peso declarado y el recibido en las condiciones de ingreso.']);
             }
             Recepcion::create($data + ['id_empresa' => $lot->id_empresa, 'id_lote' => $lot->id_lote, 'id_usuario' => $request->user()->id_usuario]);
@@ -39,6 +42,7 @@ class OperacionController extends Controller
             'Se confirmó la recepción del lote '.$loteConfirmado->codigo_lote.'. Ya puedes crear su muestreo.',
             '/muestreos/crear?lote='.$loteConfirmado->id_lote, 'normal', (int) $loteConfirmado->id_lote
         );
+        if ($request->header('X-Workspace-Drawer')) return response()->json(['saved' => true, 'module' => 'recepciones', 'message' => 'Recepción confirmada. Lote disponible para muestreo.']);
         return redirect()->route('recepciones.index')->with('success', 'Recepción confirmada. El lote está disponible para muestreo.');
     }
 

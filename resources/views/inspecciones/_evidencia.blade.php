@@ -3,7 +3,8 @@
     $completa = $foto->estado_ia === 'COMPLETADO';
     $puedeAnalizar = $inspeccion->estado === 'EN_CAPTURA'
         && auth()->user()->rol?->codigo === 'INSPECTOR'
-        && auth()->user()->hasPermission('inspecciones.analizar');
+        && auth()->user()->hasPermission('inspecciones.analizar')
+        && (!$inspeccion->id_inspector || (int) $inspeccion->id_inspector === (int) auth()->id());
     $reanalizarAtascado = $foto->estado_ia === 'PROCESANDO'
         && $foto->updated_at?->lt(now()->subMinutes(4));
     $resumen = $foto->resultado_ia['summary'] ?? [];
@@ -17,14 +18,15 @@
         </div>
         <x-ui.state-badge :state="$foto->estado_ia" :label="match ($foto->estado_ia) { 'COMPLETADO' => 'Analizada', 'PROCESANDO' => 'Procesando', 'ERROR' => 'Error IA', default => 'Pendiente de IA' }" />
     </div>
-    <div class="grid grid-cols-2 gap-px bg-slate-200 dark:bg-slate-700">
-        <div class="min-w-0 bg-slate-50 p-2 dark:bg-slate-800">
+    <div class="flex gap-2 px-4 py-2 md:hidden"><button type="button" data-photo-view="original" aria-pressed="true" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold dark:border-slate-700">Original</button><button type="button" data-photo-view="resultado" aria-pressed="false" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold dark:border-slate-700">Resultado IA</button></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-slate-200 dark:bg-slate-700">
+        <div data-photo-panel="original" class="min-w-0 bg-slate-50 p-2 dark:bg-slate-800 md:block">
             <div class="flex h-40 items-center justify-center sm:h-48">
                 <img src="{{ $foto->imagen_url }}" alt="Imagen original evidencia {{ $foto->id_evidencia }}" loading="lazy" class="max-h-full max-w-full rounded-lg object-contain">
             </div>
             <p class="mt-2 text-center text-xs font-medium text-slate-500 dark:text-slate-400">Foto original</p>
         </div>
-        <div class="min-w-0 bg-slate-50 p-2 dark:bg-slate-800">
+        <div data-photo-panel="resultado" class="hidden min-w-0 bg-slate-50 p-2 dark:bg-slate-800 md:block">
             <div class="flex h-40 items-center justify-center sm:h-48">
                 @if($foto->imagen_detectada_url)
                     <img src="{{ $foto->imagen_detectada_url }}" alt="Imagen IA con detecciones de evidencia {{ $foto->id_evidencia }}" loading="lazy" class="max-h-full max-w-full rounded-lg object-contain">
@@ -36,6 +38,7 @@
         </div>
     </div>
     <div class="space-y-3 px-4 py-4 sm:px-5">
+        <div class="flex flex-wrap items-center gap-2 text-xs"><span class="text-slate-500">Revisión humana:</span><x-ui.state-badge :state="isset($revisiones[$foto->id_evidencia]) ? 'VALIDADA' : 'PENDIENTE'" :label="isset($revisiones[$foto->id_evidencia]) ? 'Revisada' : 'Pendiente de revisión'" /></div>
         @if($completa)
             <div class="flex flex-wrap items-center justify-between gap-2 text-sm">
                 <p class="font-semibold text-slate-800 dark:text-slate-100">{{ count($detectados) }} {{ count($detectados) === 1 ? 'detección' : 'detecciones' }}</p>

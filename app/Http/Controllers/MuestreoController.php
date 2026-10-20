@@ -26,7 +26,7 @@ class MuestreoController extends Controller
 
     public function create(Request $request): View
     {
-        $lotes = Lote::query()->forCurrentCompany()->with('productor')
+        $lotes = Lote::query()->forCurrentCompany()->with(['productor', 'recepcion'])
             ->whereHas('recepcion')
             ->where('estado', 'RECIBIDO')->whereDoesntHave('muestreos')
             ->orderByDesc('id_lote')->get();
