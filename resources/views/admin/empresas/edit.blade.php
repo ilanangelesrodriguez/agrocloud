@@ -11,7 +11,7 @@
                 <div class="shrink-0"><x-ui.status-badge :active="$empresa->estado" active-label="Empresa activa" inactive-label="Empresa inactiva" /></div>
             </div>
         </div>
-        <form data-ajax-form method="POST" action="{{ route('admin.empresas.update', $empresa) }}" enctype="multipart/form-data">
+        <form data-ajax-form data-confirm="Si guardas la empresa como inactiva, sus usuarios dejarán de poder acceder a la plataforma. Sus registros históricos se conservarán. Revisa el estado y los datos antes de continuar." data-confirm-title="Confirmar cambios de la empresa" data-confirm-label="Guardar cambios" data-confirm-tone="primary" method="POST" action="{{ route('admin.empresas.update', $empresa) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             @include('admin.empresas._form')

@@ -123,6 +123,15 @@ return [
 
         [
             'section' => 'SISTEMA',
+            'label' => 'Solicitudes de acceso',
+            'route' => 'admin.solicitudes.index',
+            'active' => 'admin.solicitudes.*',
+            'icon' => 'clipboard-list',
+            'superadmin' => true,
+        ],
+
+        [
+            'section' => 'SISTEMA',
             'label' => 'Roles',
             'route' => RouteNames::ROLES,
             'active' => 'roles.*',

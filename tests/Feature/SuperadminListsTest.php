@@ -73,4 +73,13 @@ class SuperadminListsTest extends TestCase
         Livewire::test(AdminEmpresaUsuariosIndex::class, ['empresaId' => $company->id_empresa])->set('q', 'Encontrable')->call('filtrar')->assertHasNoErrors()->assertSee('Encontrable')->assertDontSee('root@example.test');
         $this->get(route('maestros.index'))->assertOk()->assertDontSee('→')->assertSee('<svg', false);
     }
+    public function test_permission_filters_and_conditional_clear_button(): void
+    {
+        Permiso::create(['codigo' => 'calidad.ver', 'nombre' => 'Consultar calidad', 'modulo' => 'CALIDAD', 'estado' => true]);
+        Permiso::create(['codigo' => 'lotes.ver', 'nombre' => 'Consultar lotes', 'modulo' => 'LOTES', 'estado' => true]);
+        $component = Livewire::test(PermisosIndex::class)->assertDontSee('Limpiar filtros');
+        $component->set('buscar', 'calidad.ver')->assertSee('Consultar calidad')->assertDontSee('Consultar lotes')->assertSee('Limpiar filtros');
+        $component->call('limpiar')->assertSet('buscar', '')->assertSet('modulo', '')->assertDontSee('Limpiar filtros');
+        $component->set('modulo', 'LOTES')->assertSee('Consultar lotes')->assertDontSee('Consultar calidad');
+    }
 }

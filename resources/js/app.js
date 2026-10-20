@@ -229,6 +229,16 @@ document.addEventListener('submit', async (event) => {
         }
         if (response.headers.get('content-type')?.includes('application/json')) {
             const result = await response.json();
+            if (result.updated && form.matches('[data-access-form]')) {
+                const document = new DOMParser().parseFromString(result.html, 'text/html');
+                const updated = document.querySelector('[data-access-review]');
+                const current = form.closest('[data-access-review]');
+                if (!updated || !current) throw new Error('Expediente no disponible.');
+                current.replaceWith(updated);
+                updated.focus({ preventScroll: true });
+                showToast(result.message, result.tone || 'success');
+                return;
+            }
             if (result.saved && form.matches('[data-workspace-drawer-form], [data-workspace-inline-form]')) {
                 form.dispatchEvent(new CustomEvent('workspace:saved', { bubbles: true, detail: result }));
                 return;

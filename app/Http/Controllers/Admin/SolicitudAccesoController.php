@@ -33,6 +33,7 @@ class SolicitudAccesoController extends Controller
         try { $s = $service->decidir($solicitud, $data['decision'], $data['motivo']); }
         catch (\Illuminate\Database\QueryException $e) { if (in_array((string) $e->getCode(), ['23505', '23000'], true)) throw ValidationException::withMessages(['decision' => 'El RUC o correo fue registrado por otra operación. Actualiza el expediente antes de decidir.']); throw $e; }
         $enviado = $s->estado === 'APROBADA' ? $service->invitar($s->id) : ($s->estado === 'RECHAZADA' ? $service->notificarRechazo($s) : true);
+        if ($request->expectsJson()) return $this->respuestaActualizada($request, $s->id, $service, $enviado, $enviado ? 'Decisión registrada correctamente.' : 'Decisión registrada. No se pudo enviar el correo; puedes reintentarlo desde este expediente.');
         return redirect()->route('admin.solicitudes.show', $s->id)->with($enviado ? 'success' : 'error', $enviado ? 'Decisión registrada correctamente.' : 'Decisión registrada; el correo no se pudo enviar. Configura el servicio de correo y reintenta el envío. Las cuentas invitadas siguen sin acceso hasta su activación.');
     }
 
@@ -42,6 +43,16 @@ class SolicitudAccesoController extends Controller
         $s = SolicitudAcceso::findOrFail($solicitud); abort_if($s->activada_en, 422, 'La cuenta ya fue activada.');
         abort_unless(in_array($s->estado, ['APROBADA', 'RECHAZADA'], true), 422);
         $ok = $s->estado === 'APROBADA' ? $service->invitar($s->id) : $service->notificarRechazo($s);
+        if ($request->expectsJson()) return $this->respuestaActualizada($request, $s->id, $service, $ok, $ok ? 'Correo enviado correctamente.' : 'No se pudo enviar el correo. Revisa la configuración del servicio.');
         return back()->with($ok ? 'success' : 'error', $ok ? 'Correo enviado.' : 'No se pudo enviar el correo. Revisa la configuración del servicio.');
+    }
+    private function respuestaActualizada(Request $request, int $solicitud, AccesoEmpresarial $service, bool $ok, string $mensaje)
+    {
+        return response()->json([
+            'updated' => true,
+            'message' => $mensaje,
+            'tone' => $ok ? 'success' : 'error',
+            'html' => $this->show($request, $solicitud, $service)->render(),
+        ]);
     }
 }
