@@ -12,6 +12,7 @@ import './catalogs';
 import './workspace-drawer';
 import './operational-workspace';
 import './quality-decision';
+import './image-viewer';
 
 let appListeners;
 let securitySubscribedChannel = null;
@@ -248,7 +249,9 @@ document.addEventListener('submit', async (event) => {
             const html = new DOMParser().parseFromString(await response.text(), 'text/html');
             queueToasts(collectFlashToasts(html));
             navigating = true;
-            window.Livewire.navigate(response.url);
+            const destination = new URL(response.url);
+            if (requestUrl.hash) destination.hash = requestUrl.hash;
+            window.Livewire.navigate(destination.href);
         }
     } catch (error) {
         navigating = false;

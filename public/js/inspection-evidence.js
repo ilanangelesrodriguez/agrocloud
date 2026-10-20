@@ -129,6 +129,19 @@
         if (progress) { progress.max = Math.max(1, count); progress.value = done; }
         const progressLabel = root.querySelector('[data-analysis-progress-label]');
         if (progressLabel) progressLabel.textContent = `${done} de ${count} fotografías analizadas con IA. La revisión humana es una etapa independiente.`;
+        const cards = [...list.querySelectorAll('[data-evidencia-id]')];
+        const reviewNext = root.querySelector('[data-validation-next]');
+        if (reviewNext && count > 0) { reviewNext.removeAttribute('aria-disabled'); reviewNext.removeAttribute('tabindex'); reviewNext.classList.remove('pointer-events-none', 'opacity-50'); reviewNext.querySelector('[data-validation-next-label]').textContent = 'Continuar revisión humana'; }
+        const covered = new Set(cards.map(card => card.dataset.frutoId).filter(Boolean)).size;
+        const fruitTotal = Number(root.querySelector('[data-fruit-total]')?.textContent || 0);
+        const human = cards.filter(card => card.dataset.reviewed === '1').length;
+        if (root.querySelector('[data-fruit-covered]')) root.querySelector('[data-fruit-covered]').textContent = String(covered);
+        if (root.querySelector('[data-fruit-missing]')) root.querySelector('[data-fruit-missing]').textContent = String(Math.max(0, fruitTotal - covered));
+        if (root.querySelector('[data-human-reviewed]')) root.querySelector('[data-human-reviewed]').textContent = String(human);
+        if (root.querySelector('[data-human-total]')) root.querySelector('[data-human-total]').textContent = String(count);
+        const fruitProgress = root.querySelector('[data-fruit-progress]'); if (fruitProgress) fruitProgress.value = covered;
+        const humanProgress = root.querySelector('[data-human-progress]'); if (humanProgress) { humanProgress.max = Math.max(1, count); humanProgress.value = human; }
+        root.querySelectorAll('[data-fruit-pick]').forEach(button => { button.hidden = cards.some(card => card.dataset.frutoNumero === button.dataset.fruitPick); });
     }
 
     function clearPreview(form) {
@@ -175,6 +188,8 @@
         dropzone?.addEventListener('drop', event => { event.preventDefault(); dropzone.classList.remove('ring-2', 'ring-emerald-500'); useFile(form, event.dataTransfer.files); });
     }
     root.addEventListener('click', event => {
+        const fruit = event.target.closest('[data-fruit-pick]');
+        if (fruit) { const input = root.querySelector('[name=numero_fruto]'); if (input) { input.value = fruit.dataset.fruitPick; input.dispatchEvent(new Event('input', { bubbles: true })); input.focus(); } return; }
         const button = event.target.closest('[data-photo-view]');
         if (!button) return;
         const card = button.closest('[data-evidencia-id]');

@@ -28,6 +28,27 @@
         return data;
     }
 
+    const photos = [...root.querySelectorAll('[data-review-photo]')];
+    const navigation = root.querySelector('[data-review-navigation]');
+    let photoIndex = 0;
+    const choose = index => {
+        photoIndex = Math.max(0, Math.min(photos.length - 1, index));
+        photos.forEach((photo, n) => { photo.hidden = n !== photoIndex; });
+        if (!photos.length) return;
+        navigation.querySelector('[data-review-select]').value = photos[photoIndex].dataset.reviewPhoto;
+        navigation.querySelector('[data-review-position]').textContent = `${photoIndex + 1} / ${photos.length}`;
+        navigation.querySelector('[data-review-prev]').disabled = photoIndex === 0;
+        navigation.querySelector('[data-review-next]').disabled = photoIndex === photos.length - 1;
+        const evidence = root.querySelector('[name=id_evidencia]'); if (evidence) evidence.value = photos[photoIndex].dataset.reviewPhoto;
+    };
+    if (photos.length && navigation) {
+        navigation.classList.remove('hidden'); navigation.classList.add('flex');
+        navigation.querySelector('[data-review-prev]').addEventListener('click', () => choose(photoIndex - 1));
+        navigation.querySelector('[data-review-next]').addEventListener('click', () => choose(photoIndex + 1));
+        navigation.querySelector('[data-review-select]').addEventListener('change', event => choose(photos.findIndex(photo => photo.dataset.reviewPhoto === event.target.value)));
+        choose(photos.findIndex(photo => photo.querySelector('[data-review-current="0"]')));
+    }
+
     root.addEventListener('submit', async event => {
         const form = event.target;
         if (!(form instanceof HTMLFormElement) || !form.matches('[data-validation-form], [data-hallazgo-form]')) return;
@@ -60,6 +81,16 @@
             const evidenceId = data.evidencia_id || data.hallazgo?.evidencia_id;
             const review = [...root.querySelectorAll('[data-image-review]')].find(item => item.dataset.imageReview === String(evidenceId));
             review?.querySelector('[data-review-changed]')?.classList.remove('hidden');
+            if (review) review.dataset.reviewCurrent = '0';
+            const reviewed = root.querySelectorAll('[data-review-current="1"]').length;
+            if (root.querySelector('[data-review-check-count]')) root.querySelector('[data-review-check-count]').textContent = String(reviewed);
+            if (root.querySelector('[data-human-reviewed]')) root.querySelector('[data-human-reviewed]').textContent = String(reviewed);
+            if (root.querySelector('[data-human-progress]')) root.querySelector('[data-human-progress]').value = reviewed;
+            const photoOption = [...(navigation?.querySelector('[data-review-select]')?.options || [])].find(option => option.value === String(evidenceId));
+            if (photoOption) photoOption.textContent = `Evidencia #${evidenceId} · Pendiente`;
+            choose(photoIndex);
+            const finalize = root.querySelector('[data-review-finalize]');
+            if (finalize) finalize.disabled = finalize.dataset.reviewCovered !== '1' || reviewed !== Number(finalize.dataset.reviewTotal) || reviewed === 0;
             show(data.message || 'Información guardada.');
         } catch (error) {
             show(error.message || 'No se pudo guardar.', true);

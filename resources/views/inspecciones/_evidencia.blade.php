@@ -9,7 +9,7 @@
         && $foto->updated_at?->lt(now()->subMinutes(4));
     $resumen = $foto->resultado_ia['summary'] ?? [];
 @endphp
-<article data-evidencia-id="{{ $foto->id_evidencia }}" data-analyzed="{{ $completa ? '1' : '0' }}" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition dark:border-slate-700 dark:bg-slate-900">
+<article data-fruto-id="{{ $foto->id_fruto }}" data-fruto-numero="{{ $foto->fruto?->numero }}" data-reviewed="{{ isset($revisiones[$foto->id_evidencia]) ? '1' : '0' }}" data-evidencia-id="{{ $foto->id_evidencia }}" data-analyzed="{{ $completa ? '1' : '0' }}" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition dark:border-slate-700 dark:bg-slate-900">
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-700 sm:px-5">
         <div>
             <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Evidencia #{{ $foto->id_evidencia }}</p>
@@ -22,14 +22,14 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-slate-200 dark:bg-slate-700">
         <div data-photo-panel="original" class="min-w-0 bg-slate-50 p-2 dark:bg-slate-800 md:block">
             <div class="flex h-40 items-center justify-center sm:h-48">
-                <img src="{{ $foto->imagen_url }}" alt="Imagen original evidencia {{ $foto->id_evidencia }}" loading="lazy" class="max-h-full max-w-full rounded-lg object-contain">
+                <img data-image-zoom data-image-src="{{ $foto->imagen_url }}" data-image-group="{{ $foto->id_evidencia }}" data-image-kind="original" tabindex="0" role="button" aria-label="Ampliar imagen original" src="{{ $foto->imagen_url }}" alt="Imagen original evidencia {{ $foto->id_evidencia }}" loading="lazy" class="max-h-full max-w-full rounded-lg object-contain">
             </div>
             <p class="mt-2 text-center text-xs font-medium text-slate-500 dark:text-slate-400">Foto original</p>
         </div>
         <div data-photo-panel="resultado" class="hidden min-w-0 bg-slate-50 p-2 dark:bg-slate-800 md:block">
             <div class="flex h-40 items-center justify-center sm:h-48">
                 @if($foto->imagen_detectada_url)
-                    <img src="{{ $foto->imagen_detectada_url }}" alt="Imagen IA con detecciones de evidencia {{ $foto->id_evidencia }}" loading="lazy" class="max-h-full max-w-full rounded-lg object-contain">
+                    <img data-image-zoom data-image-src="{{ $foto->imagen_detectada_url }}" data-image-group="{{ $foto->id_evidencia }}" data-image-kind="resultado" tabindex="0" role="button" aria-label="Ampliar resultado IA" src="{{ $foto->imagen_detectada_url }}" alt="Imagen IA con detecciones de evidencia {{ $foto->id_evidencia }}" loading="lazy" class="max-h-full max-w-full rounded-lg object-contain">
                 @else
                     <div class="flex flex-col items-center gap-2 text-slate-400"><x-ui.icon name="search" class="h-7 w-7" /><span class="text-xs">Pendiente de análisis</span></div>
                 @endif

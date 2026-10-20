@@ -1,0 +1,1 @@
+<x-layouts.app title="Registrar incidencia"><div class="space-y-5"><x-ui.back-link :href="route('incidencias.index', ['lote' => $lote->id_lote])" label="Volver a incidencias" />@include('operaciones._incidencia-form')</div></x-layouts.app>

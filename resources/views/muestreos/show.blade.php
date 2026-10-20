@@ -1,5 +1,5 @@
 <x-layouts.app title="Detalle de muestreo">
-    <div class="space-y-6">
+    <div class="space-y-6"><x-ui.expediente-path :lote="$muestreo->lote" :muestreo="$muestreo" />
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
                 <x-ui.back-link href="{{ route('muestreos.index') }}" label="Volver a muestreos" />
@@ -13,7 +13,7 @@
                     </div>
                 </div>
             </div>
-            @if(auth()->user()->hasPermission('inspecciones.crear') && $muestreo->estado !== 'COMPLETADO' && (!$muestreo->inspecciones->where('estado', 'VALIDADA')->count() || $muestreo->inspecciones->where('estado', 'EN_CAPTURA')->count()))
+            @if(auth()->user()->rol?->codigo === 'INSPECTOR' && auth()->user()->hasPermission('inspecciones.crear') && $muestreo->estado !== 'COMPLETADO' && (!$muestreo->inspecciones->where('estado', 'VALIDADA')->count() || $muestreo->inspecciones->where('estado', 'EN_CAPTURA')->count()))
                 <form data-ajax-form action="{{ route('muestreos.inspecciones.store', $muestreo->id_muestreo) }}" method="POST">@csrf
                     <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="camera" class="h-4 w-4" />Iniciar / continuar inspección</span></x-ui.button>
                 </form>
@@ -43,7 +43,7 @@
             <div class="space-y-3">
                 @forelse($muestreo->inspecciones->sortByDesc('id_inspeccion') as $insp)
                     <a wire:navigate href="{{ route('inspecciones.show', $insp->id_inspeccion) }}" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-4 hover:border-brand-300 dark:border-slate-700">
-                        <div class="flex items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"><x-ui.icon name="camera" class="h-4 w-4" /></span><div><p class="font-semibold text-slate-900 dark:text-slate-100">Inspección #{{ $insp->id_inspeccion }}</p><p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ $insp->inspector?->nombre_completo ?? 'Pendiente de asignación' }}</p></div></div>
+                        <div class="flex items-center gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"><x-ui.icon name="camera" class="h-4 w-4" /></span><div><p class="font-semibold text-slate-900 dark:text-slate-100">{{ $insp->solicitada_por ? 'Reinspección' : 'Inspección inicial' }} #{{ $insp->id_inspeccion }}</p><p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ $insp->inspector?->nombre_completo ?? 'Pendiente de asignación' }}</p></div></div>
                         <span class="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 dark:text-brand-300"><x-ui.state-badge :state="$insp->estado" /> <x-ui.icon name="chevron-right" class="h-4 w-4" /></span>
                     </a>
                 @empty

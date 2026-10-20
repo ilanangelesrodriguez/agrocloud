@@ -1,5 +1,7 @@
 const initialized = new WeakSet();
 function initialize() {
+    const expanded = document.getElementById(location.hash.slice(1));
+    if (expanded instanceof HTMLDetailsElement) expanded.open = true;
     document.querySelectorAll('[data-stage-tabs]').forEach(root => {
         if (initialized.has(root)) return;
         initialized.add(root);
@@ -69,5 +71,5 @@ document.addEventListener('DOMContentLoaded', initialize);
 if (document.readyState !== 'loading') initialize();
 
 document.addEventListener('workspace:saved', event => {
-    if (event.detail?.module === 'recepciones' && document.querySelector('[data-lot-workspace]')) window.Livewire?.navigate(location.href);
+    if (event.detail?.module === 'incidencias' || (event.detail?.module === 'recepciones' && document.querySelector('[data-lot-workspace]'))) window.Livewire?.navigate(location.href);
 });

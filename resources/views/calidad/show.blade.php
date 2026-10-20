@@ -19,7 +19,7 @@
                     <div class="grid gap-4 lg:grid-cols-2">
                         @forelse($inspeccion->evidencias as $foto)
                             <article class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
-                                <div class="grid grid-cols-2 gap-1 bg-slate-100 p-2 dark:bg-slate-800">@foreach(['Original' => $foto->imagen_url, 'Resultado IA' => $foto->imagen_detectada_url] as $label => $url)@if($url)<div><a href="{{ $url }}" target="_blank" rel="noopener"><img src="{{ $url }}" alt="{{ $label }} de evidencia {{ $foto->id_evidencia }}" loading="lazy" class="h-44 w-full object-contain"></a><p class="mt-1 text-center text-xs text-slate-500">{{ $label }} · ampliar</p></div>@endif @endforeach</div>
+                                <div class="grid grid-cols-2 gap-1 bg-slate-100 p-2 dark:bg-slate-800">@foreach(['Original' => $foto->imagen_url, 'Resultado IA' => $foto->imagen_detectada_url] as $label => $url)@if($url)<div><a data-image-zoom data-image-group="{{ $foto->id_evidencia }}" data-image-kind="{{ $label === 'Original' ? 'original' : 'resultado' }}" href="{{ $url }}" target="_blank" rel="noopener"><img src="{{ $url }}" alt="{{ $label }} de evidencia {{ $foto->id_evidencia }}" loading="lazy" class="h-44 w-full object-contain"></a><p class="mt-1 text-center text-xs text-slate-500">{{ $label }} · ampliar</p></div>@endif @endforeach</div>
                                 <div class="space-y-2 p-3"><div class="flex items-center justify-between gap-2"><p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Evidencia #{{ $foto->id_evidencia }}</p><x-ui.state-badge :state="$foto->estado_ia" /></div>
                                     <p class="text-xs text-slate-600 dark:text-slate-300">Revisión humana: {{ isset($revisiones[$foto->id_evidencia]) ? str_replace('_', ' ', $revisiones[$foto->id_evidencia]['conclusion']) : 'Pendiente / expediente anterior: solicitar reinspección' }}</p>
                                     <p class="text-xs text-slate-500">{{ $revisiones[$foto->id_evidencia]['justificacion'] ?? '' }}</p>
@@ -91,4 +91,5 @@
             </aside>
         </div>
     </div>
+    <x-ui.image-viewer />
 </x-layouts.app>

@@ -24,6 +24,14 @@ class IncidenciaController extends Controller
         return view('operaciones.incidencias', compact('lote', 'lotes', 'incidencias', 'eventos', 'responsables', 'evidencias'));
     }
 
+    public function crear(Request $request, int $lote)
+    {
+        abort_unless(in_array($request->user()->rol?->codigo, ['RECEPCION', 'INSPECTOR', 'SUPERVISOR', 'ADMIN'], true), 403);
+        $lote = Lote::forCurrentCompany()->findOrFail($lote);
+        $responsables = User::where('id_empresa', $lote->id_empresa)->where('estado', true)->with('rol')->orderBy('nombre')->get()->filter(fn ($user) => $user->hasPermission('lotes.ver'));
+        return view($request->header('X-Workspace-Drawer') ? 'operaciones._incidencia-form' : 'operaciones.incidencia-create', compact('lote', 'responsables'));
+    }
+
     public function store(Request $request, int $lote, IncidenciasOperativas $service)
     {
         abort_unless(in_array($request->user()->rol?->codigo, ['RECEPCION', 'INSPECTOR', 'SUPERVISOR', 'ADMIN'], true), 403);
@@ -43,7 +51,8 @@ class IncidenciaController extends Controller
             OperationalNotifier::user($lot->id_empresa, (int) $data['responsable'], 'INCIDENCIA_ASIGNADA', 'Incidencia asignada', $data['titulo'], '/incidencias?lote='.$lot->id_lote, 'alta', $lot->id_lote);
             if (in_array($data['gravedad'], ['ALTA', 'CRITICA'], true)) OperationalNotifier::roles($lot->id_empresa, ['SUPERVISOR'], 'INCIDENCIA_CRITICA', 'Incidencia requiere revisión', $data['titulo'], '/incidencias?lote='.$lot->id_lote, 'alta', $lot->id_lote);
         });
-        return back()->with('success', 'Incidencia registrada y responsable notificado.');
+        if ($request->header('X-Workspace-Drawer')) return response()->json(['saved' => true, 'module' => 'incidencias', 'message' => 'Incidencia registrada y responsable notificado.']);
+        return redirect()->route('incidencias.index', ['lote' => $lote])->with('success', 'Incidencia registrada y responsable notificado.');
     }
 
     public function update(Request $request, int $incidencia, IncidenciasOperativas $service)

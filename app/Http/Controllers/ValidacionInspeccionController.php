@@ -22,7 +22,8 @@ class ValidacionInspeccionController extends Controller
 
         $revisiones = app(\App\Services\RevisionEvidencias::class)->revisiones($inspeccion);
         $naturalezas = app(\App\Services\RevisionEvidencias::class)->naturalezas($inspeccion);
-        return view('inspecciones.validacion', compact('inspeccion', 'revisiones', 'naturalezas'));
+        $progreso = app(\App\Services\ProgresoInspeccion::class)->calcular($inspeccion);
+        return view('inspecciones.validacion', compact('progreso', 'inspeccion', 'revisiones', 'naturalezas'));
     }
 
     public function validarDeteccion(Request $request, int $inspeccion, int $evidencia): RedirectResponse|JsonResponse

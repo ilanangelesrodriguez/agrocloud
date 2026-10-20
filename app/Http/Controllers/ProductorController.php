@@ -165,13 +165,15 @@ class ProductorController extends Controller
 
         $lotes = $productorModel
             ->lotes()
+            ->with('recepcion')
             ->orderByDesc('fecha_recepcion')
             ->paginate(10)
             ->withQueryString();
 
+        $resumenEstados = $productorModel->lotes()->select('estado')->selectRaw('COUNT(*) as total')->groupBy('estado')->get();
         return view(
             'productores.lotes',
-            compact('productorModel', 'lotes')
+            compact('productorModel', 'lotes', 'resumenEstados')
         );
     }
 

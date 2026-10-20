@@ -22,7 +22,8 @@ class EvidenciaController extends Controller
             ->findOrFail($inspeccion);
 
         $revisiones = app(\App\Services\RevisionEvidencias::class)->revisiones($inspeccion->loadMissing('hallazgos'));
-        return view('inspecciones.evidencias', compact('inspeccion', 'revisiones'));
+        $progreso = app(\App\Services\ProgresoInspeccion::class)->calcular($inspeccion);
+        return view('inspecciones.evidencias', compact('progreso', 'inspeccion', 'revisiones'));
     }
 
     public function store(Request $request, int $inspeccion, CloudinaryService $cloudinary): RedirectResponse|JsonResponse

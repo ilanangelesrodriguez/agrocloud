@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active', EnsureCompanyOperator::class])->group(function () {
     Route::get('/incidencias', [\App\Http\Controllers\IncidenciaController::class, 'index'])->middleware('permission:lotes.ver')->name('incidencias.index');
+    Route::get('/incidencias/lotes/{lote}/crear', [\App\Http\Controllers\IncidenciaController::class, 'crear'])->middleware('permission:lotes.ver')->name('incidencias.create');
     Route::post('/incidencias/lotes/{lote}', [\App\Http\Controllers\IncidenciaController::class, 'store'])->middleware('permission:lotes.ver')->name('incidencias.store');
     Route::post('/incidencias/{incidencia}/seguimiento', [\App\Http\Controllers\IncidenciaController::class, 'update'])->middleware('permission:lotes.ver')->name('incidencias.update');
     Route::get('/recepciones', \App\Livewire\RecepcionesIndex::class)->middleware('permission:recepciones.ver')->name('recepciones.index');

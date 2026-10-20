@@ -53,7 +53,8 @@ class InspeccionController extends Controller
     public function show(int $inspeccion): View
     {
         $inspeccion = $this->getInspection($inspeccion);
-        return view('inspecciones.show', compact('inspeccion'));
+$progreso = app(\App\Services\ProgresoInspeccion::class)->calcular($inspeccion);
+        return view('inspecciones.show', compact('inspeccion', 'progreso'));
     }
 
     /** Impide que el inspector modifique inspecciones ajenas o cerradas. */

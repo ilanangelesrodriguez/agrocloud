@@ -14,23 +14,19 @@
                 <h1 class="mt-3 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 sm:text-2xl">Captura de evidencias y análisis IA</h1>
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Inspección #{{ $inspeccion->id_inspeccion }} · Lote {{ $inspeccion->muestreo?->lote?->codigo_lote }} · {{ $inspeccion->muestreo?->tamano_muestra }} frutos seleccionados</p>
             </div>
-            <a wire:navigate href="{{ route('inspecciones.validacion', $inspeccion->id_inspeccion) }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700">
-                Ir a validación <x-ui.icon name="chevron-right" class="h-4 w-4" />
+            <a data-validation-next @if($totalEvidencias === 0) aria-disabled="true" tabindex="-1" @endif wire:navigate href="{{ route('inspecciones.validacion', $inspeccion->id_inspeccion) }}" @class(['inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700', 'pointer-events-none opacity-50' => $totalEvidencias === 0])>
+                <span data-validation-next-label>{{ $totalEvidencias > 0 ? 'Continuar revisión humana' : 'Revisión pendiente de fotografías' }}</span> <x-ui.icon name="chevron-right" class="h-4 w-4" />
             </a>
         </div>
-        <x-ui.steps :steps="['Captura y análisis', 'Revisión humana', 'Dictamen del supervisor']" />
+        <x-ui.expediente-path :lote="$inspeccion->muestreo->lote" :muestreo="$inspeccion->muestreo" :inspeccion="$inspeccion" />
+        <x-ui.inspection-progress :inspeccion="$inspeccion" :progreso="$progreso" />
         @include('inspecciones._mensajes')
-        <div class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500 dark:text-slate-400">Fotografías</p><p class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100" data-evidence-count>{{ $totalEvidencias }}</p></div>
-            <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500 dark:text-slate-400">Analizadas con IA</p><p class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100" data-analyzed-count>{{ $analizadas }}</p></div>
-            <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500 dark:text-slate-400">Estado de inspección</p><p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $inspeccion->estado === 'EN_CAPTURA' ? 'En captura' : 'Validada / cerrada' }}</p></div>
-        </div>
-        <div class="space-y-2"><p data-analysis-progress-label class="text-sm text-slate-500">{{ $analizadas }} de {{ $totalEvidencias }} fotografías analizadas con IA. La revisión humana es una etapa independiente.</p><progress data-analysis-progress max="{{ max(1, $totalEvidencias) }}" value="{{ $analizadas }}" class="h-2 w-full accent-emerald-600" aria-label="Progreso del análisis IA"></progress></div>
         <div data-workspace-message class="hidden rounded-xl border px-4 py-3 text-sm" role="status" aria-live="polite"></div>
         <div class="grid items-start gap-5 xl:grid-cols-[minmax(0,350px)_minmax(0,1fr)]">
             <div class="space-y-4 xl:sticky xl:top-5">
                 @if($puedeCapturar)
                     <x-ui.card title="Añadir fotografía" description="Selecciona el fruto y guarda la fotografía. El análisis IA se solicita automáticamente.">
+                        @if($progreso['faltantes'] > 0)<div class="mb-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200"><p class="font-semibold"><span data-fruit-missing>{{ $progreso['faltantes'] }}</span> frutos pendientes de fotografía en esta inspección</p><p class="mt-1">@foreach($progreso['pendientes'] as $pendiente)<button type="button" data-fruit-pick="{{ $pendiente->numero }}" class="mr-2 mt-1 rounded-lg border border-amber-200 px-2 py-1 dark:border-amber-800">{{ $pendiente->codigo }}</button>@endforeach</p></div>@endif
                         <form data-upload-form action="{{ route('inspecciones.evidencias.store', $inspeccion->id_inspeccion) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                             @csrf
                             @if($inspeccion->muestreo->frutos()->exists())
@@ -82,4 +78,5 @@
         </div>
     </div>
     <script src="{{ asset('js/inspection-evidence.js') }}" defer></script>
+    <x-ui.image-viewer />
 </x-layouts.app>

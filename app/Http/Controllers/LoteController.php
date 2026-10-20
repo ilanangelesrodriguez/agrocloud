@@ -169,12 +169,26 @@ class LoteController extends Controller
     {
         $loteModel = Lote::query()
             ->forCurrentCompany()
-            ->with(['productor', 'recepcion.responsable', 'muestreos.inspecciones.dictamen'])
+            ->with(['productor', 'recepcion.responsable', 'muestreos.inspector', 'muestreos.inspecciones.inspector', 'muestreos.inspecciones.dictamen.supervisor'])
             ->findOrFail($lote);
 
+        $incidencias = collect(app(\App\Services\IncidenciasOperativas::class)->reconstruir(app(\App\Services\IncidenciasOperativas::class)->consulta($loteModel->id_empresa, $loteModel->id_lote)->get()));
+        $abiertas = $incidencias->where('estado', '!=', 'CERRADA')->count();
+        $bloqueado = $incidencias->contains(fn ($i) => in_array($i->gravedad, ['ALTA', 'CRITICA'], true) && $i->estado !== 'CERRADA');
+        $ultimaInspeccion = $loteModel->muestreos->flatMap->inspecciones->sortByDesc('id_inspeccion')->first();
+        $protocolos = DB::table('eventos_trazabilidad')->where('id_empresa', $loteModel->id_empresa)->where('entidad', 'Muestreo')->where('evento', 'PROTOCOLO_MUESTREO')->whereIn('registro', $loteModel->muestreos->modelKeys())->orderByDesc('id')->get()->unique('registro')->mapWithKeys(fn ($e) => [$e->registro => json_decode($e->cambios, true)['protocolo'] ?? null]);
+        $usuario = auth()->user();
+        $accion = ['titulo' => 'Consulta el expediente', 'descripcion' => 'El lote conserva sus operaciones y decisiones para consulta.', 'url' => null, 'icono' => 'eye'];
+        if ($bloqueado) $accion = ['titulo' => 'Atender incidencias bloqueantes', 'descripcion' => 'El supervisor debe verificar y cerrar las incidencias altas o críticas antes de liberar el lote.', 'url' => route('incidencias.index', ['lote' => $loteModel->id_lote]), 'icono' => 'alert-triangle'];
+        elseif (!$loteModel->recepcion && $loteModel->muestreos->isEmpty()) $accion = ['titulo' => 'Confirmar ingreso físico', 'descripcion' => 'Esta operación corresponde al personal de Recepción. El registro del lote no confirma su ingreso.', 'url' => $usuario->rol?->codigo === 'RECEPCION' && $usuario->hasPermission('recepciones.crear') && $usuario->hasPermission('recepciones.ver') ? route('recepciones.revisar', $loteModel->id_lote) : null, 'icono' => 'building'];
+        elseif ($loteModel->muestreos->isEmpty()) $accion = ['titulo' => 'Crear muestreo', 'descripcion' => 'El lote tiene recepción confirmada. El inspector puede registrar la muestra y su protocolo.', 'url' => $usuario->rol?->codigo === 'INSPECTOR' && $usuario->hasPermission('muestreos.crear') ? route('muestreos.create', ['lote' => $loteModel->id_lote]) : null, 'icono' => 'clipboard-list'];
+        elseif (!$ultimaInspeccion) $accion = ['titulo' => 'Iniciar inspección', 'descripcion' => 'El inspector debe iniciar la captura desde el muestreo registrado.', 'url' => $usuario->rol?->codigo === 'INSPECTOR' && $usuario->hasPermission('muestreos.ver') ? route('muestreos.show', $loteModel->muestreos->sortByDesc('id_muestreo')->first()->id_muestreo) : null, 'icono' => 'camera'];
+        elseif ($ultimaInspeccion->estado === 'EN_CAPTURA') $accion = ['titulo' => $ultimaInspeccion->solicitada_por ? 'Continuar reinspección' : 'Continuar inspección', 'descripcion' => 'La captura y la revisión humana corresponden al inspector asignado. El dictamen anterior se conserva.', 'url' => $usuario->hasPermission('inspecciones.ver') ? route('inspecciones.show', $ultimaInspeccion->id_inspeccion) : null, 'icono' => 'camera'];
+        elseif (!$ultimaInspeccion->dictamen) $accion = ['titulo' => 'Pendiente de dictamen', 'descripcion' => 'La inspección está validada. El supervisor debe revisar el expediente y emitir su decisión.', 'url' => $usuario->rol?->codigo === 'SUPERVISOR' && $usuario->hasPermission('calidad.ver') ? route('calidad.show', $ultimaInspeccion->id_inspeccion) : null, 'icono' => 'shield'];
+        else $accion = ['titulo' => 'Dictamen '.mb_strtolower($ultimaInspeccion->dictamen->decision), 'descripcion' => 'Decisión registrada por '.$ultimaInspeccion->dictamen->supervisor?->nombre_completo.'. Consulta su fundamento en el expediente.', 'url' => $usuario->hasPermission('calidad.ver') ? route('calidad.show', $ultimaInspeccion->id_inspeccion) : null, 'icono' => 'shield'];
         $eventos = auth()->user()->hasPermission('trazabilidad.ver') ? DB::table('eventos_trazabilidad')->where('id_empresa', auth()->user()->id_empresa)->where('id_lote', $loteModel->id_lote)->latest('id')->limit(15)->get() : collect();
         return view('lotes.show', [
-            'eventos' => $eventos,
+            'eventos' => $eventos, 'abiertas' => $abiertas, 'bloqueado' => $bloqueado, 'ultimaInspeccion' => $ultimaInspeccion, 'accion' => $accion, 'protocolos' => $protocolos,
             'lote' => $loteModel,
         ]);
     }

@@ -64,6 +64,9 @@
     @case('chevron-right')
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
         @break
+    @case('minus')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="M5 12h14"/></svg>
+        @break
     @case('plus')
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         @break

@@ -46,11 +46,34 @@ class OperacionController extends Controller
         return redirect()->route('recepciones.index')->with('success', 'Recepción confirmada. El lote está disponible para muestreo.');
     }
 
-    public function traza(int $lote)
+    public function traza(Request $request, int $lote)
     {
-        $lote = Lote::forCurrentCompany()->with(['productor', 'recepcion.responsable', 'muestreos.inspecciones.dictamen'])->findOrFail($lote);
-        $eventos = DB::table('eventos_trazabilidad as e')->leftJoin('usuario as u', 'u.id_usuario', '=', 'e.id_usuario')->where('e.id_empresa', auth()->user()->id_empresa)->where('e.id_lote', $lote->id_lote)->select('e.*', 'u.nombre', 'u.apellido')->orderByDesc('e.id')->paginate(30);
-
-        return view('operaciones.trazabilidad', compact('lote', 'eventos'));
+        $filtros = $request->validate([
+            'desde' => 'nullable|date_format:Y-m-d',
+            'hasta' => array_filter(['nullable', 'date_format:Y-m-d', $request->filled('desde') ? 'after_or_equal:desde' : null]),
+            'evento' => 'nullable|string|max:40', 'responsable' => 'nullable|integer|min:1',
+        ]);
+        $lote = Lote::forCurrentCompany()->with(['productor', 'recepcion.responsable', 'muestreos.inspector', 'muestreos.inspecciones.inspector', 'muestreos.inspecciones.dictamen.supervisor'])->findOrFail($lote);
+        $base = DB::table('eventos_trazabilidad')->where('id_empresa', auth()->user()->id_empresa)->where('id_lote', $lote->id_lote);
+        $tipos = (clone $base)->distinct()->orderBy('evento')->pluck('evento');
+        $responsables = \App\Models\User::where('id_empresa', auth()->user()->id_empresa)->whereIn('id_usuario', (clone $base)->select('id_usuario'))->orderBy('nombre')->get();
+        $eventos = DB::table('eventos_trazabilidad as e')->leftJoin('usuario as u', 'u.id_usuario', '=', 'e.id_usuario')->where('e.id_empresa', auth()->user()->id_empresa)->where('e.id_lote', $lote->id_lote)
+            ->when(!empty($filtros['desde']), fn ($q) => $q->whereDate('e.created_at', '>=', $filtros['desde']))
+            ->when(!empty($filtros['hasta']), fn ($q) => $q->whereDate('e.created_at', '<=', $filtros['hasta']))
+            ->when(!empty($filtros['evento']), fn ($q) => $q->where('e.evento', $filtros['evento']))
+            ->when(!empty($filtros['responsable']), fn ($q) => $q->where('e.id_usuario', $filtros['responsable']))
+            ->select('e.*', 'u.nombre', 'u.apellido')->orderByDesc('e.id')->paginate(30)->withQueryString();
+        $recorrido = collect([['titulo' => 'Lote registrado', 'fecha' => $lote->created_at, 'detalle' => $lote->codigo_lote, 'icono' => 'briefcase']]);
+        if ($lote->recepcion) $recorrido->push(['titulo' => 'Recepción física confirmada', 'fecha' => $lote->recepcion->recibido_en, 'detalle' => $lote->recepcion->documento.' · '.$lote->recepcion->responsable?->nombre_completo, 'icono' => 'building']);
+        foreach ($lote->muestreos as $muestra) {
+            $recorrido->push(['titulo' => 'Muestreo registrado', 'fecha' => $muestra->created_at, 'detalle' => 'Muestreo #'.$muestra->id_muestreo.' · '.$muestra->tamano_muestra.' frutos · '.$muestra->inspector?->nombre_completo, 'icono' => 'clipboard-list']);
+            foreach ($muestra->inspecciones as $inspection) {
+                $recorrido->push(['titulo' => $inspection->solicitada_por ? 'Reinspección solicitada' : 'Inspección iniciada', 'fecha' => $inspection->created_at, 'detalle' => 'Inspección #'.$inspection->id_inspeccion.' · '.$inspection->inspector?->nombre_completo, 'icono' => 'camera']);
+                if ($inspection->validada_en) $recorrido->push(['titulo' => 'Revisión humana finalizada', 'fecha' => $inspection->validada_en, 'detalle' => 'Inspección #'.$inspection->id_inspeccion, 'icono' => 'check']);
+                if ($inspection->dictamen) $recorrido->push(['titulo' => 'Dictamen '.mb_strtolower($inspection->dictamen->decision), 'fecha' => $inspection->dictamen->created_at, 'detalle' => 'Inspección #'.$inspection->id_inspeccion.' · '.$inspection->dictamen->supervisor?->nombre_completo, 'icono' => 'shield']);
+            }
+        }
+        $recorrido = $recorrido->filter(fn ($e) => $e['fecha'])->sortBy('fecha')->values();
+        return view('operaciones.trazabilidad', compact('lote', 'eventos', 'tipos', 'responsables', 'recorrido', 'filtros'));
     }
 }
