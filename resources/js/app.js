@@ -194,18 +194,15 @@ document.addEventListener('submit', async (event) => {
         if (response.status === 422 && response.headers.get('content-type')?.includes('application/json')) {
             const result = await response.json();
             form.querySelector('[data-form-errors]')?.remove();
-            const errors = document.createElement('div');
-            errors.dataset.formErrors = '';
-            errors.setAttribute('role', 'alert');
-            errors.tabIndex = -1;
-            errors.className = 'rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200';
-            Object.values(result.errors || { message: [result.message] }).flat().forEach((message) => {
-                const item = document.createElement('p');
-                item.textContent = message;
-                errors.append(item);
+            const messages = [...new Set(Object.values(result.errors || { message: [result.message] }).flat().filter(Boolean))];
+            showToast(messages.length ? messages : 'Revisa los datos ingresados.', 'error');
+            form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
+            let first;
+            Object.keys(result.errors || {}).forEach((name) => {
+                const input = form.elements.namedItem(name);
+                if (input?.setAttribute) { input.setAttribute('aria-invalid', 'true'); first ||= input; }
             });
-            form.prepend(errors);
-            errors.focus();
+            first?.focus();
             return;
         }
         if (!response.ok) {
@@ -255,3 +252,56 @@ document.addEventListener('submit', (event) => {
     window.Livewire.navigate(url.href);
 });
 import './theme';
+
+document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-password-toggle]');
+    if (!button) return;
+    const input = document.getElementById(button.getAttribute('aria-controls'));
+    if (!input) return;
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    button.querySelector('[data-password-icon-show]')?.classList.toggle('hidden', visible);
+    button.querySelector('[data-password-icon-hide]')?.classList.toggle('hidden', !visible);
+    button.setAttribute('aria-pressed', String(visible));
+    button.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    button.title = visible ? 'Ocultar contraseña' : 'Mostrar contraseña';
+});
+document.addEventListener('livewire:navigating', () => {
+    document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+        const input = document.getElementById(button.getAttribute('aria-controls'));
+        if (input) input.type = 'password';
+    });
+});
+
+// Keep browser validation, present its feedback consistently with server validation.
+let invalidFields = [];
+document.addEventListener('invalid', (event) => {
+    const input = event.target;
+    if (!input.closest('form[data-ajax-form]')) return;
+    event.preventDefault();
+    input.setAttribute('aria-invalid', 'true');
+    const label = input.labels?.[0]?.textContent.trim() || input.name;
+    const message = input.validity.valueMissing ? `Completa el campo ${label}.`
+        : input.validity.typeMismatch && input.type === 'email' ? 'Ingresa un correo electrónico válido.'
+        : `Revisa el campo ${label}.`;
+    invalidFields.push({ input, message });
+    if (invalidFields.length !== 1) return;
+    window.setTimeout(() => {
+        const fields = invalidFields;
+        invalidFields = [];
+        showToast([...new Set(fields.map((field) => field.message))], 'error');
+        fields[0].input.focus();
+    }, 0);
+}, true);
+document.addEventListener('input', (event) => {
+    if (event.target.closest('form[data-ajax-form]')) event.target.removeAttribute('aria-invalid');
+});
+
+// Broken company logos fall back to the application mark, without a broken-image icon.
+document.addEventListener('error', (event) => {
+    const image = event.target;
+    if (!image.matches?.('[data-company-logo]') || image.dataset.logoFailed) return;
+    image.dataset.logoFailed = 'true';
+    image.src = image.dataset.logoFallback;
+    image.alt = 'AgroCloud AI';
+}, true);

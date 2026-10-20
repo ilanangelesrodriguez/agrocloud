@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return Auth::check()
         ? redirect()->route(RouteNames::DASHBOARD)
-        : redirect()->route(RouteNames::LOGIN);
+        : view('welcome');
 });
 
 require __DIR__.'/auth.php';

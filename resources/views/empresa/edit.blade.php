@@ -24,7 +24,7 @@
                                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Identificación legal y actividad comercial.</p>
                             </div>
                             <div class="grid gap-x-5 gap-y-4 p-5 sm:grid-cols-2">
-                                <x-ui.input name="ruc" label="RUC *" :value="$empresa->ruc" placeholder="Ej. 20550844321" maxlength="11" required />
+                                <x-ui.input name="ruc" label="RUC *" :value="$empresa->ruc" placeholder="Ej. 20550844321" maxlength="11" inputmode="numeric" autocomplete="off" required />
                                 <x-ui.input name="nombre_comercial" label="Nombre comercial *" :value="$empresa->nombre_comercial" placeholder="Ej. Agroexportadora del Sur" required />
                                 <div class="sm:col-span-2"><x-ui.input name="razon_social" label="Razón social *" :value="$empresa->razon_social" placeholder="Ej. Agroexportadora del Sur S.A.C." required /></div>
                                 <x-ui.master-select kind="grupo" name="grupo_empresarial" label="Grupo empresarial" :value="$empresa->grupo_empresarial" placeholder="Ej. Grupo Agrícola del Sur" />
@@ -39,9 +39,12 @@
                                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Canales corporativos y dirección de la sede.</p>
                             </div>
                             <div class="grid gap-x-5 gap-y-4 p-5 sm:grid-cols-2">
-                                <x-ui.input name="telefono" label="Teléfono" type="tel" :value="$empresa->telefono" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" pattern="^\+?[0-9][0-9\s().-]*$" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
+                                <x-ui.input name="telefono" label="Teléfono" type="tel" :value="$empresa->telefono" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
                                 <x-ui.input name="correo" label="Correo corporativo" type="email" :value="$empresa->correo" placeholder="Ej. contacto@empresa.pe" />
-                                <x-ui.input name="sitio_web" label="Sitio web" type="url" :value="$empresa->sitio_web" placeholder="https://www.empresa.pe" />
+                                <div>
+                                    <x-ui.input name="sitio_web" label="Sitio web" type="text" inputmode="url" autocapitalize="none" spellcheck="false" :value="$empresa->sitio_web" placeholder="Ej. misitio.com" aria-describedby="company-site-help" maxlength="255" autocomplete="url" />
+                                    <p id="company-site-help" class="mt-2 text-xs text-slate-500 dark:text-slate-400">Puedes escribir misitio.com; se guardará con https:// si no indicas un protocolo.</p>
+                                </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200" for="departamento">Departamento</label>
                                     <select id="departamento" name="departamento" data-geo-field="departamento" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50" aria-describedby="geo-status"><option value="{{ old('departamento', $empresa->departamento) }}">{{ old('departamento', $empresa->departamento) ?: 'Selecciona una opción' }}</option></select>
@@ -84,15 +87,16 @@
                                 <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">Identifica a la empresa dentro de AgroCloud.</p>
                             </div>
                             <div class="space-y-3 p-5">
-                                <div class="flex h-28 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-                                    <img data-company-logo @if($empresa->logo_url) src="{{ $empresa->logo_url }}" @endif alt="Vista previa del logo de {{ $empresa->nombre_comercial }}" class="max-h-24 max-w-full object-contain {{ $empresa->logo_url ? '' : 'hidden' }}">
-                                    <span data-company-logo-empty class="text-xs font-medium text-slate-400 {{ $empresa->logo_url ? 'hidden' : '' }}">Aún no hay logo</span>
+                                <div data-logo-preview class="flex h-28 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
+                                    <img data-logo-image @if($empresa->logo_url) src="{{ $empresa->logo_url }}" @endif alt="Vista previa del logo de {{ $empresa->nombre_comercial }}" class="max-h-24 max-w-full object-contain {{ $empresa->logo_url ? '' : 'hidden' }}">
+                                    <span data-logo-empty class="text-xs font-medium text-slate-400 {{ $empresa->logo_url ? 'hidden' : '' }}">Aún no hay logo</span>
                                 </div>
-                                <div class="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/70 px-3 py-3.5">
-                                    <label for="logo" class="block cursor-pointer rounded-xl border border-brand-200 dark:border-brand-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-brand-700 dark:text-brand-300 shadow-sm hover:bg-brand-50 dark:hover:bg-brand-900/35 focus-within:ring-4 focus-within:ring-brand-100 dark:focus-within:ring-brand-900/50">Cambiar logo</label>
-                                    <input id="logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" data-company-logo-input>
-                                    <p class="mt-1.5 text-center text-xs text-slate-500 dark:text-slate-400">PNG, JPG o WEBP · máximo 4 MB.</p>
+                                <div data-logo-dropzone class="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/70 px-3 py-3.5">
+                                    <label for="logo" role="button" tabindex="0" data-logo-trigger class="block cursor-pointer rounded-xl border border-brand-200 dark:border-brand-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-brand-700 dark:text-brand-300 shadow-sm hover:bg-brand-50 dark:hover:bg-brand-900/35 focus-within:ring-4 focus-within:ring-brand-100 dark:focus-within:ring-brand-900/50">Cambiar logo</label>
+                                    <input id="logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" data-logo-input aria-describedby="logo-help logo-feedback">
+                                    <p id="logo-help" class="mt-1.5 text-center text-xs text-slate-500 dark:text-slate-400">PNG, JPG o WEBP · máximo 4 MB.</p>
                                 </div>
+                                <p id="logo-feedback" data-logo-feedback role="status" aria-live="polite" class="break-words text-xs leading-5 text-slate-600 dark:text-slate-300">La imagen seleccionada es una vista previa. El logo del menú cambiará al guardar la empresa.</p>
                                 @error('logo')<p class="text-sm text-red-600 dark:text-red-300">{{ $message }}</p>@enderror
                             </div>
                         </section>
@@ -107,21 +111,6 @@
                     <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="save" class="h-4 w-4" />Guardar empresa</span></x-ui.button>
                 </div>
             </form>
-            <script>
-                (() => {
-                    const input = document.querySelector('[data-company-logo-input]');
-                    const image = document.querySelector('[data-company-logo]');
-                    const empty = document.querySelector('[data-company-logo-empty]');
-                    if (!input || !image || !empty) return;
-                    input.addEventListener('change', () => {
-                        const file = input.files?.[0];
-                        if (!file || !file.type.startsWith('image/')) return;
-                        image.src = URL.createObjectURL(file);
-                        image.classList.remove('hidden');
-                        empty.classList.add('hidden');
-                    });
-                })();
-            </script>
             <script defer src="{{ asset('js/empresa-form.js') }}?v=20261012-geo"></script>
         @else
             <section class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm" aria-labelledby="company-readonly-title">

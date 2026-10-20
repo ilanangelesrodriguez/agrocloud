@@ -1,9 +1,13 @@
-<div data-toast-container class="fixed bottom-4 right-4 z-[100] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3 pb-[env(safe-area-inset-bottom)]" aria-live="polite" aria-atomic="false"></div>
-@foreach (['success', 'error'] as $type)
+<div data-toast-container class="fixed bottom-4 right-4 z-[100] flex w-[calc(100%-2rem)] max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto flex-col gap-3 pb-[env(safe-area-inset-bottom)]" aria-live="polite" aria-atomic="false"></div>
+@foreach (['success', 'error', 'status'] as $type)
     @if (session($type))
         <template data-flash-toast="{{ $type }}">{{ session($type) }}</template>
     @endif
 @endforeach
+
+@if($errors->any())
+    <template data-flash-toast="error">{{ implode("\n", array_unique($errors->all())) }}</template>
+@endif
 
 <dialog data-confirm-dialog aria-labelledby="confirm-title" aria-describedby="confirm-description" class="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl backdrop:bg-slate-950/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
     <h2 id="confirm-title" class="text-lg font-semibold">Confirmar eliminación</h2>

@@ -29,12 +29,17 @@
         <meta name="reverb-scheme" content="{{ config('broadcasting.connections.reverb.client.scheme') }}">
     @endif
     <title>{{ $title }} · AgroCloud AI</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}?v=2">
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 antialiased">
     @php
         $currentUser = auth()->user()?->loadMissing(['rol', 'empresa']);
+        $companyLogo = $currentUser?->empresa?->logo_url;
         $lastSection = null;
     @endphp
 
@@ -45,7 +50,7 @@
             class="agrocloud-sidebar fixed inset-y-0 left-0 z-50 flex h-dvh w-[264px] -translate-x-full flex-col overflow-hidden border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl invisible transition-[transform,visibility] duration-300 ease-out motion-reduce:transition-none lg:sticky lg:inset-y-auto lg:top-0 lg:z-20 lg:h-dvh lg:translate-x-0 lg:self-start lg:visible lg:shadow-none"
         >
             <div class="flex h-16 shrink-0 items-center gap-3 border-b border-slate-100 dark:border-slate-700 px-4">
-                <div class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-600 text-sm font-bold text-white">AC</div>
+                <img src="{{ $companyLogo ?: asset('images/agrocloud/logo-mark.png') }}" alt="{{ $companyLogo ? 'Logo de '.$currentUser->empresa->nombre_comercial : 'AgroCloud AI' }}" width="36" height="36" class="h-9 w-9 shrink-0 rounded-xl object-contain" data-company-logo data-logo-fallback="{{ asset('images/agrocloud/logo-mark.png') }}">
                 <div data-sidebar-brand-text class="min-w-0 flex-1">
                     <p class="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">AgroCloud AI</p>
                     <p class="truncate text-xs text-slate-500 dark:text-slate-400">{{ $currentUser?->empresa?->nombre_comercial ?? 'Administración global' }}</p>

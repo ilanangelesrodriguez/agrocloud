@@ -36,14 +36,14 @@ function renderRows(container, notifications) {
         const heading = document.createElement('div');
         heading.className = 'flex flex-wrap items-center justify-between gap-2';
         const title = document.createElement('strong');
-        title.className = 'text-sm text-slate-900 dark:text-slate-100';
+        title.className = 'min-w-0 break-words text-sm text-slate-900 dark:text-slate-100';
         title.textContent = n.titulo;
         const stamp = document.createElement('span');
         stamp.className = 'text-xs text-slate-500';
         stamp.textContent = n.fecha || '';
         heading.append(title, stamp);
         const desc = document.createElement('p');
-        desc.className = 'mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300';
+        desc.className = 'break-words mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300';
         desc.textContent = n.mensaje;
         link.append(heading, desc);
         list.append(link);
@@ -98,7 +98,12 @@ document.addEventListener('click', (event) => {
     if (!container) return;
     const toggle = event.target.closest('[data-notifications-toggle]');
     const panel = container.querySelector('[data-notifications-panel]');
-    if (toggle && container.contains(toggle)) {
+    if (event.target.closest('[data-notifications-close]')) {
+        panel?.classList.add('hidden');
+        const button = container.querySelector('[data-notifications-toggle]');
+        button?.setAttribute('aria-expanded', 'false');
+        button?.focus();
+    } else if (toggle && container.contains(toggle)) {
         const open = panel?.classList.toggle('hidden') === false;
         toggle.setAttribute('aria-expanded', String(open));
         if (open) refresh();
@@ -110,7 +115,10 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-        root()?.querySelector('[data-notifications-panel]')?.classList.add('hidden');
+        const panel = root()?.querySelector('[data-notifications-panel]');
+        const wasOpen = panel && !panel.classList.contains('hidden');
+        panel?.classList.add('hidden');
+        if (wasOpen) root()?.querySelector('[data-notifications-toggle]')?.focus();
         root()?.querySelector('[data-notifications-toggle]')?.setAttribute('aria-expanded', 'false');
     }
 });

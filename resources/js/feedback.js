@@ -9,9 +9,17 @@ export function showToast(message, type = 'success') {
     toast.className = `flex items-start gap-3 rounded-xl border p-4 text-sm shadow-lg ${type === 'error'
         ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200'
         : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'}`;
-    const text = document.createElement('p');
-    text.className = 'min-w-0 flex-1';
-    text.textContent = message;
+    const messages = [...new Set((Array.isArray(message) ? message : String(message).split('\n')).map((value) => String(value).trim()).filter(Boolean))];
+    const text = document.createElement(messages.length > 1 ? 'ul' : 'p');
+    text.className = 'min-w-0 flex-1 whitespace-pre-line break-words';
+    if (messages.length > 1) {
+        text.classList.add('list-disc', 'space-y-2', 'pl-4');
+        messages.forEach((value) => {
+            const item = document.createElement('li');
+            item.textContent = value;
+            text.append(item);
+        });
+    } else text.textContent = messages[0] || '';
     const close = document.createElement('button');
     close.type = 'button';
     close.className = 'shrink-0 rounded px-1 font-semibold';
@@ -19,6 +27,7 @@ export function showToast(message, type = 'success') {
     close.textContent = '×';
     close.addEventListener('click', () => toast.remove());
     toast.append(text, close);
+    while (container.children.length >= 3) container.firstElementChild.remove();
     container.append(toast);
     let timer;
     const startTimer = () => { timer = window.setTimeout(() => toast.remove(), type === 'error' ? 10000 : 6000); };
