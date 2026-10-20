@@ -91,7 +91,7 @@ jobs:
       # SOLO sobre la rama Neon testing.
       # Elimina todas las tablas de esa base.
       - name: Preparar datos de pruebas
-        run: php artisan migrate:fresh --seed --force
+        run: php artisan migrate:fresh --seed --force -vvv
 
       - name: Generar directorio de reportes
         run: mkdir -p reports
