@@ -80,7 +80,14 @@ class OperationalWorkflowTest extends TestCase
         $this->assertDatabaseHas('eventos_trazabilidad', ['id_lote' => $lot->id_lote, 'entidad' => 'Recepcion', 'id_usuario' => $receiver->id_usuario]);
         $this->assertDatabaseHas('eventos_trazabilidad', ['id_lote' => $lot->id_lote, 'entidad' => 'Lote', 'evento' => 'ACTUALIZADO']);
         EvidenciaInspeccion::create(['id_empresa' => $company->id_empresa, 'id_inspeccion' => $i->id_inspeccion, 'id_fruto' => $m->frutos()->orderByDesc('numero')->first()->id, 'imagen_url' => 'https://example.test/photo2.jpg', 'imagen_public_id' => 'photo2', 'estado_ia' => 'COMPLETADO', 'resultado_ia' => ['detections' => []]]);
-        $this->post('/inspecciones/'.$i->id_inspeccion.'/finalizar')->assertRedirect();
+        foreach (EvidenciaInspeccion::where('id_inspeccion', $i->id_inspeccion)->get() as $evidencia) {
+            $this->actingAs($inspector)
+                ->post(route('inspecciones.revision.store', [$i->id_inspeccion, $evidencia->id_evidencia]), [
+                    'conclusion' => 'SIN_HALLAZGOS',
+                    'revision_completa' => '1',
+                ])->assertRedirect();
+        }
+        $this->actingAs($inspector)->post('/inspecciones/'.$i->id_inspeccion.'/finalizar')->assertRedirect();
         $this->assertSame('PENDIENTE_DICTAMEN', $m->fresh()->estado);
         $supervisor = $this->user('SUPERVISOR', $company);
         $this->actingAs($supervisor)->post('/calidad/inspecciones/'.$i->id_inspeccion.'/dictamen', ['decision' => 'APROBADO', 'observaciones' => 'Revisión completa.'])->assertRedirect();
