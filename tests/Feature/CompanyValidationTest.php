@@ -49,6 +49,28 @@ class CompanyValidationTest extends TestCase
         }
     }
 
+    public function test_company_contact_fields_require_real_domains(): void
+    {
+        $user = $this->account();
+
+        $this->actingAs($user)->putJson('/empresa', [
+            'ruc' => '20123456789',
+            'razon_social' => 'Empresa SAC',
+            'nombre_comercial' => 'Mi empresa',
+            'correo' => 'a@g',
+            'sitio_web' => 'a',
+        ])->assertUnprocessable()->assertJsonValidationErrors(['correo', 'sitio_web']);
+
+        $this->assertDatabaseMissing('empresa', [
+            'id_empresa' => $user->id_empresa,
+            'correo' => 'a@g',
+        ]);
+        $this->assertDatabaseMissing('empresa', [
+            'id_empresa' => $user->id_empresa,
+            'sitio_web' => 'https://a',
+        ]);
+    }
+
     public function test_sidebar_uses_only_current_company_logo_and_has_fallback(): void
     {
         $user = $this->account();

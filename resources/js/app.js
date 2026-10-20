@@ -1,7 +1,14 @@
 import { showToast, collectFlashToasts, queueToasts, confirmForm } from './feedback';
+
+document.addEventListener('agrocloud:toast', (event) => {
+    const { message, type } = event.detail || {};
+    if (message) showToast(message, ['success', 'error', 'info'].includes(type) ? type : 'success');
+});
 import './search';
 import './masters';
 import './master-dialog';
+import './users';
+import './catalogs';
 
 let appListeners;
 let securitySubscribedChannel = null;
@@ -179,6 +186,9 @@ document.addEventListener('submit', async (event) => {
             },
         };
 
+        if (form.matches('[data-user-drawer-form], [data-user-inline-form]')) requestOptions.headers['X-User-Module'] = 'true';
+        if (form.matches('[data-catalog-modal-form], [data-catalog-inline-form]')) requestOptions.headers['X-Master-Module'] = 'true';
+
         if (method === 'GET') {
             formData.forEach((value, key) => {
                 if (typeof value === 'string' && value !== '') requestUrl.searchParams.set(key, value);
@@ -214,6 +224,14 @@ document.addEventListener('submit', async (event) => {
         }
         if (response.headers.get('content-type')?.includes('application/json')) {
             const result = await response.json();
+            if (result.saved && form.matches('[data-catalog-modal-form], [data-catalog-inline-form]')) {
+                form.dispatchEvent(new CustomEvent('catalog:saved', { bubbles: true, detail: result }));
+                return;
+            }
+            if (result.saved && form.matches('[data-user-drawer-form], [data-user-inline-form]')) {
+                form.dispatchEvent(new CustomEvent('user:saved', { bubbles: true, detail: result }));
+                return;
+            }
             const destination = new URL(result.redirect, window.location.href);
             if (!result.redirect || destination.origin !== window.location.origin) throw new Error('Destino inválido.');
             navigating = true;

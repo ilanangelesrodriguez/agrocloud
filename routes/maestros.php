@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active'])->prefix('maestros')->name('maestros.')->group(function () {
     Route::get('/', [MaestroController::class, 'index'])->name('index');
+    Route::get('/{tipo}/comprobar-nombre', [MaestroController::class, 'checkName'])->name('check-name');
     Route::get('/{tipo}/crear', [MaestroController::class, 'create'])->name('create');
     Route::get('/{tipo}/{item}/editar', [MaestroController::class, 'edit'])->whereNumber('item')->name('edit');
     Route::post('/{tipo}', [MaestroController::class, 'store'])->name('store');

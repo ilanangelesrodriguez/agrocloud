@@ -2,10 +2,10 @@
 @php
     $code = strtoupper($state instanceof \BackedEnum ? $state->value : (string) $state);
     $tone = match ($code) {
-        'ACTIVO', 'ACTIVA', 'VALIDADO', 'VALIDADA', 'CLASIFICADO', 'APROBADO', 'COMPLETADO', 'CONFIRMADA' => 'success',
-        'EN_MUESTREO', 'EN_INSPECCION', 'EN_CAPTURA', 'PROCESANDO' => 'progress',
-        'PENDIENTE', 'PENDIENTE_VALIDACION', 'PENDIENTE_DICTAMEN', 'OBSERVADO', 'SIN_VALIDAR' => 'warning',
-        'RECHAZADO', 'ERROR', 'DESCARTADA' => 'danger',
+        'ACTIVO', 'ACTIVA', 'VALIDADO', 'VALIDADA', 'CLASIFICADO', 'APROBADO', 'COMPLETADO', 'CONFIRMADA', 'RESUELTA', 'CERRADA' => 'success',
+        'EN_MUESTREO', 'EN_INSPECCION', 'EN_CAPTURA', 'PROCESANDO', 'EN_ATENCION' => 'progress',
+        'PENDIENTE', 'PENDIENTE_RECEPCION', 'PENDIENTE_VALIDACION', 'PENDIENTE_DICTAMEN', 'OBSERVADO', 'SIN_VALIDAR', 'ABIERTA', 'MEDIA', 'RETENIDO' => 'warning',
+        'RECHAZADO', 'ERROR', 'DESCARTADA', 'ALTA', 'CRITICA' => 'danger',
         default => 'neutral',
     };
     $colors = match ($tone) {
@@ -16,7 +16,9 @@
         default => 'bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
     };
     $text = $label ?? match ($code) {
-        'EN_MUESTREO' => 'En muestreo', 'EN_INSPECCION' => 'En inspección',
+        'RETENIDO' => 'Retenido por incidencia',
+        'CRITICA' => 'Crítica', 'EN_ATENCION' => 'En atención',
+        'PENDIENTE_RECEPCION' => 'Pendiente de recepción', 'CLASIFICADO' => 'Aprobado', 'EN_MUESTREO' => 'En muestreo', 'EN_INSPECCION' => 'En inspección',
         'EN_CAPTURA' => 'En captura', 'PENDIENTE_VALIDACION' => 'Pendiente de dictamen',
         'PENDIENTE_DICTAMEN' => 'Pendiente de dictamen',
         'SIN_VALIDAR' => 'Sin validar',

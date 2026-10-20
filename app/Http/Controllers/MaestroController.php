@@ -46,16 +46,26 @@ class MaestroController extends Controller
             $provinces = $catalog('2_ubigeo_provincias', 'ubigeo_provincias')->keyBy('id');
             $rows = $catalog('3_ubigeo_distritos', 'ubigeo_distritos')->map(function ($row) use ($provinces, $departments) {
                 $province = $provinces[$row['provincia_id']];
-                return $row + ['provincia' => $province['provincia'], 'departamento' => $departments[$province['departamento_id']]['departamento']];
-            })->filter(fn ($row) => !$request->filled('q') || str_contains(mb_strtolower(implode(' ', $row)), mb_strtolower(trim($request->string('q')))))->values();
-            $items = new LengthAwarePaginator($rows->forPage(\Illuminate\Pagination\Paginator::resolveCurrentPage(), 20), $rows->count(), 20, \Illuminate\Pagination\Paginator::resolveCurrentPage(), ['path' => $request->url(), 'query' => $request->query()]);
-            return compact('items', 'definition', 'tipo');
+                return $row + ['provincia' => $province['provincia'], 'departamento' => $departments[$province['departamento_id']]['departamento'], 'departamento_id' => $province['departamento_id']];
+            });
+            $provinceOptions = $provinces->filter(fn ($row) => !$request->filled('departamento') || (string) $row['departamento_id'] === (string) $request->input('departamento'));
+            $districtOptions = $request->filled('provincia') ? $rows->filter(fn ($row) => (string) $row['provincia_id'] === (string) $request->input('provincia')) : collect();
+            $rows = $rows->filter(fn ($row) => (!$request->filled('q') || str_contains(mb_strtolower(implode(' ', $row)), mb_strtolower(trim($request->string('q'))))) && (!$request->filled('departamento') || (string) $row['departamento_id'] === (string) $request->input('departamento')) && (!$request->filled('provincia') || (string) $row['provincia_id'] === (string) $request->input('provincia')) && (!$request->filled('distrito') || (string) $row['id'] === (string) $request->input('distrito')))->values();
+            $page = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+            $items = new LengthAwarePaginator($rows->forPage($page, 20), $rows->count(), 20, $page, ['path' => $request->url()]);
+            return compact('items', 'definition', 'tipo', 'departments', 'provinceOptions', 'districtOptions');
         }
+        $disabled = DB::table('maestro_empresa_config')->where('id_empresa', auth()->user()->id_empresa)->where('estado', false)->pluck('maestro_id')->all();
         $items = MaestroValor::query()->visibleTo($tipo, auth()->user()->id_empresa)->with('parent')
             ->when($request->filled('q'), fn ($q) => $q->whereRaw('LOWER(nombre) LIKE ?', ['%'.mb_strtolower(trim($request->string('q'))).'%']))
+            ->when($request->input('origen') === 'global', fn ($q) => $q->whereNull('id_empresa'))
+            ->when($request->input('origen') === 'company', fn ($q) => $q->whereNotNull('id_empresa'))
+            ->when($tipo === 'variedad' && $request->filled('parent'), fn ($q) => $q->where('parent_id', (int) $request->input('parent')))
+            ->when($request->input('estado') === '1', fn ($q) => $q->where('estado', true)->whereNotIn('id', $disabled))
+            ->when($request->input('estado') === '0', fn ($q) => $q->where(fn ($inner) => $inner->where('estado', false)->orWhereIn('id', $disabled)))
             ->orderBy('nombre')->paginate(20);
-        $disabled = DB::table('maestro_empresa_config')->where('id_empresa', auth()->user()->id_empresa)->where('estado', false)->pluck('maestro_id')->all();
-        return compact('items', 'definition', 'tipo', 'disabled');
+        $parents = $tipo === 'variedad' ? MaestroValor::query()->where('tipo', 'producto')->whereNull('id_empresa')->orderBy('nombre')->get() : collect();
+        return compact('items', 'definition', 'tipo', 'disabled', 'parents');
     }
 
     private function company(string $type): ?int
@@ -91,6 +101,7 @@ class MaestroController extends Controller
     {
         $definition = $this->definition($tipo);
         $parents = isset($definition['parent']) ? app(MaestroCatalog::class)->options($definition['parent']) : collect();
+        if ($tipo === 'variedad' && $item?->parent && !$parents->contains('id', $item->parent_id)) $parents->push($item->parent);
         return view('maestros.form', compact('tipo', 'definition', 'item', 'parents'));
     }
 
@@ -106,7 +117,7 @@ class MaestroController extends Controller
         $data['tipo'] = $tipo;
         $data['parent_id'] = $tipo === 'variedad' && isset($data['parent_id']) ? (int) $data['parent_id'] : null;
         if ($tipo === 'variedad') {
-            abort_unless(MaestroValor::query()->where('id', $data['parent_id'])->where('tipo', 'producto')->whereNull('id_empresa')->where('estado', true)->exists(), 422, 'Selecciona un producto activo.');
+            abort_unless(MaestroValor::query()->where('id', $data['parent_id'])->where('tipo', 'producto')->whereNull('id_empresa')->where(fn ($q) => $q->where('estado', true)->when($item && $item->parent_id === $data['parent_id'], fn ($inner) => $inner->orWhere('id', $item->parent_id)))->exists(), 422, 'Selecciona un producto activo.');
         }
         $data['clave'] = hash('sha256', $tipo.'|'.($data['id_empresa'] ?? 'global').'|'.($data['parent_id'] ?? '').'|'.mb_strtolower($data['nombre']));
         if (MaestroValor::query()->where('clave', $data['clave'])->when($item, fn ($q) => $q->where('id', '!=', $item->id))->exists()) throw ValidationException::withMessages(['nombre' => 'Esta opción ya existe.']);
@@ -120,7 +131,23 @@ class MaestroController extends Controller
     public function store(Request $request, string $tipo)
     {
         MaestroValor::create($this->data($request, $tipo));
-        return redirect()->route('maestros.show', $tipo)->with('success', 'Opción registrada correctamente.');
+        return $this->savedResponse($request, $tipo, 'Registro creado correctamente.');
+    }
+
+    public function checkName(Request $request, string $tipo)
+    {
+        $company = $this->company($tipo);
+        $data = $request->validate(['nombre' => 'required|string|max:150', 'parent_id' => 'nullable|integer', 'item_id' => 'nullable|integer']);
+        $parent = $tipo === 'variedad' ? ($data['parent_id'] ?? '') : '';
+        $key = hash('sha256', $tipo.'|'.($company ?? 'global').'|'.$parent.'|'.mb_strtolower(trim($data['nombre'])));
+        $exists = MaestroValor::where('clave', $key)->when(!empty($data['item_id']), fn ($q) => $q->where('id', '!=', $data['item_id']))->exists();
+        return response()->json(['exists' => $exists]);
+    }
+
+    private function savedResponse(Request $request, string $tipo, string $message)
+    {
+        if ($request->header('X-Master-Module') === 'true' && $request->expectsJson()) return response()->json(['saved' => true, 'message' => $message]);
+        return redirect()->route('maestros.show', $tipo)->with('success', $message);
     }
 
     public function storeOption(Request $request, string $tipo)
@@ -145,10 +172,10 @@ class MaestroController extends Controller
     {
         $this->editable($tipo, $item);
         $item->update($this->data($request, $tipo, $item));
-        return redirect()->route('maestros.show', $tipo)->with('success', 'Opción actualizada correctamente.');
+        return $this->savedResponse($request, $tipo, 'Registro actualizado correctamente.');
     }
 
-    public function toggle(string $tipo, MaestroValor $item)
+    public function toggle(Request $request, string $tipo, MaestroValor $item)
     {
         $definition = $this->definition($tipo);
         abort_unless($item->tipo === $tipo, 404);
@@ -160,6 +187,6 @@ class MaestroController extends Controller
             $this->editable($tipo, $item);
             $item->update(['estado' => !$item->estado]);
         }
-        return back()->with('success', 'Disponibilidad actualizada. Los registros anteriores se conservan.');
+        return $this->savedResponse($request, $tipo, 'Disponibilidad actualizada. Los registros anteriores se conservan.');
     }
 }

@@ -45,8 +45,8 @@
                                     <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Fecha y hora de recepción
                                         <input name="recibido_en" type="datetime-local" value="{{ now()->format('Y-m-d\TH:i') }}" required class="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50">
                                     </label>
-                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200 sm:col-span-2">Observaciones
-                                        <textarea name="observaciones" maxlength="3000" rows="3" class="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50"></textarea>
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200 sm:col-span-2">Condiciones de ingreso y diferencias de peso
+                                        <textarea name="observaciones" placeholder="Describe las condiciones del ingreso. Si el peso recibido difiere del declarado, explica la diferencia." maxlength="3000" rows="3" class="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50"></textarea>
                                     </label>
                                     <div class="flex justify-end sm:col-span-2">
                                         <x-ui.button type="submit"><x-ui.icon name="check" class="mr-2 h-4 w-4" />Confirmar recepción</x-ui.button>

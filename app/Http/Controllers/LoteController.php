@@ -23,7 +23,7 @@ class LoteController extends Controller
 
         $lotes = Lote::query()
             ->forCurrentCompany()
-            ->with('productor')
+            ->with(['productor', 'recepcion'])
             ->when($buscar !== '', function ($query) use ($buscar) {
                 $query->where(function ($query) use ($buscar) {
                     $query
@@ -55,7 +55,7 @@ class LoteController extends Controller
             ->orderBy('nombre_razon_social')
             ->get();
 
-        $estados = [LoteEstado::RECIBIDO];
+        $estados = [LoteEstado::PENDIENTE_RECEPCION];
 
         return view('lotes.create', compact('productores', 'estados'));
     }
@@ -110,7 +110,7 @@ class LoteController extends Controller
 
             'estado' => [
                 'required',
-                Rule::in(['RECIBIDO']),
+                Rule::in(['PENDIENTE_RECEPCION', 'RECIBIDO']),
             ],
         ]);
 
@@ -143,7 +143,7 @@ class LoteController extends Controller
             'peso_kg' => $data['peso_kg'],
             'unidad_medida' => $data['unidad_medida'],
             'fecha_recepcion' => $data['fecha_recepcion'],
-            'estado' => $data['estado'],
+            'estado' => LoteEstado::PENDIENTE_RECEPCION,
         ]);
 
         // AGROCLOUD_NOTIFICATIONS_INSTALLED
@@ -169,7 +169,7 @@ class LoteController extends Controller
     {
         $loteModel = Lote::query()
             ->forCurrentCompany()
-            ->with('productor')
+            ->with(['productor', 'recepcion'])
             ->findOrFail($lote);
 
         return view('lotes.show', [

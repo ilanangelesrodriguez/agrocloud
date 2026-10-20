@@ -120,14 +120,16 @@
                     </button>
                     <div class="min-w-0">
                         @if ($currentUser?->hasPermission('dashboard.ver') && ! request()->routeIs(\App\Constants\RouteNames::DASHBOARD))
-                            <nav aria-label="Ruta de navegación" class="hidden min-w-0 items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 sm:flex">
+                            <nav aria-label="Ruta de navegación" class="{{ request()->routeIs('usuarios.index', 'maestros.*') ? 'flex' : 'hidden sm:flex' }} min-w-0 items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                                 <a href="{{ route(\App\Constants\RouteNames::DASHBOARD) }}" wire:navigate class="shrink-0 hover:text-brand-700 dark:hover:text-brand-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">Inicio</a>
                                 <span aria-hidden="true">/</span>
                                 <span aria-current="page" class="truncate">{{ $title }}</span>
                             </nav>
                         @endif
+                        @unless(request()->routeIs('usuarios.index', 'maestros.*'))
                         <h1 class="truncate text-base font-semibold text-slate-900 dark:text-slate-100 sm:text-lg">{{ $title }}</h1>
-                        @if ($currentUser?->empresa)
+                        @endunless
+                        @if ($currentUser?->empresa && !request()->routeIs('usuarios.index', 'maestros.*'))
                             <p class="hidden truncate text-xs text-slate-400 sm:block">Trabajando en {{ $currentUser->empresa->nombre_comercial }}</p>
                         @endif
                     </div>

@@ -9,7 +9,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('usuarios.update', $usuario) }}" enctype="multipart/form-data" data-ajax-form>
+        <form method="POST" action="{{ route('usuarios.update', $usuario) }}" enctype="multipart/form-data" data-ajax-form data-user-editor-form>
             @csrf
             @method('PUT')
             @include('usuarios._form')

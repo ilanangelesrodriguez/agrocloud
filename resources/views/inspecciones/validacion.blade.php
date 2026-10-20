@@ -2,7 +2,8 @@
     @php
         $editable = $inspeccion->estado === 'EN_CAPTURA'
             && auth()->user()->rol?->codigo === 'INSPECTOR'
-            && auth()->user()->hasPermission('inspecciones.validar');
+            && auth()->user()->hasPermission('inspecciones.validar')
+            && (!$inspeccion->id_inspector || (int) $inspeccion->id_inspector === (int) auth()->id());
         $deteccionesTotales = $inspeccion->evidencias->sum(fn($foto) => count($foto->resultado_ia['detections'] ?? []));
         $validadasTotales = $inspeccion->evidencias->sum(fn($foto) => $foto->validaciones->count());
     @endphp
@@ -58,6 +59,28 @@
                                 @endif
                             </div>
                         </div>
+                        <div data-image-review="{{ $foto->id_evidencia }}" class="border-t border-slate-200 p-4 dark:border-slate-700 sm:p-5">
+                            <p data-review-changed class="mb-3 hidden text-sm font-semibold text-amber-700 dark:text-amber-300">Cambió la evaluación: guarda nuevamente la revisión de esta imagen.</p>
+                            @if(isset($revisiones[$foto->id_evidencia]))
+                                <p class="mb-3 text-sm font-medium text-emerald-700 dark:text-emerald-300">Revisión guardada · {{ str_replace('_', ' ', $revisiones[$foto->id_evidencia]['conclusion']) }}</p>
+                                <p class="mb-3 text-sm text-slate-500">{{ $revisiones[$foto->id_evidencia]['justificacion'] ?? '' }}</p>
+                            @else
+                                <p class="mb-3 text-sm text-amber-700 dark:text-amber-300">Pendiente de conclusión humana, aunque no haya detecciones IA.</p>
+                            @endif
+                            @if($editable)
+                                <form data-ajax-form method="POST" action="{{ route('inspecciones.revision.store', [$inspeccion->id_inspeccion, $foto->id_evidencia]) }}" class="space-y-3">
+                                    @csrf
+                                    <label class="block text-sm font-medium dark:text-slate-100">Conclusión de esta imagen
+                                        <select name="conclusion" required class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"><option value="">Selecciona una conclusión</option><option value="SIN_HALLAZGOS">Sin hallazgos observados por el inspector</option><option value="CON_HALLAZGOS">Con hallazgos confirmados o registrados manualmente</option></select>
+                                    </label>
+                                    <label class="block text-sm font-medium dark:text-slate-100">Comentario {{ $foto->estado_ia !== 'COMPLETADO' ? '(obligatorio: justifica la revisión sin IA)' : '(opcional)' }}
+                                        <textarea name="justificacion" rows="2" maxlength="2000" @required($foto->estado_ia !== 'COMPLETADO') class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-2.5 text-sm dark:border-slate-600 dark:bg-slate-900"></textarea>
+                                    </label>
+                                    <label class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"><input type="checkbox" name="revision_completa" value="1" required class="mt-1">Revisé toda la fotografía y registré los hallazgos que la IA omitió.</label>
+                                    <button type="submit" class="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Guardar revisión de imagen</button>
+                                </form>
+                            @endif
+                        </div>
                     </article>
                 @empty
                     <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800">Primero agrega fotografías en Captura de evidencias.</div>
@@ -67,15 +90,16 @@
                 <x-ui.card title="Hallazgos manuales" description="Añade problemas que la IA omitió o documenta una evaluación sin IA.">
                     <div data-hallazgos-list class="space-y-2">
                         @foreach($inspeccion->hallazgos as $hallazgo)
-                            <p class="rounded-lg bg-slate-50 p-3 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200"><strong>{{ $hallazgo->clase }}</strong> — {{ $hallazgo->observaciones }}</p>
+                            <p class="rounded-lg bg-slate-50 p-3 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200"><span class="text-xs font-medium">{{ str_replace('_', ' ', $naturalezas[$hallazgo->id_hallazgo] ?? 'Hallazgo histórico') }} · Evidencia #{{ $hallazgo->id_evidencia ?? 'sin asociación' }}</span><br><strong>{{ $hallazgo->clase }}</strong> — {{ $hallazgo->observaciones }}</p>
                         @endforeach
                     </div>
                     <p data-hallazgos-empty @class(['text-sm text-slate-500 dark:text-slate-400', 'hidden' => $inspeccion->hallazgos->isNotEmpty()])>Aún no se han registrado hallazgos manuales.</p>
                     @if($editable)
                         <form data-hallazgo-form method="POST" action="{{ route('inspecciones.hallazgos.store', $inspeccion->id_inspeccion) }}" class="mt-4 space-y-3">
                             @csrf
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200">Naturaleza del hallazgo *<select name="naturaleza" required class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"><option value="">Selecciona la naturaleza</option><option value="ORGANISMO">Organismo / plaga visible</option><option value="ENFERMEDAD">Enfermedad</option><option value="DANO_PLAGA">Daño atribuible a plaga</option><option value="DEFECTO_FISICO">Defecto físico</option><option value="OTRO">Otro hallazgo</option></select></label>
                             <div><label for="clase" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Clase o hallazgo *</label><x-ui.master-select name="clase" kind="defecto" required /></div>
-                            <div><label for="id_evidencia" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Fotografía asociada</label><select id="id_evidencia" name="id_evidencia" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"><option value="">Hallazgo general</option>@foreach($inspeccion->evidencias as $foto)<option value="{{ $foto->id_evidencia }}">Evidencia #{{ $foto->id_evidencia }}</option>@endforeach</select></div>
+                            <div><label for="id_evidencia" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Fotografía asociada *</label><select required id="id_evidencia" name="id_evidencia" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"><option value="">Selecciona la fotografía</option>@foreach($inspeccion->evidencias as $foto)<option value="{{ $foto->id_evidencia }}">Evidencia #{{ $foto->id_evidencia }}</option>@endforeach</select></div>
                             <div><label for="observaciones-manuales" class="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">Justificación *</label><textarea id="observaciones-manuales" name="observaciones" rows="3" required maxlength="2000" placeholder="Describe lo observado" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"></textarea></div>
                             <button type="submit" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200">+ Agregar hallazgo</button>
                         </form>
@@ -85,7 +109,7 @@
                     <x-ui.card title="Cerrar inspección" description="Finaliza la validación y envía el expediente al supervisor; aquí no se aprueba ni rechaza el lote.">
                         <form data-ajax-form method="POST" action="{{ route('inspecciones.finalizar', $inspeccion->id_inspeccion) }}" class="space-y-3">
                             @csrf
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Revisa todas las detecciones y los análisis pendientes antes de continuar.</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Guarda una revisión por fotografía. Si modificas detecciones o hallazgos, confirma otra vez la revisión de esa imagen.</p>
                             <label for="obs-final" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">Observaciones finales</label>
                             <textarea id="obs-final" name="observaciones" maxlength="3000" rows="3" placeholder="Resumen técnico de la inspección" class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"></textarea>
                             <button type="submit" class="w-full rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Validar y enviar al supervisor</button>

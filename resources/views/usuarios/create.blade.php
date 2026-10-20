@@ -9,7 +9,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('usuarios.store') }}" enctype="multipart/form-data" data-ajax-form>
+        <form method="POST" action="{{ route('usuarios.store') }}" enctype="multipart/form-data" data-ajax-form data-user-editor-form>
             @csrf
             @include('usuarios._form')
             <div class="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-end sm:px-6">

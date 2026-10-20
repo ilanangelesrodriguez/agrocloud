@@ -30,6 +30,7 @@ class UpdateUserRequest extends FormRequest
             'correo' => [
                 'required',
                 'email',
+                'regex:/^[^@\s]+@(?:[^@\s.]+\.)+[^@\s.]+$/u',
                 'max:255',
                 Rule::unique('usuario', 'correo')->ignore($usuario?->getKey(), 'id_usuario'),
             ],
@@ -45,6 +46,7 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'telefono.regex' => 'El teléfono debe contener entre 7 y 15 dígitos y solo puede incluir +, espacios, guiones o paréntesis.',
+            'correo.regex' => 'Ingresa un correo válido con un dominio completo, por ejemplo usuario@empresa.com.',
         ];
     }
 }

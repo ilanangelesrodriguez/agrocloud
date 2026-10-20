@@ -1,20 +1,13 @@
 <x-layouts.app :title="$definition['label']">
-    <div class="space-y-5">
-        <x-ui.back-link :href="route('maestros.show', $tipo)" label="Volver al catálogo" />
-        <div><h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ $item ? 'Editar opción' : 'Agregar opción' }} · {{ $definition['label'] }}</h1><p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ auth()->user()->isSuperAdmin() ? 'Opción global para todas las empresas.' : 'Opción disponible solo para tu empresa.' }}</p></div>
-        <form data-ajax-form method="POST" action="{{ $item ? route('maestros.update', [$tipo, $item]) : route('maestros.store', $tipo) }}" class="space-y-5">
+    <div class="mx-auto max-w-3xl space-y-5"><x-ui.back-link :href="route('maestros.show', $tipo)" label="Volver al catálogo" /><h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ $item ? 'Editar '.$definition['singular'] : $definition['create_label'] }}</h1>
+        <form data-ajax-form data-catalog-form data-name-check-url="{{ route('maestros.check-name', $tipo) }}" data-item-id="{{ $item?->id }}" data-catalog-return="{{ route('maestros.show', $tipo) }}" action="{{ $item ? route('maestros.update', [$tipo, $item]) : route('maestros.store', $tipo) }}" method="POST" class="space-y-5">
             @csrf @if($item) @method('PUT') @endif
-            <x-ui.card>
-                <div class="grid gap-5 sm:grid-cols-2">
-                    <x-ui.input name="nombre" label="Nombre *" :value="$item?->nombre" required maxlength="150" />
-                    @if(isset($definition['parent']))
-                        <x-ui.select name="parent_id" label="Producto *" required><option value="">Selecciona un producto</option>@foreach($parents as $parent)<option value="{{ $parent->id }}" @selected((int) old('parent_id', $item?->parent_id) === $parent->id)>{{ $parent->nombre }}</option>@endforeach</x-ui.select>
-                    @endif
-                    @if($tipo === 'unidad')<x-ui.input name="codigo" label="Código de unidad *" :value="$item?->codigo" required maxlength="40" placeholder="Ej. kg, g o t" />@endif
-                    <div class="sm:col-span-2"><label for="descripcion" class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Descripción (opcional)</label><textarea name="descripcion" id="descripcion" rows="3" maxlength="1000" class="w-full rounded-xl border border-slate-300 bg-white p-3 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">{{ old('descripcion', $item?->descripcion) }}</textarea></div>
-                </div>
-            </x-ui.card>
-            <div class="flex justify-end gap-3"><a wire:navigate href="{{ route('maestros.show', $tipo) }}" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold dark:border-slate-600">Cancelar</a><x-ui.button type="submit">Guardar opción</x-ui.button></div>
+            <p class="text-xs leading-5 text-slate-500 dark:text-slate-400">{{ auth()->user()->isSuperAdmin() ? 'Esta opción global estará disponible para todas las empresas.' : 'Esta opción pertenece únicamente a tu empresa.' }} Si ya se utiliza en registros, podrás modificar su descripción; para cambiar su identidad deberás crear otra opción.</p>
+            @if(isset($definition['parent']))<x-ui.select name="parent_id" label="Producto *" required><option value="">Primero selecciona un producto</option>@foreach($parents as $parent)<option value="{{ $parent->id }}" @selected((int) old('parent_id', $item?->parent_id) === $parent->id)>{{ $parent->nombre }}</option>@endforeach</x-ui.select>@endif
+            <div><x-ui.input name="nombre" :label="ucfirst($definition['singular']).' *'" :value="$item?->nombre" required maxlength="{{ ['tipo_empresa' => 80, 'metodo' => 80, 'categoria' => 100, 'unidad' => 40][$tipo] ?? 150 }}" :placeholder="$definition['example']" autocomplete="off" aria-describedby="catalog-name-feedback" /><p id="catalog-name-feedback" data-catalog-name-feedback aria-live="polite" class="mt-2 text-xs text-red-600 dark:text-red-400"></p></div>
+            @if($tipo === 'unidad')<x-ui.input name="codigo" label="Símbolo o código *" :value="$item?->codigo" required maxlength="40" placeholder="Ej. kg, g o t" />@endif
+            <div><label for="descripcion" class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Descripción (opcional)</label><textarea name="descripcion" id="descripcion" rows="3" maxlength="1000" placeholder="Indica cuándo debe utilizarse esta opción." class="w-full rounded-xl border border-slate-200 bg-transparent p-3 text-sm dark:border-slate-700 dark:text-slate-100">{{ old('descripcion', $item?->descripcion) }}</textarea></div>
+            <div class="flex justify-end gap-3"><a wire:navigate href="{{ route('maestros.show', $tipo) }}" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">Cancelar</a><x-ui.button type="submit">Guardar {{ $definition['singular'] }}</x-ui.button></div>
         </form>
     </div>
 </x-layouts.app>

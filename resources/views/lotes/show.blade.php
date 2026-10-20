@@ -1,7 +1,10 @@
 <x-layouts.app title="Detalle del lote">
 
     <div class="space-y-6">
+        <a wire:navigate href="{{ route('incidencias.index', ['lote' => $lote->id_lote]) }}" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300"><x-ui.icon name="clipboard-list" class="h-4 w-4" />Gestionar incidencias del lote</a>
         @if(auth()->user()->hasPermission('trazabilidad.ver'))<a wire:navigate href="{{ route('trazabilidad.show', $lote->id_lote) }}" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-700"><x-ui.icon name="clipboard-list" class="h-4 w-4" />Ver expediente e historial de trazabilidad</a>@endif
+        @if($lote->estado === \App\Enums\LoteEstado::RETENIDO)<div role="status" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">Este lote está retenido por una incidencia alta o crítica. Producción debe esperar al cierre del supervisor. Abre las incidencias del lote para ver el responsable y el siguiente paso.</div>@endif
+        @if(!$lote->recepcion && auth()->user()->hasPermission('recepciones.crear'))<a wire:navigate href="{{ route('recepciones.index') }}" class="inline-flex rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white">Confirmar ingreso físico del lote</a>@endif
         {{-- AGROCLOUD INSPECTOR: acceso directo al muestreo --}}
         @if(auth()->user()->hasPermission('muestreos.crear') && $lote->recepcion()->exists() && $lote->estado->value === 'RECIBIDO')
             <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-900 dark:bg-brand-900/25">
@@ -133,7 +136,7 @@
                 <div>
 
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Peso recibido
+                        Peso declarado
                     </p>
 
                     <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -143,11 +146,12 @@
 
                 </div>
 
+                <div><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Peso recibido físicamente</p><p class="mt-1 text-sm dark:text-slate-200">{{ $lote->recepcion ? number_format((float) $lote->recepcion->peso_recibido_kg, 2).' kg' : 'Pendiente de confirmación de ingreso' }}</p></div>
                 {{-- Fecha de recepción --}}
                 <div>
 
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Fecha de recepción
+                        {{ $lote->recepcion ? 'Fecha de recepción física' : 'Fecha prevista de recepción' }}
                     </p>
 
                     <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">

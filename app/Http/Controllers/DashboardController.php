@@ -60,9 +60,10 @@ class DashboardController extends Controller
             if ($user->hasPermission('lotes.ver')) {
                 $pipeline = (clone $lots)->select('estado')->selectRaw('COUNT(*) as total')->groupBy('estado')->get()->map(fn ($row) => ['label' => $row->estado->label(), 'value' => (int) $row->total])->all();
                 $operationalSummary = [
-                    'Pendientes de recepción' => (clone $lots)->where('estado', 'RECIBIDO')->whereDoesntHave('recepcion')->count(),
+                    'Pendientes de recepción' => (clone $lots)->whereIn('estado', ['PENDIENTE_RECEPCION', 'RECIBIDO'])->whereDoesntHave('recepcion')->count(),
                     'Recibidos hoy' => \App\Models\Recepcion::where('id_empresa', $user->id_empresa)->whereDate('recibido_en', today())->count(),
                     'Lotes con más de 48 h sin cierre' => (clone $lots)->whereNotIn('estado', ['CLASIFICADO', 'RECHAZADO'])->where('fecha_recepcion', '<', now()->subHours(48))->count(),
+                    'Lotes retenidos por incidencias' => (clone $lots)->where('estado', 'RETENIDO')->count(),
                     'Lotes aprobados últimos 30 días' => (clone $lots)->where('estado', 'CLASIFICADO')->where('updated_at', '>=', now()->subDays(30))->count(),
                 ];
             }
@@ -89,14 +90,14 @@ class DashboardController extends Controller
             } else {
                 $add('lotes.ver', 'Lotes registrados', fn () => (clone $lots)->count(), 'lotes.index');
                 $add('lotes.ver', 'Lotes recibidos', fn () => (clone $lots)->where('estado', 'RECIBIDO')->count(), 'lotes.index');
-                $add('lotes.ver', 'Lotes clasificados', fn () => (clone $lots)->where('estado', 'CLASIFICADO')->count(), 'lotes.index');
+                $add('lotes.ver', 'Lotes aprobados', fn () => (clone $lots)->where('estado', 'CLASIFICADO')->count(), 'lotes.index');
                 $add('productores.ver', 'Productores', fn () => Productor::query()->where('id_empresa', $user->id_empresa)->count(), 'productores.index');
                 $add('usuarios.ver', 'Usuarios activos', fn () => User::query()->where('id_empresa', $user->id_empresa)->where('estado', true)->count(), 'usuarios.index');
                 $add('calidad.ver', 'Dictámenes pendientes', fn () => (clone $inspections)->where('estado', 'VALIDADA')->whereDoesntHave('dictamen')->count(), 'calidad.index');
             }
             if ($user->rol?->codigo === 'RECEPCION' && $user->hasPermission('recepciones.ver')) {
                 $metrics = [
-                    ['label' => 'Ingresos por confirmar', 'value' => (clone $lots)->where('estado', 'RECIBIDO')->whereDoesntHave('recepcion')->count(), 'route' => 'recepciones.index'],
+                    ['label' => 'Ingresos por confirmar', 'value' => (clone $lots)->whereIn('estado', ['PENDIENTE_RECEPCION', 'RECIBIDO'])->whereDoesntHave('recepcion')->count(), 'route' => 'recepciones.index'],
                     ['label' => 'Recepciones de hoy', 'value' => \App\Models\Recepcion::where('id_empresa', $user->id_empresa)->whereDate('recibido_en', today())->count(), 'route' => 'recepciones.index'],
                     ['label' => 'Disponibles para muestreo', 'value' => (clone $lots)->where('estado', 'RECIBIDO')->whereHas('recepcion')->count(), 'route' => 'lotes.index'],
                 ];
@@ -104,7 +105,8 @@ class DashboardController extends Controller
             if ($user->rol?->codigo === 'PRODUCCION' && $user->hasPermission('lotes.ver')) {
                 $metrics = [
                     ['label' => 'Lotes disponibles para producción', 'value' => (clone $lots)->where('estado', 'CLASIFICADO')->count(), 'route' => 'lotes.index'],
-                    ['label' => 'Kilogramos aprobados', 'value' => (int) round((clone $lots)->where('estado', 'CLASIFICADO')->sum('peso_kg')), 'route' => $user->hasPermission('reportes.operativos') ? 'reportes.operativos' : 'lotes.index'],
+                    ['label' => 'Kilogramos aprobados', 'value' => (int) round(\App\Models\Recepcion::where('id_empresa', $user->id_empresa)->whereHas('lote', fn ($q) => $q->where('estado', 'CLASIFICADO'))->sum('peso_recibido_kg')), 'route' => $user->hasPermission('reportes.operativos') ? 'reportes.operativos' : 'lotes.index'],
+                    ['label' => 'Lotes retenidos por incidencias', 'value' => (clone $lots)->where('estado', 'RETENIDO')->count(), 'route' => 'incidencias.index'],
                     ['label' => 'Lotes rechazados', 'value' => (clone $lots)->where('estado', 'RECHAZADO')->count(), 'route' => 'lotes.index'],
                 ];
                 $lots->where('estado', 'CLASIFICADO');
@@ -113,6 +115,7 @@ class DashboardController extends Controller
             if ($user->hasPermission('inspecciones.ver')) $recentInspections = $inspections->with('muestreo.lote')->latest('id_inspeccion')->limit(5)->get();
             foreach ([
                 ['empresa.ver', 'Mi empresa', 'empresa.edit'],
+                ['lotes.ver', 'Seguimiento de incidencias', 'incidencias.index'],
                 ['productores.crear', 'Registrar productor', 'productores.create'],
                 ['recepciones.crear', 'Confirmar ingresos', 'recepciones.index'],
                 ['lotes.crear', 'Registrar lote', 'lotes.create'],

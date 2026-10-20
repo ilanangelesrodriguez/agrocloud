@@ -4,6 +4,26 @@ namespace App\Http\Requests\Company;
 
 trait NormalizesCompanyInput
 {
+    protected function companyEmailRules(): array
+    {
+        return [
+            'nullable',
+            'email',
+            'regex:/^[^@\s]+@(?:[^@\s.]+\.)+[^@\s.]+$/u',
+            'max:255',
+        ];
+    }
+
+    protected function companyWebsiteRules(): array
+    {
+        return [
+            'nullable',
+            'url:http,https',
+            'regex:/^https?:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}(?::\d{1,5})?(?:[\/?#][^\s]*)?$/i',
+            'max:255',
+        ];
+    }
+
     protected function prepareForValidation(): void
     {
         $normalized = [];

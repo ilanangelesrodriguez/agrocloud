@@ -66,6 +66,8 @@ export function confirmForm(form, submitter) {
     if (!dialog || confirmation) return;
     confirmation = { form, submitter, focus: document.activeElement };
     dialog.querySelector('[data-confirm-description]').textContent = form.dataset.confirm;
+    dialog.querySelector('#confirm-title').textContent = form.dataset.confirmTitle || 'Confirmar eliminación';
+    dialog.querySelector('[data-confirm-accept]').textContent = form.dataset.confirmLabel || 'Eliminar';
     dialog.showModal();
 }
 

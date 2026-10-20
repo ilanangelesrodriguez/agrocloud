@@ -22,6 +22,7 @@
     let uploadBusy = false;
 
     function notify(message, type = 'success') {
+        if (type !== 'info') document.dispatchEvent(new CustomEvent('agrocloud:toast', { detail: { message, type } }));
         notification.textContent = message;
         notification.className = `rounded-xl border px-4 py-3 text-sm ${type === 'success'
             ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200'
@@ -157,7 +158,7 @@
         if (!(form instanceof HTMLFormElement)) return;
         if (form.matches('[data-upload-form]')) {
             event.preventDefault();
-            if (uploadBusy) return;
+            if (uploadBusy || root.dataset.analysisBusy === '1') return;
             const file = form.querySelector('[data-file-input]')?.files?.[0];
             if (!file) return;
             uploadBusy = true;
@@ -165,6 +166,7 @@
             buttons.forEach(button => { button.disabled = true; });
             const progress = form.querySelector('[data-upload-progress]');
             if (progress) { progress.textContent = 'Preparando fotografía…'; progress.classList.remove('hidden'); }
+            let automaticAnalysis = null;
             try {
                 const optimized = await optimizeImage(file);
                 if (optimized.size > MAX_SERVER_BYTES) throw new Error('La imagen supera el límite de 3 MiB.');
@@ -174,6 +176,8 @@
                 notify('Guardando evidencia; no cierres esta pestaña.', 'info');
                 const result = await sendForm(form, payload);
                 replaceEvidence(result, true);
+                automaticAnalysis = [...list.querySelectorAll('[data-evidencia-id]')]
+                    .find(card => card.dataset.evidenciaId === String(result.evidencia_id))?.querySelector('[data-ia-form]');
                 form.reset();
                 clearPreview(form);
                 notify(result.message || 'Fotografía guardada.');
@@ -185,6 +189,7 @@
                 uploadBusy = false;
                 buttons.forEach(button => { button.disabled = false; });
             }
+            if (automaticAnalysis?.isConnected && root.dataset.analysisBusy !== '1') automaticAnalysis.requestSubmit();
             return;
         }
 
@@ -198,6 +203,7 @@
             const analysisButtons = [...root.querySelectorAll('[data-ia-form] button[type="submit"]')];
             const uploadButtons = [...root.querySelectorAll('[data-upload-button]')];
             const fileInputs = [...root.querySelectorAll('[data-file-input]')];
+            const previousDisabled = new Map([...analysisButtons, ...uploadButtons, ...fileInputs].map(control => [control, control.disabled]));
             analysisButtons.forEach(control => { control.disabled = true; });
             uploadButtons.forEach(control => { control.disabled = true; });
             fileInputs.forEach(control => { control.disabled = true; });
@@ -218,9 +224,7 @@
                     button.classList.remove('animate-pulse');
                 }
             } finally {
-                analysisButtons.forEach(control => { control.disabled = false; });
-                uploadButtons.forEach(control => { control.disabled = false; });
-                fileInputs.forEach(control => { control.disabled = false; });
+                previousDisabled.forEach((disabled, control) => { if (control.isConnected) control.disabled = disabled; });
                 root.dataset.analysisBusy = '0';
             }
         }

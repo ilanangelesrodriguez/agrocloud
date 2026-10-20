@@ -6,6 +6,9 @@ use App\Http\Middleware\EnsureCompanyOperator;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active', EnsureCompanyOperator::class])->group(function () {
+    Route::get('/incidencias', [\App\Http\Controllers\IncidenciaController::class, 'index'])->middleware('permission:lotes.ver')->name('incidencias.index');
+    Route::post('/incidencias/lotes/{lote}', [\App\Http\Controllers\IncidenciaController::class, 'store'])->middleware('permission:lotes.ver')->name('incidencias.store');
+    Route::post('/incidencias/{incidencia}/seguimiento', [\App\Http\Controllers\IncidenciaController::class, 'update'])->middleware('permission:lotes.ver')->name('incidencias.update');
     Route::get('/recepciones', [OperacionController::class, 'recepciones'])->middleware('permission:recepciones.ver')->name('recepciones.index');
     Route::post('/recepciones/{lote}', [OperacionController::class, 'recibir'])->middleware('permission:recepciones.crear')->name('recepciones.store');
     Route::get('/trazabilidad/{lote}', [OperacionController::class, 'traza'])->middleware('permission:trazabilidad.ver')->name('trazabilidad.show');

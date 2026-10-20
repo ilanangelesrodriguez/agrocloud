@@ -202,7 +202,7 @@
 
                     </div>
 
-                    {{-- Fecha de recepción --}}
+                    {{-- Fecha prevista de recepción --}}
                     <div>
 
                         <label
@@ -258,7 +258,7 @@
 
                                 <option
                                     value="{{ $estadoValue }}"
-                                    @selected(old('estado', 'RECIBIDO') === $estadoValue)
+                                    @selected(old('estado', 'PENDIENTE_RECEPCION') === $estadoValue)
                                 >
                                     {{ $estadoValue }}
                                 </option>

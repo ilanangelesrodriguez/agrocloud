@@ -9,6 +9,7 @@
     const notification = root.querySelector('[data-validation-message]');
 
     function show(message, error = false) {
+        document.dispatchEvent(new CustomEvent('agrocloud:toast', { detail: { message, type: error ? 'error' : 'success' } }));
         notification.className = `rounded-xl border px-4 py-3 text-sm ${error
             ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300'
             : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'}`;
@@ -51,11 +52,14 @@
                 entry.className = 'rounded-lg bg-slate-50 p-3 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200';
                 const strong = document.createElement('strong');
                 strong.textContent = data.hallazgo.clase;
-                entry.append(strong, document.createTextNode(` — ${data.hallazgo.observaciones}`));
+                entry.append(strong, document.createTextNode(` — ${data.hallazgo.observaciones} · ${String(data.hallazgo.naturaleza || '').replaceAll('_', ' ')} · Evidencia #${data.hallazgo.evidencia_id}`));
                 list.append(entry);
                 root.querySelector('[data-hallazgos-empty]')?.classList.add('hidden');
                 form.reset();
             }
+            const evidenceId = data.evidencia_id || data.hallazgo?.evidencia_id;
+            const review = [...root.querySelectorAll('[data-image-review]')].find(item => item.dataset.imageReview === String(evidenceId));
+            review?.querySelector('[data-review-changed]')?.classList.remove('hidden');
             show(data.message || 'Información guardada.');
         } catch (error) {
             show(error.message || 'No se pudo guardar.', true);
