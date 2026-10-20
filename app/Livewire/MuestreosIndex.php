@@ -62,7 +62,7 @@ class MuestreosIndex extends Component
             ->paginate(in_array($this->porPagina, [15,30,50], true) ? $this->porPagina : 15);
 
         $estados = ['REGISTRADO' => 'Muestra registrada', 'EN_INSPECCION' => 'En inspección', 'PENDIENTE_DICTAMEN' => 'Pendiente de dictamen', 'COMPLETADO' => 'Completado'];
-        $productos = \App\Models\Lote::forCurrentCompany()->distinct()->orderBy('producto')->pluck('producto');
+        $productos = app(\App\Services\MaestroCatalog::class)->options('producto', auth()->user()->id_empresa)->pluck('nombre');
         return view('livewire.muestreos-index', compact('muestreos', 'estados', 'productos'))
             ->layout('components.layouts.app', ['title' => 'Muestreos']);
     }

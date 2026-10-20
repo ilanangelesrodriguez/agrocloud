@@ -81,8 +81,8 @@ class ProductoresIndex extends Component
             $this->setPage($productores->lastPage());
             $productores = $query->paginate($perPage);
         }
-        $departamentos = Productor::forCurrentCompany()->whereNotNull('departamento')->where('departamento', '!=', '')->distinct()->orderBy('departamento')->pluck('departamento');
-        $provincias = Productor::forCurrentCompany()->where('departamento', $this->departamento)->whereNotNull('provincia')->where('provincia', '!=', '')->distinct()->orderBy('provincia')->pluck('provincia');
+        $departamentos = app(\App\Services\UbigeoService::class)->departamentos()->pluck('departamento');
+        $provincias = app(\App\Services\UbigeoService::class)->provincias($this->departamento)->pluck('provincia');
 
         return view('productores.index', compact('productores', 'departamentos', 'provincias'))
             ->layout('components.layouts.app', ['title' => 'Productores']);

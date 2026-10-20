@@ -57,7 +57,7 @@ class UsuariosIndex extends Component
         $base = $this->baseQuery();
         $resumen = ['total' => (clone $base)->count(), 'activos' => (clone $base)->where('estado', true)->count(), 'inactivos' => (clone $base)->where('estado', false)->count()];
         $roles = Rol::query()->where('codigo', '!=', 'SUPERADMIN')->with(['permisos' => fn ($q) => $q->where('permiso.estado', true)])->orderBy('nombre')->get();
-        $cargos = (clone $base)->whereNotNull('cargo')->where('cargo', '!=', '')->distinct()->orderBy('cargo')->pluck('cargo');
+        $cargos = app(\App\Services\MaestroCatalog::class)->options('cargo', auth()->user()->id_empresa)->pluck('nombre');
         $term = mb_substr(trim($this->buscar), 0, 150);
         $query = (clone $base)->with('rol')
             ->when($term !== '', fn ($q) => $q->where(fn ($inner) => $inner->whereLike('nombre', '%'.$term.'%')->orWhereLike('apellido', '%'.$term.'%')->orWhereLike('correo', '%'.$term.'%')->orWhereLike('cargo', '%'.$term.'%')))

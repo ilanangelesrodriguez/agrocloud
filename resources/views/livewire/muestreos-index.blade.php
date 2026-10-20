@@ -27,13 +27,8 @@
                     <x-ui.icon name="search" class="h-4 w-4" />Buscar
                 </span>
             </x-ui.button>
-            @if($filtro !== '')
-                <button type="button" wire:click="limpiarBusqueda" class="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">
-                    Limpiar
-                </button>
-            @endif
         </form>
-        <x-ui.operational-filters :estados="$estados" :productos="$productos" :active="$estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" />
+        <x-ui.operational-filters :estados="$estados" :productos="$productos" :can-clear="$filtro !== '' || trim($buscar) !== '' || $estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" :active="$estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" />
     </x-ui.card>
 
     <x-ui.card title="Muestreos registrados" description="Muestras vinculadas con lotes de tu empresa.">

@@ -66,7 +66,7 @@ class RecepcionesIndex extends Component
             $this->setPage($registros->lastPage());
             $registros = $query->paginate($perPage);
         }
-        $productos = Lote::forCurrentCompany()->select('producto')->distinct()->orderBy('producto')->pluck('producto');
+        $productos = app(\App\Services\MaestroCatalog::class)->options('producto', auth()->user()->id_empresa)->pluck('nombre');
         return view('operaciones.recepciones', compact('registros', 'totales', 'productos'))->layout('components.layouts.app', ['title' => 'Recepción de lotes']);
     }
 }

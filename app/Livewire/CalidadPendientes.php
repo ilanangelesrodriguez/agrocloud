@@ -71,7 +71,7 @@ class CalidadPendientes extends Component
         $eventos = DB::table('eventos_trazabilidad')->where('id_empresa', $empresa)->where('entidad', 'EvidenciaInspeccion')->where('evento', 'REVISION_IMAGEN')->whereIn('registro', $ids)->orderByDesc('id')->get()->unique('registro');
         $revisadas = [];
         foreach ($inspecciones as $inspection) $revisadas[$inspection->id_inspeccion] = count(app(RevisionEvidencias::class)->revisiones($inspection, $eventos->whereIn('registro', $inspection->evidencias->modelKeys())));
-        $supervisores = User::where('id_empresa', $empresa)->whereIn('id_usuario', DictamenCalidad::where('id_empresa', $empresa)->select('id_supervisor'))->orderBy('nombre')->get();
+        $supervisores = User::where('id_empresa', $empresa)->where(fn ($q) => $q->whereIn('id_usuario', DictamenCalidad::where('id_empresa', $empresa)->select('id_supervisor'))->orWhere(fn ($active) => $active->where('estado', true)->whereHas('rol', fn ($r) => $r->where('codigo', 'SUPERVISOR')->where('estado', true))))->orderBy('nombre')->get();
         return view('livewire.calidad-pendientes', compact('inspecciones', 'totales', 'revisadas', 'supervisores'));
     }
 }

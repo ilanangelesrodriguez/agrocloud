@@ -1,0 +1,1 @@
+<x-layouts.app title="Solicitudes de acceso"><livewire:solicitudes-acceso /></x-layouts.app>

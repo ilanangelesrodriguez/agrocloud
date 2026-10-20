@@ -1,0 +1,1 @@
+<!doctype html><html lang="es"><body style="font-family:Arial,sans-serif;line-height:1.6"><h1>Resultado de tu solicitud</h1><p>Hola, {{ $s->nombre }}. La solicitud de {{ $s->nombre_comercial }} no fue aprobada.</p><p>{{ $s->motivo }}</p><p>No se creó una cuenta de acceso. AgroCloud AI.</p></body></html>

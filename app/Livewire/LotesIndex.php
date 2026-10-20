@@ -73,7 +73,7 @@ class LotesIndex extends Component
             ->paginate(in_array($this->porPagina, [15,30,50], true) ? $this->porPagina : 15);
 
         $estados = collect(\App\Enums\LoteEstado::cases())->mapWithKeys(fn ($state) => [$state->value => $state->label()])->all();
-        $productos = \App\Models\Lote::forCurrentCompany()->distinct()->orderBy('producto')->pluck('producto');
+        $productos = app(\App\Services\MaestroCatalog::class)->options('producto', auth()->user()->id_empresa)->pluck('nombre');
         return view('livewire.lotes-index', compact('lotes', 'estados', 'productos'))
             ->layout('components.layouts.app', ['title' => 'Lotes']);
     }

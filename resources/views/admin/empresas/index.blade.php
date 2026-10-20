@@ -1,1 +1,1 @@
-<x-layouts.app title="Empresas"><livewire:admin-empresas-index /></x-layouts.app>
+<x-layouts.app title="Empresas"><div class="space-y-5"><a wire:navigate href="{{ route('admin.solicitudes.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-brand-700 dark:border-slate-700 dark:text-brand-300"><x-ui.icon name="building-plus" class="h-4 w-4" />Solicitudes de acceso empresarial</a><livewire:admin-empresas-index /></div></x-layouts.app>

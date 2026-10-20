@@ -23,12 +23,9 @@
             </div>
             <div class="flex gap-2">
                 <x-ui.button type="submit" wire:loading.attr="disabled"><x-ui.icon name="search" class="mr-2 h-4 w-4" />Buscar</x-ui.button>
-                @if ($filtro !== '')
-                    <button type="button" wire:click="limpiarBusqueda" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200">Limpiar</button>
-                @endif
             </div>
         </form>
-        <x-ui.operational-filters :estados="$estados" :productos="$productos" :active="$estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" />
+        <x-ui.operational-filters :estados="$estados" :productos="$productos" :can-clear="$filtro !== '' || trim($buscar) !== '' || $estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" :active="$estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" />
     </x-ui.card>
 
     <x-ui.card>

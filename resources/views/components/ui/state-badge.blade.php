@@ -2,10 +2,10 @@
 @php
     $code = strtoupper($state instanceof \BackedEnum ? $state->value : (string) $state);
     $tone = match ($code) {
-        'ACTIVO', 'ACTIVA', 'VALIDADO', 'VALIDADA', 'CLASIFICADO', 'APROBADO', 'COMPLETADO', 'CONFIRMADA', 'RESUELTA', 'CERRADA' => 'success',
-        'EN_MUESTREO', 'EN_INSPECCION', 'EN_CAPTURA', 'PROCESANDO', 'EN_ATENCION' => 'progress',
+        'ACTIVO', 'ACTIVA', 'VALIDADO', 'VALIDADA', 'CLASIFICADO', 'APROBADO', 'COMPLETADO', 'CONFIRMADA', 'RESUELTA', 'CERRADA', 'APROBADA' => 'success',
+        'EN_MUESTREO', 'EN_INSPECCION', 'EN_CAPTURA', 'PROCESANDO', 'EN_ATENCION', 'EN_REVISION' => 'progress',
         'PENDIENTE', 'PENDIENTE_RECEPCION', 'PENDIENTE_VALIDACION', 'PENDIENTE_DICTAMEN', 'OBSERVADO', 'SIN_VALIDAR', 'ABIERTA', 'MEDIA', 'RETENIDO' => 'warning',
-        'RECHAZADO', 'ERROR', 'DESCARTADA', 'ALTA', 'CRITICA' => 'danger',
+        'RECHAZADO', 'ERROR', 'DESCARTADA', 'ALTA', 'CRITICA', 'RECHAZADA' => 'danger',
         default => 'neutral',
     };
     $colors = match ($tone) {
@@ -17,7 +17,7 @@
     };
     $text = $label ?? match ($code) {
         'RETENIDO' => 'Retenido por incidencia',
-        'CRITICA' => 'Crítica', 'EN_ATENCION' => 'En atención',
+        'EN_REVISION' => 'En revisión', 'CRITICA' => 'Crítica', 'EN_ATENCION' => 'En atención',
         'PENDIENTE_RECEPCION' => 'Pendiente de recepción', 'CLASIFICADO' => 'Aprobado', 'EN_MUESTREO' => 'En muestreo', 'EN_INSPECCION' => 'En inspección',
         'EN_CAPTURA' => 'En captura', 'PENDIENTE_VALIDACION' => 'Pendiente de dictamen',
         'PENDIENTE_DICTAMEN' => 'Pendiente de dictamen',
