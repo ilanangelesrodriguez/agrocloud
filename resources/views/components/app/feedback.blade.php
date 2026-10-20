@@ -5,8 +5,12 @@
     @endif
 @endforeach
 
-@if($errors->any())
-    <template data-flash-toast="error">{{ implode("\n", array_unique($errors->all())) }}</template>
+@php
+    $validationErrors = $errors ?? new \Illuminate\Support\ViewErrorBag();
+@endphp
+
+@if($validationErrors->any())
+    <template data-flash-toast="error">{{ implode("\n", array_unique($validationErrors->all())) }}</template>
 @endif
 
 <dialog data-confirm-dialog aria-labelledby="confirm-title" aria-describedby="confirm-description" class="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl backdrop:bg-slate-950/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">

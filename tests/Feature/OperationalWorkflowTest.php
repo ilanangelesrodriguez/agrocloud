@@ -44,8 +44,15 @@ class OperationalWorkflowTest extends TestCase
         $receiver = $this->user('RECEPCION', $company);
         $inspector = $this->user('INSPECTOR', $company);
         $lot = $this->lot($company, 'LOTE-001');
-        $sample = ['id_lote' => $lot->id_lote, 'tamano_muestra' => 2, 'metodo' => 'Aleatorio simple'];
-        $this->actingAs($inspector)->post('/muestreos', $sample)->assertStatus(422);
+        $sample = [
+            'id_lote' => $lot->id_lote,
+            'tamano_muestra' => 2,
+            'metodo' => 'Aleatorio simple',
+            'protocolo' => 'Protocolo de prueba v1',
+            'criterio_muestra' => 'Muestra representativa del lote.',
+            'seleccion_frutos' => 'Selección aleatoria en toda la cobertura del lote.',
+        ];
+        $this->actingAs($inspector)->postJson('/muestreos', $sample)->assertStatus(422);
         $receipt = ['documento' => 'GUIA-001', 'peso_recibido_kg' => 95, 'recibido_en' => now()->subMinute()->format('Y-m-d H:i:s')];
         $this->actingAs($receiver)->post('/recepciones/'.$lot->id_lote, $receipt)->assertRedirect('/recepciones');
         $this->post('/recepciones/'.$lot->id_lote, $receipt)->assertStatus(422);
@@ -54,7 +61,7 @@ class OperationalWorkflowTest extends TestCase
         $m = Muestreo::firstOrFail();
         $this->assertDatabaseCount('frutos_muestra', 2);
         $this->assertSame('M'.$m->id_muestreo.'-F00001', $m->frutos()->first()->codigo);
-        $this->post('/muestreos', $sample)->assertStatus(422);
+        $this->postJson('/muestreos', $sample)->assertStatus(422);
         $this->post('/muestreos/'.$m->id_muestreo.'/inspecciones')->assertRedirect();
         $i = Inspeccion::firstOrFail();
         EvidenciaInspeccion::create(['id_empresa' => $company->id_empresa, 'id_inspeccion' => $i->id_inspeccion, 'id_fruto' => $m->frutos()->first()->id, 'imagen_url' => 'https://example.test/photo.jpg', 'imagen_public_id' => 'photo', 'estado_ia' => 'COMPLETADO', 'resultado_ia' => ['detections' => []]]);

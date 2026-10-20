@@ -30,7 +30,7 @@ class StateBadgeTest extends TestCase
     {
         $html = Blade::render('<x-ui.state-badge :state="$state" />', ['state' => LoteEstado::CLASIFICADO]);
         $this->assertStringContainsString('bg-emerald-50', $html);
-        $this->assertStringContainsString('Clasificado', $html);
+        $this->assertStringContainsString('Aprobado', $html);
         $html = Blade::render('<x-ui.status-badge :active="false" inactive-label="Empresa inactiva" />');
         $this->assertStringContainsString('bg-slate-100', $html);
         $this->assertStringContainsString('Empresa inactiva', $html);
