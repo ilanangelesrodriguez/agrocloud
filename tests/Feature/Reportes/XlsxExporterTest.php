@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Reportes;
 
 use App\Services\Exports\XlsxExporter;
 use DOMDocument;

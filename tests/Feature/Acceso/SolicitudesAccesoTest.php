@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Acceso;
 
 use App\Livewire\SolicitudesAcceso;
 use App\Models\{Rol, User, SolicitudAcceso};

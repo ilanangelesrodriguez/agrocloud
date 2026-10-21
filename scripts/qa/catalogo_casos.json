@@ -1,0 +1,1189 @@
+{
+  "version": 1,
+  "nota": "Los requerimientos QA-* son referencias internas de validación; no sustituyen requerimientos funcionales aprobados. Casos compuestos conservados sin dividir ni inflar resultados.",
+  "casos": [
+    {
+      "id": "CP-ACC-001",
+      "requerimiento": "QA-ACC",
+      "titulo": "Renderizar correos con datos escapados y enlace de activación",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\SolicitudesAccesoTest::test_email_templates_render_escaped_company_data_and_activation_link",
+      "archivo": "tests/Feature/Acceso/SolicitudesAccesoTest.php",
+      "objetivo": "Renderizar correos con datos escapados y enlace de activación",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-002",
+      "requerimiento": "QA-ACC",
+      "titulo": "Actualizar decisiones sin redirección y conservar validaciones",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\SolicitudesAccesoTest::test_review_updates_the_record_without_a_redirect_and_preserves_validation",
+      "archivo": "tests/Feature/Acceso/SolicitudesAccesoTest.php",
+      "objetivo": "Actualizar decisiones sin redirección y conservar validaciones",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ADM-001",
+      "requerimiento": "QA-ADM",
+      "titulo": "Filtrar, paginar y exportar empresas sin modificar la URL",
+      "modulo": "Administracion",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Administracion\\SuperadminListsTest::test_company_filters_pagination_and_exports_work_without_query_strings",
+      "archivo": "tests/Feature/Administracion/SuperadminListsTest.php",
+      "objetivo": "Filtrar, paginar y exportar empresas sin modificar la URL",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ADM-002",
+      "requerimiento": "QA-ADM",
+      "titulo": "Restaurar filtros desde enlaces antiguos y limpiar la URL",
+      "modulo": "Administracion",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Administracion\\SuperadminListsTest::test_old_filter_links_redirect_to_clean_urls_and_restore_filters",
+      "archivo": "tests/Feature/Administracion/SuperadminListsTest.php",
+      "objetivo": "Restaurar filtros desde enlaces antiguos y limpiar la URL",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ADM-003",
+      "requerimiento": "QA-ADM",
+      "titulo": "Paginar permisos en español sin modificar la URL",
+      "modulo": "Administracion",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Administracion\\SuperadminListsTest::test_permissions_pagination_is_in_spanish_and_does_not_change_url",
+      "archivo": "tests/Feature/Administracion/SuperadminListsTest.php",
+      "objetivo": "Paginar permisos en español sin modificar la URL",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ADM-004",
+      "requerimiento": "QA-ADM",
+      "titulo": "Filtrar maestros y usuarios con paginación limpia",
+      "modulo": "Administracion",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Administracion\\SuperadminListsTest::test_master_filters_and_company_users_use_clean_pagination",
+      "archivo": "tests/Feature/Administracion/SuperadminListsTest.php",
+      "objetivo": "Filtrar maestros y usuarios con paginación limpia",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ADM-005",
+      "requerimiento": "QA-ADM",
+      "titulo": "Mostrar Limpiar filtros solamente cuando existen filtros de permisos",
+      "modulo": "Administracion",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Administracion\\SuperadminListsTest::test_permission_filters_and_conditional_clear_button",
+      "archivo": "tests/Feature/Administracion/SuperadminListsTest.php",
+      "objetivo": "Mostrar Limpiar filtros solamente cuando existen filtros de permisos",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-CFG-001",
+      "requerimiento": "QA-CFG",
+      "titulo": "Utilizar HTTPS público y restringir orígenes de Reverb",
+      "modulo": "Configuracion",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Configuracion\\ReverbConfigurationTest::test_production_uses_public_https_endpoint_and_restricts_origins",
+      "archivo": "tests/Feature/Configuracion/ReverbConfigurationTest.php",
+      "objetivo": "Utilizar HTTPS público y restringir orígenes de Reverb",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-CFG-002",
+      "requerimiento": "QA-CFG",
+      "titulo": "Exponer configuración pública sin revelar secretos de difusión",
+      "modulo": "Configuracion",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Configuracion\\ReverbConfigurationTest::test_layout_exposes_public_configuration_without_broadcast_secret",
+      "archivo": "tests/Feature/Configuracion/ReverbConfigurationTest.php",
+      "objetivo": "Exponer configuración pública sin revelar secretos de difusión",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-CFG-003",
+      "requerimiento": "QA-CFG",
+      "titulo": "Deshabilitar Echo cuando la difusión está desactivada",
+      "modulo": "Configuracion",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Configuracion\\ReverbConfigurationTest::test_layout_does_not_enable_echo_when_broadcasting_is_disabled",
+      "archivo": "tests/Feature/Configuracion/ReverbConfigurationTest.php",
+      "objetivo": "Deshabilitar Echo cuando la difusión está desactivada",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-001",
+      "requerimiento": "QA-EMP",
+      "titulo": "Normalizar dominio y teléfono sin alterar la empresa del usuario",
+      "modulo": "Empresas",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Empresas\\CompanyValidationTest::test_company_accepts_bare_domain_and_formatted_phone_and_preserves_tenant_state",
+      "archivo": "tests/Feature/Empresas/CompanyValidationTest.php",
+      "objetivo": "Normalizar dominio y teléfono sin alterar la empresa del usuario",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-002",
+      "requerimiento": "QA-EMP",
+      "titulo": "Aplicar la misma normalización al crear empresas",
+      "modulo": "Empresas",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Empresas\\CompanyValidationTest::test_admin_creation_uses_the_same_normalization",
+      "archivo": "tests/Feature/Empresas/CompanyValidationTest.php",
+      "objetivo": "Aplicar la misma normalización al crear empresas",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-003",
+      "requerimiento": "QA-EMP",
+      "titulo": "Rechazar URL insegura y teléfono inválido con mensajes en español",
+      "modulo": "Empresas",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Empresas\\CompanyValidationTest::test_validation_errors_are_in_spanish_and_unsafe_urls_and_long_phones_are_rejected",
+      "archivo": "tests/Feature/Empresas/CompanyValidationTest.php",
+      "objetivo": "Rechazar URL insegura y teléfono inválido con mensajes en español",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-004",
+      "requerimiento": "QA-EMP",
+      "titulo": "Exigir dominios válidos en los datos de contacto",
+      "modulo": "Empresas",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Empresas\\CompanyValidationTest::test_company_contact_fields_require_real_domains",
+      "archivo": "tests/Feature/Empresas/CompanyValidationTest.php",
+      "objetivo": "Exigir dominios válidos en los datos de contacto",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-005",
+      "requerimiento": "QA-EMP",
+      "titulo": "Mostrar solamente el logo de la empresa actual",
+      "modulo": "Empresas",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Empresas\\CompanyValidationTest::test_sidebar_uses_only_current_company_logo_and_has_fallback",
+      "archivo": "tests/Feature/Empresas/CompanyValidationTest.php",
+      "objetivo": "Mostrar solamente el logo de la empresa actual",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-006",
+      "requerimiento": "QA-EMP",
+      "titulo": "Renderizar el dashboard según rol y permisos",
+      "modulo": "Empresas",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Empresas\\LocationAndDashboardTest::test_dashboard_renders_for_every_role_and_honors_permissions",
+      "archivo": "tests/Feature/Empresas/LocationAndDashboardTest.php",
+      "objetivo": "Renderizar el dashboard según rol y permisos",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-007",
+      "requerimiento": "QA-EMP",
+      "titulo": "Contar solamente datos de la empresa actual",
+      "modulo": "Empresas",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Empresas\\LocationAndDashboardTest::test_dashboard_counts_only_the_current_company",
+      "archivo": "tests/Feature/Empresas/LocationAndDashboardTest.php",
+      "objetivo": "Contar solamente datos de la empresa actual",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-008",
+      "requerimiento": "QA-EMP",
+      "titulo": "Guardar ubicación del productor con ubigeo calculado",
+      "modulo": "Empresas",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Empresas\\LocationAndDashboardTest::test_producer_location_is_saved_with_calculated_ubigeo",
+      "archivo": "tests/Feature/Empresas/LocationAndDashboardTest.php",
+      "objetivo": "Guardar ubicación del productor con ubigeo calculado",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-009",
+      "requerimiento": "QA-EMP",
+      "titulo": "Rechazar ubicación geográfica inconsistente",
+      "modulo": "Empresas",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Empresas\\LocationAndDashboardTest::test_mismatched_location_is_rejected",
+      "archivo": "tests/Feature/Empresas/LocationAndDashboardTest.php",
+      "objetivo": "Rechazar ubicación geográfica inconsistente",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-010",
+      "requerimiento": "QA-EMP",
+      "titulo": "Mostrar ubicación guardada mediante tres selectores",
+      "modulo": "Empresas",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Empresas\\LocationAndDashboardTest::test_company_renders_three_selects_with_saved_location",
+      "archivo": "tests/Feature/Empresas/LocationAndDashboardTest.php",
+      "objetivo": "Mostrar ubicación guardada mediante tres selectores",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-EMP-011",
+      "requerimiento": "QA-EMP",
+      "titulo": "Usar campos geográficos en formularios de productores",
+      "modulo": "Empresas",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Empresas\\LocationAndDashboardTest::test_producer_forms_use_geographic_fields_without_legacy_location_input",
+      "archivo": "tests/Feature/Empresas/LocationAndDashboardTest.php",
+      "objetivo": "Usar campos geográficos en formularios de productores",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-UI-001",
+      "requerimiento": "QA-UI",
+      "titulo": "Mostrar estados operativos con colores y etiquetas consistentes",
+      "modulo": "Interfaz",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Interfaz\\StateBadgeTest::test_workflow_states_use_consistent_colors_and_readable_labels",
+      "archivo": "tests/Feature/Interfaz/StateBadgeTest.php",
+      "objetivo": "Mostrar estados operativos con colores y etiquetas consistentes",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-UI-002",
+      "requerimiento": "QA-UI",
+      "titulo": "Aplicar el estándar visual a enums y estados activos",
+      "modulo": "Interfaz",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Interfaz\\StateBadgeTest::test_enum_states_and_existing_active_badges_share_the_standard",
+      "archivo": "tests/Feature/Interfaz/StateBadgeTest.php",
+      "objetivo": "Aplicar el estándar visual a enums y estados activos",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-001",
+      "requerimiento": "QA-MAE",
+      "titulo": "Restringir la administración de catálogos globales a SUPERADMIN",
+      "modulo": "Maestros",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_global_catalogs_can_be_managed_only_by_superadmin",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Restringir la administración de catálogos globales a SUPERADMIN",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-002",
+      "requerimiento": "QA-MAE",
+      "titulo": "Aislar catálogos y bloquear modificaciones entre empresas",
+      "modulo": "Maestros",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_company_catalogs_do_not_leak_or_allow_cross_company_updates",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Aislar catálogos y bloquear modificaciones entre empresas",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-003",
+      "requerimiento": "QA-MAE",
+      "titulo": "Extender y desactivar opciones compartidas por empresa",
+      "modulo": "Maestros",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_shared_options_can_be_extended_and_disabled_per_company",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Extender y desactivar opciones compartidas por empresa",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-004",
+      "requerimiento": "QA-MAE",
+      "titulo": "Proteger nombres utilizados y preservar historial al desactivar",
+      "modulo": "Maestros",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_used_options_cannot_be_renamed_and_deactivation_keeps_history",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Proteger nombres utilizados y preservar historial al desactivar",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-005",
+      "requerimiento": "QA-MAE",
+      "titulo": "Validar variedad de producto y conversión de peso",
+      "modulo": "Maestros",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_product_variety_relationship_and_weight_conversion_are_validated",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Validar variedad de producto y conversión de peso",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-006",
+      "requerimiento": "QA-MAE",
+      "titulo": "Mantener ubigeo de solo lectura y restringir gestión de catálogos",
+      "modulo": "Maestros",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_ubigeo_is_read_only_and_non_admin_roles_cannot_manage_catalogs",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Mantener ubigeo de solo lectura y restringir gestión de catálogos",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-007",
+      "requerimiento": "QA-MAE",
+      "titulo": "Responder al inicio de sesión con destino JSON y errores de validación",
+      "modulo": "Maestros",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_login_returns_json_destination_and_errors_without_full_page_response",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Responder al inicio de sesión con destino JSON y errores de validación",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-008",
+      "requerimiento": "QA-MAE",
+      "titulo": "Renderizar catálogos y almacenar el peso del lote en kilogramos",
+      "modulo": "Maestros",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_catalog_fields_render_and_lot_weight_is_saved_in_kilograms",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Renderizar catálogos y almacenar el peso del lote en kilogramos",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-009",
+      "requerimiento": "QA-MAE",
+      "titulo": "Crear opciones de catálogo en línea respetando permisos",
+      "modulo": "Maestros",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_inline_master_creation_returns_the_option_and_enforces_permissions",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Crear opciones de catálogo en línea respetando permisos",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-MAE-010",
+      "requerimiento": "QA-MAE",
+      "titulo": "Guardar el tema únicamente para el usuario actual",
+      "modulo": "Maestros",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Maestros\\MaestrosTest::test_theme_is_saved_only_for_the_current_user_and_rendered_from_database",
+      "archivo": "tests/Feature/Maestros/MaestrosTest.php",
+      "objetivo": "Guardar el tema únicamente para el usuario actual",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-NOT-001",
+      "requerimiento": "QA-NOT",
+      "titulo": "Persistir, aislar y marcar como leída una notificación",
+      "modulo": "Notificaciones",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Notificaciones\\OperationalNotificationsTest::test_notificacion_persistida_segregada_y_marcada_como_leida",
+      "archivo": "tests/Feature/Notificaciones/OperationalNotificationsTest.php",
+      "objetivo": "Persistir, aislar y marcar como leída una notificación",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-NOT-002",
+      "requerimiento": "QA-NOT",
+      "titulo": "Impedir redirecciones de notificaciones fuera del sitio",
+      "modulo": "Notificaciones",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Notificaciones\\OperationalNotificationsTest::test_bandeja_no_permita_redireccion_fuera_del_sitio",
+      "archivo": "tests/Feature/Notificaciones/OperationalNotificationsTest.php",
+      "objetivo": "Impedir redirecciones de notificaciones fuera del sitio",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-OPE-001",
+      "requerimiento": "QA-OPE",
+      "titulo": "Completar recepción, muestreo, inspección y dictamen con trazabilidad",
+      "modulo": "Operaciones",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Operaciones\\OperationalWorkflowTest::test_reception_sample_identity_trace_and_missing_fruit_guard",
+      "archivo": "tests/Feature/Operaciones/OperationalWorkflowTest.php",
+      "objetivo": "Completar recepción, muestreo, inspección y dictamen con trazabilidad",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-OPE-002",
+      "requerimiento": "QA-OPE",
+      "titulo": "Aislar lotes y reportes por empresa y verificar permisos por rol",
+      "modulo": "Operaciones",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Operaciones\\OperationalWorkflowTest::test_company_isolation_reports_and_role_gates",
+      "archivo": "tests/Feature/Operaciones/OperationalWorkflowTest.php",
+      "objetivo": "Aislar lotes y reportes por empresa y verificar permisos por rol",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-PUB-001",
+      "requerimiento": "QA-PUB",
+      "titulo": "Mostrar la landing pública con navegación y acceso empresarial",
+      "modulo": "Publico",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Publico\\ExampleTest::test_guest_home_shows_public_landing",
+      "archivo": "tests/Feature/Publico/ExampleTest.php",
+      "objetivo": "Mostrar la landing pública con navegación y acceso empresarial",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-REP-001",
+      "requerimiento": "QA-REP",
+      "titulo": "Exportar empresas en un archivo Excel con XML válido",
+      "modulo": "Reportes",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Reportes\\XlsxExporterTest::test_excel_de_empresas_contiene_archivos_y_xml_validos",
+      "archivo": "tests/Feature/Reportes/XlsxExporterTest.php",
+      "objetivo": "Exportar empresas en un archivo Excel con XML válido",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-REP-002",
+      "requerimiento": "QA-REP",
+      "titulo": "Exportar usuarios vacíos y normalizar el nombre de la hoja",
+      "modulo": "Reportes",
+      "categoria": "Funcional / integración",
+      "prioridad": "Media",
+      "test": "Tests\\Feature\\Reportes\\XlsxExporterTest::test_excel_de_usuarios_vacio_y_nombre_hoja_se_crean_correctamente",
+      "archivo": "tests/Feature/Reportes/XlsxExporterTest.php",
+      "objetivo": "Exportar usuarios vacíos y normalizar el nombre de la hoja",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-SEG-001",
+      "requerimiento": "QA-SEG",
+      "titulo": "Rechazar carga de evidencia JSON sin autenticación",
+      "modulo": "Seguridad",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Seguridad\\InspectorJsonAccessTest::test_guest_cannot_upload_evidence_via_json",
+      "archivo": "tests/Feature/Seguridad/InspectorJsonAccessTest.php",
+      "objetivo": "Rechazar carga de evidencia JSON sin autenticación",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-SEG-002",
+      "requerimiento": "QA-SEG",
+      "titulo": "Rechazar análisis JSON sin autenticación",
+      "modulo": "Seguridad",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Seguridad\\InspectorJsonAccessTest::test_guest_cannot_analyze_evidence_via_json",
+      "archivo": "tests/Feature/Seguridad/InspectorJsonAccessTest.php",
+      "objetivo": "Rechazar análisis JSON sin autenticación",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-SEG-003",
+      "requerimiento": "QA-SEG",
+      "titulo": "Rechazar validación de detecciones sin autenticación",
+      "modulo": "Seguridad",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Seguridad\\InspectorJsonAccessTest::test_guest_cannot_validate_detections_via_json",
+      "archivo": "tests/Feature/Seguridad/InspectorJsonAccessTest.php",
+      "objetivo": "Rechazar validación de detecciones sin autenticación",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-SEG-004",
+      "requerimiento": "QA-SEG",
+      "titulo": "Rechazar hallazgos manuales sin autenticación",
+      "modulo": "Seguridad",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Seguridad\\InspectorJsonAccessTest::test_guest_cannot_register_manual_findings_via_json",
+      "archivo": "tests/Feature/Seguridad/InspectorJsonAccessTest.php",
+      "objetivo": "Rechazar hallazgos manuales sin autenticación",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-SEG-005",
+      "requerimiento": "QA-SEG",
+      "titulo": "Exigir autenticación para muestreos",
+      "modulo": "Seguridad",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Seguridad\\InspectorRoutesTest::test_muestreos_requires_authentication",
+      "archivo": "tests/Feature/Seguridad/InspectorRoutesTest.php",
+      "objetivo": "Exigir autenticación para muestreos",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-SEG-006",
+      "requerimiento": "QA-SEG",
+      "titulo": "Exigir autenticación para inspecciones",
+      "modulo": "Seguridad",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Seguridad\\InspectorRoutesTest::test_inspecciones_requires_authentication",
+      "archivo": "tests/Feature/Seguridad/InspectorRoutesTest.php",
+      "objetivo": "Exigir autenticación para inspecciones",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-SEG-007",
+      "requerimiento": "QA-SEG",
+      "titulo": "Exigir autenticación para calidad",
+      "modulo": "Seguridad",
+      "categoria": "Seguridad",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Seguridad\\InspectorRoutesTest::test_calidad_requires_authentication",
+      "archivo": "tests/Feature/Seguridad/InspectorRoutesTest.php",
+      "objetivo": "Exigir autenticación para calidad",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-INF-001",
+      "requerimiento": "QA-INF",
+      "titulo": "Permitir únicamente la identidad verificada de Neon testing",
+      "modulo": "Support",
+      "categoria": "Unitaria",
+      "prioridad": "Media",
+      "test": "Tests\\Unit\\Support\\DatabaseSafetyTest::test_allows_only_the_verified_testing_identity",
+      "archivo": "tests/Unit/Support/DatabaseSafetyTest.php",
+      "objetivo": "Permitir únicamente la identidad verificada de Neon testing",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Sin conexión a base de datos"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-INF-002",
+      "requerimiento": "QA-INF",
+      "titulo": "Bloquear producción, identidades incorrectas y alteraciones de conexión",
+      "modulo": "Support",
+      "categoria": "Unitaria",
+      "prioridad": "Media",
+      "test": "Tests\\Unit\\Support\\DatabaseSafetyTest::test_rejects_production_wrong_identity_and_connection_overrides",
+      "archivo": "tests/Unit/Support/DatabaseSafetyTest.php",
+      "objetivo": "Bloquear producción, identidades incorrectas y alteraciones de conexión",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Sin conexión a base de datos"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-INF-003",
+      "requerimiento": "QA-INF",
+      "titulo": "Comprobar la ejecución básica de PHPUnit (caso heredado)",
+      "modulo": "Support",
+      "categoria": "Unitaria",
+      "prioridad": "Media",
+      "test": "Tests\\Unit\\Support\\ExampleTest::test_that_true_is_true",
+      "archivo": "tests/Unit/Support/ExampleTest.php",
+      "objetivo": "Comprobar la ejecución básica de PHPUnit (caso heredado)",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Sin conexión a base de datos"
+      ],
+      "pasos": [
+        "Ejecutar la suite y localizar este caso en JUnit",
+        "Verificar las aserciones del método enlazado"
+      ],
+      "resultado_esperado": "Todas las aserciones del método deben cumplirse sin errores.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-FE-001",
+      "requerimiento": "QA-FE",
+      "titulo": "listas dependientes calculan UBIGEO y no duplican eventos al navegar",
+      "modulo": "Frontend",
+      "categoria": "DOM sintético",
+      "prioridad": "Media",
+      "test": "listas dependientes calculan UBIGEO y no duplican eventos al navegar",
+      "archivo": "tests/frontend/empresa-form.test.cjs",
+      "objetivo": "listas dependientes calculan UBIGEO y no duplican eventos al navegar",
+      "precondiciones": [
+        "Node.js 22 y dependencias instaladas"
+      ],
+      "pasos": [
+        "Ejecutar node --test tests/frontend/*.test.cjs"
+      ],
+      "resultado_esperado": "Todas las aserciones deben cumplirse.",
+      "evidencia": "JUnit de Node; no representa una prueba E2E de navegador"
+    },
+    {
+      "id": "CP-FE-002",
+      "requerimiento": "QA-FE",
+      "titulo": "al editar una empresa resuelve UBIGEO y opciones relacionadas",
+      "modulo": "Frontend",
+      "categoria": "DOM sintético",
+      "prioridad": "Media",
+      "test": "al editar una empresa resuelve UBIGEO y opciones relacionadas",
+      "archivo": "tests/frontend/empresa-form.test.cjs",
+      "objetivo": "al editar una empresa resuelve UBIGEO y opciones relacionadas",
+      "precondiciones": [
+        "Node.js 22 y dependencias instaladas"
+      ],
+      "pasos": [
+        "Ejecutar node --test tests/frontend/*.test.cjs"
+      ],
+      "resultado_esperado": "Todas las aserciones deben cumplirse.",
+      "evidencia": "JUnit de Node; no representa una prueba E2E de navegador"
+    },
+    {
+      "id": "CP-FE-003",
+      "requerimiento": "QA-FE",
+      "titulo": "si cambias departamento limpia valores dependientes",
+      "modulo": "Frontend",
+      "categoria": "DOM sintético",
+      "prioridad": "Media",
+      "test": "si cambias departamento limpia valores dependientes",
+      "archivo": "tests/frontend/empresa-form.test.cjs",
+      "objetivo": "si cambias departamento limpia valores dependientes",
+      "precondiciones": [
+        "Node.js 22 y dependencias instaladas"
+      ],
+      "pasos": [
+        "Ejecutar node --test tests/frontend/*.test.cjs"
+      ],
+      "resultado_esperado": "Todas las aserciones deben cumplirse.",
+      "evidencia": "JUnit de Node; no representa una prueba E2E de navegador"
+    },
+    {
+      "id": "CP-FE-004",
+      "requerimiento": "QA-FE",
+      "titulo": "bloquea provincia inválida al guardar después de modificar ubicación",
+      "modulo": "Frontend",
+      "categoria": "DOM sintético",
+      "prioridad": "Media",
+      "test": "bloquea provincia inválida al guardar después de modificar ubicación",
+      "archivo": "tests/frontend/empresa-form.test.cjs",
+      "objetivo": "bloquea provincia inválida al guardar después de modificar ubicación",
+      "precondiciones": [
+        "Node.js 22 y dependencias instaladas"
+      ],
+      "pasos": [
+        "Ejecutar node --test tests/frontend/*.test.cjs"
+      ],
+      "resultado_esperado": "Todas las aserciones deben cumplirse.",
+      "evidencia": "JUnit de Node; no representa una prueba E2E de navegador"
+    },
+    {
+      "id": "CP-FE-005",
+      "requerimiento": "QA-FE",
+      "titulo": "si no carga el catálogo los campos permanecen editables",
+      "modulo": "Frontend",
+      "categoria": "DOM sintético",
+      "prioridad": "Media",
+      "test": "si no carga el catálogo los campos permanecen editables",
+      "archivo": "tests/frontend/empresa-form.test.cjs",
+      "objetivo": "si no carga el catálogo los campos permanecen editables",
+      "precondiciones": [
+        "Node.js 22 y dependencias instaladas"
+      ],
+      "pasos": [
+        "Ejecutar node --test tests/frontend/*.test.cjs"
+      ],
+      "resultado_esperado": "Todas las aserciones deben cumplirse.",
+      "evidencia": "JUnit de Node; no representa una prueba E2E de navegador"
+    },
+    {
+      "id": "CP-FE-006",
+      "requerimiento": "QA-FE",
+      "titulo": "contador de descripción y error para logo demasiado grande",
+      "modulo": "Frontend",
+      "categoria": "DOM sintético",
+      "prioridad": "Media",
+      "test": "contador de descripción y error para logo demasiado grande",
+      "archivo": "tests/frontend/empresa-form.test.cjs",
+      "objetivo": "contador de descripción y error para logo demasiado grande",
+      "precondiciones": [
+        "Node.js 22 y dependencias instaladas"
+      ],
+      "pasos": [
+        "Ejecutar node --test tests/frontend/*.test.cjs"
+      ],
+      "resultado_esperado": "Todas las aserciones deben cumplirse.",
+      "evidencia": "JUnit de Node; no representa una prueba E2E de navegador"
+    },
+    {
+      "id": "CP-FE-007",
+      "requerimiento": "QA-FE",
+      "titulo": "los botones de tema sincronizan estado, etiqueta y preferencia guardada",
+      "modulo": "Frontend",
+      "categoria": "DOM sintético",
+      "prioridad": "Media",
+      "test": "los botones de tema sincronizan estado, etiqueta y preferencia guardada",
+      "archivo": "tests/frontend/theme.test.cjs",
+      "objetivo": "los botones de tema sincronizan estado, etiqueta y preferencia guardada",
+      "precondiciones": [
+        "Node.js 22 y dependencias instaladas"
+      ],
+      "pasos": [
+        "Ejecutar node --test tests/frontend/*.test.cjs"
+      ],
+      "resultado_esperado": "Todas las aserciones deben cumplirse.",
+      "evidencia": "JUnit de Node; no representa una prueba E2E de navegador"
+    }
+  ]
+}

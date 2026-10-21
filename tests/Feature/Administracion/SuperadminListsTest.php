@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Administracion;
 
 use App\Livewire\AdminEmpresasIndex;
 use App\Livewire\AdminEmpresaUsuariosIndex;

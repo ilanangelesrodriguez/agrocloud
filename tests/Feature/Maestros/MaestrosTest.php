@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Maestros;
 
 use App\Models\Empresa;
 use App\Models\User;
@@ -28,6 +28,7 @@ class MaestrosTest extends TestCase
         return User::create(['id_empresa' => $company->id_empresa, 'id_rol' => $role->id_rol, 'nombre' => 'Usuario', 'correo' => 'user'.User::count().'@example.test', 'password_hash' => 'password', 'estado' => true]);
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_global_catalogs_can_be_managed_only_by_superadmin(): void
     {
         $admin = $this->account();
@@ -40,6 +41,7 @@ class MaestrosTest extends TestCase
         foreach (array_keys(config('maestros')) as $type) $this->get(route('maestros.show', $type))->assertOk();
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_company_catalogs_do_not_leak_or_allow_cross_company_updates(): void
     {
         $first = $this->account();
@@ -90,6 +92,7 @@ class MaestrosTest extends TestCase
         $catalog->validate(['producto' => 'Mango', 'variedad' => 'Hass'], ['producto' => 'producto', 'variedad' => 'variedad'], null);
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_ubigeo_is_read_only_and_non_admin_roles_cannot_manage_catalogs(): void
     {
         $admin = $this->account();
@@ -124,6 +127,7 @@ class MaestrosTest extends TestCase
         foreach (['admin.empresas.index', 'roles.index', 'permisos.index', 'permisos.create'] as $route) $this->get(route($route))->assertOk();
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_inline_master_creation_returns_the_option_and_enforces_permissions(): void
     {
         $root = $this->account('SUPERADMIN');
@@ -138,6 +142,7 @@ class MaestrosTest extends TestCase
         $this->assertDatabaseHas('maestro_valores', ['tipo' => 'categoria', 'nombre' => 'Categoría local', 'id_empresa' => $admin->id_empresa]);
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_theme_is_saved_only_for_the_current_user_and_rendered_from_database(): void
     {
         $user = $this->account('SUPERADMIN');

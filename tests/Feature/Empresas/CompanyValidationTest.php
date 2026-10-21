@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Empresas;
 
 use App\Models\Empresa;
 use App\Models\Permiso;

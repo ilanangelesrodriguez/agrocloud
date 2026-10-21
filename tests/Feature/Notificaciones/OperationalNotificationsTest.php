@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Notificaciones;
 
 use App\Models\Empresa;
 use App\Models\Rol;
@@ -25,6 +25,7 @@ class OperationalNotificationsTest extends TestCase
             'correo' => $email, 'password_hash' => 'secret', 'estado' => true]);
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_notificacion_persistida_segregada_y_marcada_como_leida(): void
     {
         $companyA = $this->company('20111111111');
@@ -48,6 +49,7 @@ class OperationalNotificationsTest extends TestCase
         $this->get('/notificaciones/feed')->assertJsonPath('no_leidas', 0);
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_bandeja_no_permita_redireccion_fuera_del_sitio(): void
     {
         $company = $this->company('20333333333');

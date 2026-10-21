@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Operaciones;
 
 use App\Models\Empresa;
 use App\Models\EvidenciaInspeccion;
@@ -111,6 +111,7 @@ class OperationalWorkflowTest extends TestCase
         }
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_company_isolation_reports_and_role_gates(): void
     {
         $a = $this->company('20123456789');

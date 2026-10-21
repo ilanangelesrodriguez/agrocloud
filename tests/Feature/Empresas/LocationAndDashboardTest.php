@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Empresas;
 
 use App\Models\Empresa;
 use App\Models\User;
@@ -28,6 +28,7 @@ class LocationAndDashboardTest extends TestCase
         return User::create(['id_empresa' => $company->id_empresa, 'id_rol' => $rol->id_rol, 'nombre' => $role, 'correo' => strtolower($role).'@example.test', 'password_hash' => 'password', 'estado' => true]);
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_dashboard_renders_for_every_role_and_honors_permissions(): void
     {
         foreach ([
@@ -48,6 +49,7 @@ class LocationAndDashboardTest extends TestCase
         }
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_dashboard_counts_only_the_current_company(): void
     {
         $user = $this->account('ADMIN', ['dashboard.ver', 'lotes.ver']);

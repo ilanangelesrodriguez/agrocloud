@@ -1,12 +1,13 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Configuracion;
 
 use Illuminate\Support\Facades\Blade;
 use Tests\TestCase;
 
 class ReverbConfigurationTest extends TestCase
 {
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_production_uses_public_https_endpoint_and_restricts_origins(): void
     {
         $originalEnv = $_ENV;
@@ -31,6 +32,7 @@ class ReverbConfigurationTest extends TestCase
         }
     }
 
+    #[\PHPUnit\Framework\Attributes\Group('seguridad')]
     public function test_layout_exposes_public_configuration_without_broadcast_secret(): void
     {
         $this->withoutVite();

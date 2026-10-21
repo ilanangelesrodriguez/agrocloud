@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Interfaz;
 
 use App\Enums\LoteEstado;
 use Illuminate\Support\Facades\Blade;
