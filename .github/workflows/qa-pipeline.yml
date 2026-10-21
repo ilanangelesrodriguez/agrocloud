@@ -2,6 +2,10 @@ name: AgroCloud AI | Calidad y pruebas
 
 # Transición: ejecutar manualmente y comparar con phpunit.yml antes de activar push/PR.
 on:
+  push:
+    branches:
+      - feature/ilan
+
   workflow_dispatch:
     inputs:
       cobertura:
