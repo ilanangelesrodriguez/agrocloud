@@ -83,6 +83,10 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->middleware('permission:usuarios.crear')
                 ->name('store');
 
+            Route::get('/{usuario}/detalle', [UsuarioController::class, 'show'])
+                ->middleware('permission:usuarios.ver')
+                ->name('show');
+
             Route::get('/{usuario}/editar', [UsuarioController::class, 'edit'])
                 ->middleware('permission:usuarios.editar')
                 ->name('edit');

@@ -20,6 +20,7 @@
     --color-brand-700: #146f47;
     --color-brand-800: #14583b;
     --color-brand-900: #124932;
+    --color-brand-950: #072c1d;
 }
 
 html {
@@ -209,3 +210,14 @@ html.dark [data-search-input][aria-invalid='true']:focus {
     --tw-ring-color: var(--color-red-900);
 }
 
+
+/* Navegación de la landing; respeta la preferencia de movimiento reducido. */
+@media (prefers-reduced-motion: no-preference) {
+    html:has([data-public-landing]) { scroll-behavior: smooth; }
+}
+[data-public-landing] a:focus-visible,
+[data-public-landing] summary:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 4px;
+    border-radius: 0.5rem;
+}

@@ -9,6 +9,7 @@ use App\Models\Rol;
 use App\Models\User;
 use App\Services\CloudinaryService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -51,7 +52,7 @@ class UsuarioController extends Controller
         return view('usuarios.create', compact('roles'));
     }
 
-    public function store(StoreUserRequest $request, CloudinaryService $cloudinary): RedirectResponse
+    public function store(StoreUserRequest $request, CloudinaryService $cloudinary): RedirectResponse|JsonResponse
     {
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $this->empresaId(), isset($usuario) ? $usuario->toArray() : []);
@@ -75,6 +76,9 @@ class UsuarioController extends Controller
 
             report($e);
 
+            if ($request->header('X-User-Module') === 'true') {
+                return response()->json(['errors' => ['foto_perfil' => ['No se pudo guardar el usuario. Revisa los datos o intenta subir la foto nuevamente.']]], 422);
+            }
             return back()->withInput()->withErrors([
                 'foto_perfil' => 'No se pudo crear el usuario. Si subiste una foto, revisa Cloudinary.',
             ]);
@@ -82,7 +86,7 @@ class UsuarioController extends Controller
 
         CompanySecurityUpdated::dispatch($data['id_empresa'], 'usuario', 'created', $usuario->id_usuario);
 
-        return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente.');
+        return $this->savedResponse($request, 'Usuario creado correctamente.');
     }
 
     public function edit(User $usuario): View
@@ -93,7 +97,7 @@ class UsuarioController extends Controller
         return view('usuarios.edit', compact('usuario', 'roles'));
     }
 
-    public function update(UpdateUserRequest $request, User $usuario, CloudinaryService $cloudinary): RedirectResponse
+    public function update(UpdateUserRequest $request, User $usuario, CloudinaryService $cloudinary): RedirectResponse|JsonResponse
     {
         $this->assertManageableUser($usuario);
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
@@ -129,6 +133,9 @@ class UsuarioController extends Controller
 
             report($e);
 
+            if ($request->header('X-User-Module') === 'true') {
+                return response()->json(['errors' => ['foto_perfil' => ['No se pudo guardar el usuario. Revisa los datos o intenta subir la foto nuevamente.']]], 422);
+            }
             return back()->withInput()->withErrors([
                 'foto_perfil' => 'No se pudo actualizar el usuario. Si subiste una foto, revisa Cloudinary.',
             ]);
@@ -140,18 +147,43 @@ class UsuarioController extends Controller
 
         CompanySecurityUpdated::dispatch($this->empresaId(), 'usuario', 'updated', $usuario->id_usuario);
 
-        return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente.');
+        return $this->savedResponse($request, 'Usuario actualizado correctamente.');
     }
 
-    public function toggleStatus(User $usuario): RedirectResponse
+    public function toggleStatus(Request $request, User $usuario): RedirectResponse|JsonResponse
     {
         $this->assertManageableUser($usuario);
         abort_if($usuario->is(auth()->user()), 422, 'No puedes desactivar tu propio usuario desde esta pantalla.');
 
-        $usuario->update(['estado' => ! $usuario->estado]);
+        $request->validate(['estado_actual' => ['sometimes', 'required', 'boolean']]);
+        DB::transaction(function () use ($request, $usuario) {
+            $current = User::query()->where('id_empresa', $this->empresaId())->lockForUpdate()->findOrFail($usuario->id_usuario);
+            $this->assertManageableUser($current);
+            if ($request->has('estado_actual') && (bool) $current->estado !== $request->boolean('estado_actual')) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['estado' => 'El estado de esta cuenta cambió desde que abriste la lista. Actualiza los resultados antes de intentarlo nuevamente.']);
+            }
+            $current->update(['estado' => ! $current->estado]);
+        });
         CompanySecurityUpdated::dispatch($this->empresaId(), 'usuario', 'status_changed', $usuario->id_usuario);
 
-        return back()->with('success', 'Estado del usuario actualizado.');
+        return $this->savedResponse($request, 'Estado del usuario actualizado.');
+    }
+
+    public function show(User $usuario): View
+    {
+        $this->assertManageableUser($usuario);
+        $usuario->loadMissing('rol.permisos');
+
+        return view('usuarios.show', compact('usuario'));
+    }
+
+    private function savedResponse(Request $request, string $message): RedirectResponse|JsonResponse
+    {
+        if ($request->header('X-User-Module') === 'true' && $request->expectsJson()) {
+            return response()->json(['saved' => true, 'message' => $message]);
+        }
+
+        return redirect()->route('usuarios.index')->with('success', $message);
     }
 
     private function companyRoles()

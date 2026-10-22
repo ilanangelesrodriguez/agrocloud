@@ -13,6 +13,17 @@ class LotesIndex extends Component
     public string $buscar = '';
 
     public string $filtro = '';
+    public string $estado = '';
+    public string $producto = '';
+    public string $desde = '';
+    public string $hasta = '';
+    public int $porPagina = 15;
+
+    public function updated($property): void
+    {
+        $this->validate(['estado' => 'nullable|string|max:40', 'producto' => 'nullable|string|max:150', 'desde' => 'nullable|date_format:Y-m-d', 'hasta' => array_filter(['nullable', 'date_format:Y-m-d', $this->desde !== '' ? 'after_or_equal:desde' : null]), 'porPagina' => 'in:15,30,50']);
+        $this->resetPage();
+    }
 
     public function buscarLotes(): void
     {
@@ -27,7 +38,8 @@ class LotesIndex extends Component
 
     public function limpiarBusqueda(): void
     {
-        $this->resetValidation('buscar');
+        $this->reset('estado', 'producto', 'desde', 'hasta');
+        $this->resetValidation();
         $this->buscar = '';
         $this->filtro = '';
         $this->resetPage();
@@ -37,7 +49,7 @@ class LotesIndex extends Component
     {
         $lotes = Lote::query()
             ->forCurrentCompany()
-            ->with('productor')
+            ->with(['productor', 'recepcion'])
             ->withExists(['recepcion', 'muestreos'])
             ->when($this->filtro !== '', function ($query) {
                 $query->where(function ($query) {
@@ -52,11 +64,17 @@ class LotesIndex extends Component
                         });
                 });
             })
+            ->when($this->estado !== '', fn ($q) => $q->where('estado', $this->estado))
+            ->when($this->producto !== '', fn ($q) => $q->where('producto', $this->producto))
+            ->when(preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->desde), fn ($q) => $q->whereDate('fecha_recepcion', '>=', $this->desde))
+            ->when(preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->hasta), fn ($q) => $q->whereDate('fecha_recepcion', '<=', $this->hasta))
             ->orderByDesc('fecha_recepcion')
             ->orderByDesc('id_lote')
-            ->paginate(10);
+            ->paginate(in_array($this->porPagina, [15,30,50], true) ? $this->porPagina : 15);
 
-        return view('livewire.lotes-index', compact('lotes'))
+        $estados = collect(\App\Enums\LoteEstado::cases())->mapWithKeys(fn ($state) => [$state->value => $state->label()])->all();
+        $productos = app(\App\Services\MaestroCatalog::class)->options('producto', auth()->user()->id_empresa)->pluck('nombre');
+        return view('livewire.lotes-index', compact('lotes', 'estados', 'productos'))
             ->layout('components.layouts.app', ['title' => 'Lotes']);
     }
 }

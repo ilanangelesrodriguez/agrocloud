@@ -1,0 +1,206 @@
+name: AgroCloud AI | Calidad y pruebas
+
+# Transición: ejecutar manualmente y comparar con phpunit.yml antes de activar push/PR.
+on:
+  push:
+    branches:
+      - feature/ilan
+
+  workflow_dispatch:
+    inputs:
+      cobertura:
+        description: Generar cobertura real por suite (PCOV)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Comparte el bloqueo con el workflow anterior: una sola base Neon testing.
+concurrency:
+  group: agrocloud-neon-testing
+  cancel-in-progress: false
+
+jobs:
+  calidad:
+    name: 01 · Calidad del código y pruebas unitarias
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, zip, gd, intl
+          coverage: none
+      - name: Instalar dependencias PHP
+        run: composer install --no-interaction --prefer-dist --no-scripts
+      - name: Validar Composer y sintaxis PHP
+        run: |
+          composer validate --strict
+          find app config routes tests scripts/qa -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Verificar formato de la infraestructura QA
+        run: vendor/bin/pint --test tests/Support tests/Unit/Support/DatabaseSafetyTest.php scripts/qa/verificar_bd.php
+      - name: Revisar vulnerabilidades de dependencias PHP
+        run: composer audit --locked --no-interaction
+      - name: Verificar catálogo y generador de informes
+        run: |
+          python3 scripts/qa/validar_catalogo.py
+          python3 -m unittest discover -s scripts/qa -p 'test_*.py' -v
+      - name: Ejecutar pruebas unitarias sin conexión a Neon
+        run: |
+          mkdir -p reports
+          vendor/bin/phpunit --testsuite Unitarias --log-junit reports/unitarias.xml
+      - name: Guardar evidencia unitaria
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-unitarias
+          path: reports/*.xml
+          if-no-files-found: warn
+
+  frontend:
+    name: 02 · Frontend y experiencia de interfaz
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar frontend
+        run: npm ci
+      - name: Revisar dependencias del frontend
+        run: npm audit --audit-level=high
+      - name: Compilar recursos de producción
+        run: npm run build
+      - name: Ejecutar pruebas DOM existentes (sin navegador E2E)
+        run: |
+          mkdir -p reports
+          node --test --test-reporter=junit --test-reporter-destination=reports/frontend.xml tests/frontend/*.test.cjs
+      - name: Guardar compilación y evidencia frontend
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-frontend
+          path: |
+            public/build/
+            reports/*.xml
+          if-no-files-found: warn
+
+  postgres:
+    name: 03 · PostgreSQL, funcionalidad y seguridad
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      APP_ENV: testing
+      APP_DEBUG: false
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      DB_CONNECTION: pgsql
+      DB_URL: ${{ secrets.NEON_TEST_DATABASE_URL }}
+      DB_SSLMODE: require
+      NEON_TEST_HOST: ${{ vars.NEON_TEST_HOST }}
+      NEON_PROD_HOST: ${{ vars.NEON_PROD_HOST }}
+      NEON_TEST_DATABASE: ${{ vars.NEON_TEST_DATABASE }}
+      NEON_TEST_USER: ${{ vars.NEON_TEST_USER }}
+      AGROCLOUD_ALLOW_PG_TESTS: '1'
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+      BROADCAST_CONNECTION: 'null'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_pgsql, pgsql, dom, zip, gd, intl
+          coverage: pcov
+      - name: Instalar Laravel
+        run: composer install --no-interaction --prefer-dist
+      - name: Preparar entorno de pruebas
+        run: |
+          cp .env.example .env
+          php artisan config:clear
+          mkdir -p reports
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Compilar vistas y frontend para Laravel
+        run: |
+          npm ci
+          npm run build
+          php artisan view:cache
+      - name: Verificar conexión e identidad de Neon testing
+        run: php scripts/qa/verificar_bd.php
+      - name: Validar migraciones sobre Neon testing verificado
+        run: |
+          php artisan migrate:fresh --force
+          php artisan migrate:status
+      - name: Ejecutar reglas y flujos funcionales
+        id: funcionales
+        continue-on-error: true
+        env:
+          QA_COVERAGE: ${{ inputs.cobertura }}
+        run: |
+          extra=()
+          if [ "$QA_COVERAGE" = 'true' ]; then extra=(--coverage-clover reports/cobertura-funcional.xml); fi
+          vendor/bin/phpunit --testsuite Aplicacion --exclude-group seguridad --log-junit reports/funcionales.xml "${extra[@]}"
+      - name: Ejecutar permisos, autenticación y aislamiento
+        id: seguridad
+        if: ${{ !cancelled() && steps.funcionales.outcome != 'skipped' }}
+        continue-on-error: true
+        env:
+          QA_COVERAGE: ${{ inputs.cobertura }}
+        run: |
+          extra=()
+          if [ "$QA_COVERAGE" = 'true' ]; then extra=(--coverage-clover reports/cobertura-seguridad.xml); fi
+          vendor/bin/phpunit --testsuite Aplicacion --group seguridad --log-junit reports/seguridad.xml "${extra[@]}"
+      - name: Mantener el fallo de las suites en el estado de CI
+        if: ${{ !cancelled() && (steps.funcionales.outcome == 'failure' || steps.seguridad.outcome == 'failure') }}
+        run: exit 1
+      - name: Guardar resultados y registros
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-postgres
+          path: reports/*.xml
+          if-no-files-found: warn
+
+  informe:
+    name: 04 · Informe QA y evidencias
+    needs: [calidad, frontend, postgres]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descargar evidencias disponibles
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: qa-*
+          path: qa-artifacts
+      - name: Consolidar evidencias JUnit
+        run: |
+          mkdir -p reports/evidencias
+          if [ -d qa-artifacts ]; then find qa-artifacts -name '*.xml' -exec cp {} reports/evidencias/ \; ; fi
+      - name: Generar informe en español y resumen de GitHub
+        env:
+          QA_STAGES: ${{ toJSON(needs) }}
+        run: |
+          python3 -c 'import json,os; from pathlib import Path; Path("reports/etapas.json").write_text(json.dumps({k:v["result"] for k,v in json.loads(os.environ["QA_STAGES"]).items()}))'
+          python3 scripts/qa/generar_reporte.py --etapas "$(cat reports/etapas.json)"
+      - name: Publicar artefacto del informe
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agrocloud-informe-qa
+          path: reports/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Exigir evidencia completa y casos aprobados
+        run: |
+          python3 -c 'import json; from pathlib import Path; data=json.loads(Path("reports/resumen.json").read_text()); raise SystemExit(0 if data["resultado"] == "Aprobado" else 1)'

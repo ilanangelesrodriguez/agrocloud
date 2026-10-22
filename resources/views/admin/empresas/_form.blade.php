@@ -2,16 +2,7 @@
 @php($empresaActual = $editing ? $empresa : null)
 
 <div class="space-y-6" data-company-form>
-    @if ($errors->any())
-        <div role="alert" class="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/35 px-5 py-4 text-sm text-red-800 dark:text-red-200">
-            <p class="font-semibold">Revisa los campos antes de continuar.</p>
-            <ul class="mt-2 list-disc space-y-1 pl-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+
 
     <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div class="min-w-0 space-y-6">
@@ -53,9 +44,12 @@
                 </div>
                 <div class="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
                     <x-ui.input name="correo" label="Correo corporativo" type="email" :value="$empresaActual?->correo" placeholder="Ej. contacto@empresa.pe" autocomplete="email" maxlength="255" />
-                    <x-ui.input name="telefono" label="Teléfono de contacto" type="tel" :value="$empresaActual?->telefono" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" pattern="^\+?[0-9][0-9\s().-]*$" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
+                    <x-ui.input name="telefono" label="Teléfono de contacto" type="tel" :value="$empresaActual?->telefono" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
                     <div class="sm:col-span-2">
-                        <x-ui.input name="sitio_web" label="Sitio web" type="url" :value="$empresaActual?->sitio_web" placeholder="https://www.empresa.pe" autocomplete="url" maxlength="255" />
+                        <div>
+                            <x-ui.input name="sitio_web" label="Sitio web" type="text" inputmode="url" autocapitalize="none" spellcheck="false" :value="$empresaActual?->sitio_web" placeholder="Ej. misitio.com" aria-describedby="company-site-help" autocomplete="url" maxlength="255" />
+                            <p id="company-site-help" class="mt-2 text-xs text-slate-500 dark:text-slate-400">Puedes escribir misitio.com; se guardará con https:// si no indicas un protocolo.</p>
+                        </div>
                     </div>
                 </div>
             </section>

@@ -1,76 +1,41 @@
-    <div class="space-y-6">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-                <p class="text-sm font-semibold text-brand-700 dark:text-brand-300">Administración de empresa</p>
-                <h2 class="mt-1 text-2xl font-semibold text-slate-950 dark:text-slate-100">Usuarios de {{ auth()->user()->empresa?->nombre_comercial }}</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Administra los usuarios, roles y accesos de tu empresa.</p>
-            </div>
-
-            @if (auth()->user()->hasPermission('usuarios.crear'))
-                <a href="{{ route('usuarios.create') }}" wire:navigate class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
-                    <x-ui.icon name="plus" class="h-4 w-4" /> Nuevo usuario
-                </a>
-            @endif
-        </div>
-
-        <form wire:submit="buscarUsuarios" class="flex flex-col gap-3 sm:flex-row sm:items-start">
-            <div data-search-field class="w-full sm:max-w-lg">
-                <label for="buscar-usuario" class="sr-only">Buscar usuarios por nombre, correo o cargo</label>
-                <div class="relative">
-                    <span class="pointer-events-none absolute left-3 top-0 flex h-11 items-center text-slate-400"><x-ui.icon name="search" class="h-4 w-4" /></span>
-                    <input id="buscar-usuario" data-search-input type="search" wire:model="buscar" placeholder="Nombre, correo o cargo" class="h-11 w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 pl-10 pr-3.5 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50">
-                </div>
-            </div>
-            <div class="flex shrink-0 gap-2">
-                <x-ui.button type="submit" wire:loading.attr="disabled" wire:target="buscarUsuarios" class="h-11 w-full sm:w-auto">
-                    <span wire:loading.remove wire:target="buscarUsuarios">Buscar</span>
-                    <span wire:loading wire:target="buscarUsuarios">Buscando…</span>
-                </x-ui.button>
-                @if ($filtro !== '')
-                    <x-ui.button type="button" variant="secondary" wire:click="limpiarBusqueda" class="h-11">Limpiar</x-ui.button>
-                @endif
-            </div>
-        </form>
-
-        <x-ui.card>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-left text-sm">
-                    <thead class="border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        <tr><th class="px-3 py-3">Usuario</th><th class="px-3 py-3">Rol</th><th class="px-3 py-3">Cargo</th><th class="px-3 py-3">Estado</th><th class="px-3 py-3 text-right">Acciones</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
-                        @forelse ($usuarios as $usuario)
-                            <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-700/60">
-                                <td class="px-3 py-4">
-                                    <div class="flex items-center gap-3">
-                                        @if ($usuario->foto_perfil_url)
-                                            <img src="{{ $usuario->foto_perfil_url }}" alt="" class="h-10 w-10 rounded-full object-cover">
-                                        @else
-                                            <div class="grid h-10 w-10 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300">{{ strtoupper(substr($usuario->nombre, 0, 1)) }}{{ strtoupper(substr($usuario->apellido ?? '', 0, 1)) }}</div>
-                                        @endif
-                                        <div><p class="font-medium text-slate-900 dark:text-slate-100">{{ $usuario->nombre_completo }}</p><p class="text-xs text-slate-500 dark:text-slate-400">{{ $usuario->correo }}</p></div>
-                                    </div>
-                                </td>
-                                <td class="px-3 py-4 text-slate-600 dark:text-slate-300">{{ $usuario->rol?->nombre ?? 'Sin rol' }}</td>
-                                <td class="px-3 py-4 text-slate-600 dark:text-slate-300">{{ $usuario->cargo ?: '—' }}</td>
-                                <td class="px-3 py-4"><span @class(['inline-flex rounded-full px-2.5 py-1 text-xs font-medium','bg-emerald-50 dark:bg-emerald-950/35 text-emerald-700 dark:text-emerald-300' => $usuario->estado,'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' => ! $usuario->estado])>{{ $usuario->estado ? 'Activo' : 'Inactivo' }}</span></td>
-                                <td class="px-3 py-4">
-                                    <div class="flex justify-end gap-2">
-                                        @if (auth()->user()->hasPermission('usuarios.editar'))
-                                            <a href="{{ route('usuarios.edit', $usuario) }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 transition hover:border-brand-200 dark:hover:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/35 hover:text-brand-700 dark:hover:text-brand-300"><x-ui.icon name="pencil" class="h-3.5 w-3.5" />Editar</a>
-                                        @endif
-                                        @if (auth()->user()->hasPermission('usuarios.estado') && ! $usuario->is(auth()->user()))
-                                            <form method="POST" action="{{ route('usuarios.toggle-status', $usuario) }}" data-ajax-form>@csrf @method('PATCH')<button type="submit" class="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">{{ $usuario->estado ? 'Desactivar' : 'Activar' }}</button></form>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="px-3 py-10 text-center text-slate-500 dark:text-slate-400">No se encontraron usuarios.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-5">{{ $usuarios->links() }}</div>
-        </x-ui.card>
+<div class="space-y-6" data-users-workspace>
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div><p class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Administración / Usuarios</p><h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Gestión de usuarios</h1><p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Administra el personal y sus accesos en {{ auth()->user()->empresa?->nombre_comercial }}.</p></div>
+        @if(auth()->user()->hasPermission('usuarios.crear'))<a href="{{ route('usuarios.create') }}" data-user-drawer-link data-user-drawer-title="Nuevo usuario" class="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"><x-ui.icon name="plus" class="h-4 w-4" />Nuevo usuario</a>@endif
     </div>
+    <div class="grid grid-cols-3 gap-3 sm:gap-4" aria-label="Resumen de usuarios">
+        @foreach(['total' => 'Total de usuarios', 'activos' => 'Activos', 'inactivos' => 'Inactivos'] as $key => $label)<div class="rounded-xl bg-white p-4 ring-1 ring-slate-200/70 dark:bg-slate-900 dark:ring-slate-700/60"><p class="text-xs text-slate-500 dark:text-slate-400">{{ $label }}</p><p class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ $resumen[$key] }}</p></div>@endforeach
+    </div>
+    <section class="rounded-2xl bg-white ring-1 ring-slate-200/70 dark:bg-slate-900 dark:ring-slate-700/60" aria-label="Listado de usuarios">
+        <div class="space-y-4 border-b border-slate-100 p-4 dark:border-slate-800 sm:p-5">
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(200px,2fr)_1fr_1fr_1fr]">
+                <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Buscar usuarios<div class="relative mt-1.5"><span class="pointer-events-none absolute left-3 top-3 text-slate-400"><x-ui.icon name="search" class="h-4 w-4" /></span><input type="search" wire:model.live.debounce.350ms="buscar" maxlength="150" placeholder="Nombre, correo o cargo" class="h-10 w-full rounded-lg border border-slate-200 bg-transparent pl-9 pr-3 text-sm text-slate-900 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:text-slate-100"></div></label>
+                <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Rol<select wire:model.live="rol" class="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"><option value="">Todos los roles</option>@foreach($roles as $r)<option value="{{ $r->id_rol }}">{{ $r->nombre }}</option>@endforeach</select></label>
+                <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Cargo<select wire:model.live="cargo" class="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"><option value="">Todos los cargos</option>@foreach($cargos as $c)<option value="{{ $c }}">{{ $c }}</option>@endforeach</select></label>
+                <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Estado<select wire:model.live="estado" class="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"><option value="">Todos los estados</option><option value="1">Activos</option><option value="0">Inactivos</option></select></label>
+            </div>
+            <div class="flex min-h-6 flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400"><span wire:loading.delay role="status">Actualizando usuarios…</span><span wire:loading.remove>{{ $usuarios->total() }} {{ $usuarios->total() === 1 ? 'resultado' : 'resultados' }}</span>@if($buscar !== '' || $rol !== '' || $cargo !== '' || $estado !== '')<button type="button" wire:click="limpiarBusqueda" class="font-semibold text-slate-600 hover:underline dark:text-slate-300">Limpiar filtros</button>@endif</div>
+        </div>
+        <div class="px-3 sm:px-5" wire:loading.class="opacity-60">
+            <table class="block w-full text-left text-sm md:table"><thead class="hidden text-xs text-slate-500 md:table-header-group dark:text-slate-400"><tr>@foreach(['nombre' => 'Usuario', 'rol' => 'Rol'] as $column => $label)<th scope="col" class="px-2 py-3" aria-sort="{{ $orden === $column ? ($direccion === 'asc' ? 'ascending' : 'descending') : 'none' }}"><button type="button" wire:click="ordenar('{{ $column }}')" class="inline-flex items-center gap-2">{{ $label }}<x-ui.icon name="chevron-down" class="h-3 w-3 {{ $orden === $column && $direccion === 'desc' ? 'rotate-180' : '' }}" /></button></th>@endforeach<th scope="col" class="px-2 py-3">Cargo</th><th scope="col" class="px-2 py-3" aria-sort="{{ $orden === 'estado' ? ($direccion === 'asc' ? 'ascending' : 'descending') : 'none' }}"><button type="button" wire:click="ordenar('estado')" class="inline-flex items-center gap-2">Estado<x-ui.icon name="chevron-down" class="h-3 w-3 {{ $orden === 'estado' && $direccion === 'desc' ? 'rotate-180' : '' }}" /></button></th><th scope="col" class="px-2 py-3 text-right"><span class="sr-only">Acciones</span></th></tr></thead>
+                <tbody class="block md:table-row-group">@forelse($usuarios as $usuario)
+                    <tr wire:key="usuario-{{ $usuario->id_usuario }}" class="relative grid grid-cols-2 gap-x-3 border-t border-slate-100 py-3 md:table-row md:py-0 dark:border-slate-800">
+                        <td class="col-span-2 py-2 pr-12 md:px-2 md:py-3"><div class="flex min-w-0 items-center gap-3">@if($usuario->foto_perfil_url)<img src="{{ $usuario->foto_perfil_url }}" alt="" loading="lazy" class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700">@else<span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{{ mb_strtoupper(mb_substr($usuario->nombre, 0, 1).mb_substr($usuario->apellido ?? '', 0, 1)) }}</span>@endif<div class="min-w-0"><p class="break-words font-semibold text-slate-900 dark:text-slate-100">{{ $usuario->nombre_completo }}</p><p class="mt-0.5 break-all text-xs text-slate-500 dark:text-slate-400">{{ $usuario->correo }}</p></div></div></td>
+                        <td class="py-2 md:px-2 md:py-3"><span class="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">{{ $usuario->rol?->nombre ?? 'Sin rol' }}</span></td><td class="py-2 text-right text-xs text-slate-500 md:px-2 md:py-3 md:text-left dark:text-slate-400">{{ $usuario->cargo ?: 'Sin cargo' }}</td>
+                        <td class="py-2 md:px-2 md:py-3"><x-ui.state-badge :state="$usuario->estado ? 'ACTIVO' : 'INACTIVO'" /></td>
+                        <td class="absolute right-0 top-4 text-right md:static md:px-2 md:py-3">
+                            <details class="relative" data-user-actions><summary aria-label="Acciones de {{ $usuario->nombre_completo }}" class="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline focus-visible:outline-brand-500 dark:text-slate-300 dark:hover:bg-slate-800"><x-ui.icon name="ellipsis" class="h-5 w-5" /></summary><div class="absolute right-0 z-20 mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                                <a href="{{ route('usuarios.show', $usuario) }}" data-user-drawer-link data-user-drawer-title="Detalle del usuario" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"><x-ui.icon name="eye" class="h-4 w-4" />Ver detalle</a>
+                                @if(auth()->user()->hasPermission('usuarios.editar'))<a href="{{ route('usuarios.edit', $usuario) }}" data-user-drawer-link data-user-drawer-title="Editar usuario" class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"><x-ui.icon name="pencil" class="h-4 w-4" />Editar</a>@endif
+                                @if(auth()->user()->hasPermission('usuarios.estado') && !$usuario->is(auth()->user()))<form data-ajax-form data-user-inline-form data-confirm="{{ $usuario->estado ? 'Esta persona no podrá iniciar sesión ni continuar trabajando hasta que reactives su cuenta. Sus registros se conservarán.' : 'Esta persona podrá volver a ingresar con su rol actual.' }}" data-confirm-title="{{ $usuario->estado ? '¿Desactivar esta cuenta?' : '¿Activar esta cuenta?' }}" data-confirm-label="{{ $usuario->estado ? 'Desactivar cuenta' : 'Activar cuenta' }}" action="{{ route('usuarios.toggle-status', $usuario) }}" method="POST">@csrf @method('PATCH')<input type="hidden" name="estado_actual" value="{{ $usuario->estado ? '1' : '0' }}"><button type="submit" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs {{ $usuario->estado ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-200' }} hover:bg-slate-100 dark:hover:bg-slate-800"><x-ui.icon name="power" class="h-4 w-4" />{{ $usuario->estado ? 'Desactivar' : 'Activar' }}</button></form>@endif
+                            </div></details>
+                        </td>
+                    </tr>
+                @empty<tr class="block md:table-row"><td colspan="5" class="block px-3 py-12 text-center md:table-cell"><p class="font-medium text-slate-700 dark:text-slate-200">No hay usuarios que coincidan</p><p class="mt-1 text-xs text-slate-500">Prueba con otro término o limpia los filtros.</p></td></tr>@endforelse</tbody>
+            </table>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 p-4 dark:border-slate-800 sm:p-5"><label class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">Usuarios por página<select wire:model.live="porPagina" class="rounded-lg border border-slate-200 bg-transparent px-2 py-1.5 dark:border-slate-700"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select></label><span class="text-xs text-slate-500 dark:text-slate-400">Mostrando {{ $usuarios->firstItem() ?? 0 }}–{{ $usuarios->lastItem() ?? 0 }} de {{ $usuarios->total() }} usuarios</span><span class="text-xs text-slate-500 dark:text-slate-400">Página {{ $usuarios->currentPage() }} de {{ $usuarios->lastPage() }}</span><div class="w-full">{{ $usuarios->links() }}</div></div>
+    </section>
+    <details class="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700/60 dark:bg-slate-900"><summary class="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-200">Consultar módulos disponibles por rol</summary><p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Accesos configurados actualmente. El estado del rol y de la cuenta también condiciona el acceso.</p><div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">@foreach($roles as $role)<div class="rounded-lg bg-slate-50 p-3 dark:bg-slate-800"><p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $role->nombre }}{{ $role->estado ? '' : ' (inactivo)' }}</p><div class="mt-2 flex flex-wrap gap-1.5">@forelse($role->permisos->pluck('modulo')->filter()->unique() as $module)<span class="rounded-md bg-white px-2 py-1 text-[11px] text-slate-500 dark:bg-slate-900 dark:text-slate-400">{{ ucfirst(mb_strtolower(str_replace('_', ' ', $module))) }}</span>@empty<span class="text-xs text-slate-500">Sin módulos habilitados</span>@endforelse</div></div>@endforeach</div></details>
+    <dialog wire:ignore data-user-drawer aria-labelledby="user-drawer-title" class="fixed inset-y-0 left-auto right-0 m-0 ml-auto h-dvh max-h-dvh w-full max-w-2xl border-0 bg-slate-50 p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/50 dark:bg-slate-950 dark:text-slate-100"><div class="flex min-h-full flex-col"><div class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 dark:border-slate-700 dark:bg-slate-900"><h2 id="user-drawer-title" class="text-lg font-semibold">Usuario</h2><button type="button" data-user-drawer-close aria-label="Cerrar panel de usuario" class="inline-flex h-10 w-10 items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><x-ui.icon name="x" class="h-5 w-5" /></button></div><div data-user-drawer-content class="flex-1 p-4 sm:p-5"></div></div></dialog>
+</div>

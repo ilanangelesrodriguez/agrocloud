@@ -32,25 +32,7 @@
         </div>
 
         {{-- Errores de validación --}}
-        @if ($errors->any())
 
-            <x-ui.alert type="error">
-
-                <div class="font-semibold">
-                    No se pudo actualizar el lote.
-                </div>
-
-                <ul class="mt-2 list-disc space-y-1 pl-5">
-
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-
-                </ul>
-
-            </x-ui.alert>
-
-        @endif
 
         {{-- Formulario --}}
         <x-ui.card

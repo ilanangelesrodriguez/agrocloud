@@ -2,7 +2,8 @@
     @php
         $puedeCapturar = $inspeccion->estado === 'EN_CAPTURA'
             && auth()->user()->rol?->codigo === 'INSPECTOR'
-            && auth()->user()->hasPermission('inspecciones.capturar');
+            && auth()->user()->hasPermission('inspecciones.capturar')
+            && (!$inspeccion->id_inspector || (int) $inspeccion->id_inspector === (int) auth()->id());
         $totalEvidencias = $inspeccion->evidencias->count();
         $analizadas = $inspeccion->evidencias->where('estado_ia', 'COMPLETADO')->count();
     @endphp
@@ -13,30 +14,32 @@
                 <h1 class="mt-3 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 sm:text-2xl">Captura de evidencias y análisis IA</h1>
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Inspección #{{ $inspeccion->id_inspeccion }} · Lote {{ $inspeccion->muestreo?->lote?->codigo_lote }} · {{ $inspeccion->muestreo?->tamano_muestra }} frutos seleccionados</p>
             </div>
-            <a wire:navigate href="{{ route('inspecciones.validacion', $inspeccion->id_inspeccion) }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700">
-                Ir a validación <x-ui.icon name="chevron-right" class="h-4 w-4" />
+            <a data-validation-next @if($totalEvidencias === 0) aria-disabled="true" tabindex="-1" @endif wire:navigate href="{{ route('inspecciones.validacion', $inspeccion->id_inspeccion) }}" @class(['inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700', 'pointer-events-none opacity-50' => $totalEvidencias === 0])>
+                <span data-validation-next-label>{{ $totalEvidencias > 0 ? 'Continuar revisión humana' : 'Revisión pendiente de fotografías' }}</span> <x-ui.icon name="chevron-right" class="h-4 w-4" />
             </a>
         </div>
+        <x-ui.expediente-path :lote="$inspeccion->muestreo->lote" :muestreo="$inspeccion->muestreo" :inspeccion="$inspeccion" />
+        <x-ui.inspection-progress :inspeccion="$inspeccion" :progreso="$progreso" />
         @include('inspecciones._mensajes')
-        <div class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500 dark:text-slate-400">Fotografías</p><p class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100" data-evidence-count>{{ $totalEvidencias }}</p></div>
-            <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500 dark:text-slate-400">Analizadas con IA</p><p class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100" data-analyzed-count>{{ $analizadas }}</p></div>
-            <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900"><p class="text-xs text-slate-500 dark:text-slate-400">Estado de inspección</p><p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $inspeccion->estado === 'EN_CAPTURA' ? 'En captura' : 'Validada / cerrada' }}</p></div>
-        </div>
         <div data-workspace-message class="hidden rounded-xl border px-4 py-3 text-sm" role="status" aria-live="polite"></div>
         <div class="grid items-start gap-5 xl:grid-cols-[minmax(0,350px)_minmax(0,1fr)]">
             <div class="space-y-4 xl:sticky xl:top-5">
                 @if($puedeCapturar)
-                    <x-ui.card title="Añadir fotografía" description="Selecciona una imagen, revisa la vista previa y guárdala. Después podrás solicitar el análisis con IA.">
+                    <x-ui.card title="Añadir fotografía" description="Selecciona el fruto y guarda la fotografía. El análisis IA se solicita automáticamente.">
+                        @if($progreso['faltantes'] > 0)<div class="mb-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200"><p class="font-semibold"><span data-fruit-missing>{{ $progreso['faltantes'] }}</span> frutos pendientes de fotografía en esta inspección</p><p class="mt-1">@foreach($progreso['pendientes'] as $pendiente)<button type="button" data-fruit-pick="{{ $pendiente->numero }}" class="mr-2 mt-1 rounded-lg border border-amber-200 px-2 py-1 dark:border-amber-800">{{ $pendiente->codigo }}</button>@endforeach</p></div>@endif
                         <form data-upload-form action="{{ route('inspecciones.evidencias.store', $inspeccion->id_inspeccion) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                             @csrf
                             @if($inspeccion->muestreo->frutos()->exists())
-                                <label class="block text-sm font-semibold">Número del fruto (1 a {{ $inspeccion->muestreo->tamano_muestra }})<input type="number" name="numero_fruto" min="1" max="{{ $inspeccion->muestreo->tamano_muestra }}" required class="mt-2 w-full rounded-xl border border-slate-300 bg-transparent p-2.5"></label>
+                                <label class="block text-sm font-semibold">Número del fruto (1 a {{ $inspeccion->muestreo->tamano_muestra }})<input type="number" list="frutos-disponibles" name="numero_fruto" min="1" max="{{ $inspeccion->muestreo->tamano_muestra }}" required class="mt-2 w-full rounded-xl border border-slate-300 bg-transparent p-2.5"></label>
+                                <datalist id="frutos-disponibles">@foreach($inspeccion->muestreo->frutos()->orderBy('numero')->limit(200)->get() as $fruto)<option value="{{ $fruto->numero }}">{{ $fruto->codigo }}</option>@endforeach</datalist>
+                                <p class="text-xs text-slate-500">Sugerencias para los primeros 200 frutos; puedes ingresar cualquier número válido de esta muestra.</p>
                                 <p class="text-xs text-slate-500">Etiqueta cada fruto como M{{ $inspeccion->id_muestreo }}-F00001, M{{ $inspeccion->id_muestreo }}-F00002… Una o más fotos por fruto; conserva su número en las reinspecciones.</p>
                             @else<p class="text-xs text-amber-700">Muestreo histórico: las fotografías anteriores no tienen identificación individual.</p>@endif
-                            <div class="space-y-2">
+                            <div data-photo-dropzone class="space-y-2 rounded-xl border-2 border-dashed border-slate-300 p-3 dark:border-slate-600">
+                                <p class="text-xs text-slate-500">Arrastra una fotografía aquí o selecciónala.</p>
                                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200" for="foto">Imagen del fruto</label>
                                 <input id="foto" name="foto" type="file" accept="image/jpeg,image/png,image/webp" required data-file-input class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 file:mr-2 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-brand-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:file:bg-brand-900/30 dark:file:text-brand-300">
+                                <label class="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300"><x-ui.icon name="camera" class="h-4 w-4" />Usar cámara<input type="file" accept="image/*" capture="environment" data-camera-input class="sr-only"></label>
                                 <p class="text-xs text-slate-500 dark:text-slate-400">JPG, PNG o WebP. Tamaño final máximo: 3 MiB. Optimización automática en navegadores compatibles.</p>
                             </div>
                             <div data-upload-preview class="hidden overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-800">
@@ -56,7 +59,7 @@
                     <p class="font-semibold text-blue-900 dark:text-blue-200">Cómo funciona el análisis</p>
                     <ol class="mt-2 list-inside list-decimal space-y-1 text-blue-900/85 dark:text-blue-200/85">
                         <li>Guarda una fotografía.</li>
-                        <li>Pulsa «Analizar con IA» en su tarjeta.</li>
+                        <li>El análisis comienza automáticamente; si falla, usa «Reintentar» sin volver a subir la imagen.</li>
                         <li>Revisa imagen marcada y nivel de confianza.</li>
                         <li>Confirma o descarta detecciones en Validación.</li>
                     </ol>
@@ -75,4 +78,5 @@
         </div>
     </div>
     <script src="{{ asset('js/inspection-evidence.js') }}" defer></script>
+    <x-ui.image-viewer />
 </x-layouts.app>

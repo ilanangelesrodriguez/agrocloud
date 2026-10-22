@@ -25,32 +25,14 @@
                 </h1>
 
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    Registra la información del lote recibido para tu empresa.
+                    Registra el lote anunciado. El ingreso físico se confirma después desde Recepción.
                 </p>
             </div>
 
         </div>
 
         {{-- Errores de validación --}}
-        @if ($errors->any())
 
-            <x-ui.alert type="error">
-
-                <div class="font-semibold">
-                    No se pudo registrar el lote.
-                </div>
-
-                <ul class="mt-2 list-disc space-y-1 pl-5">
-
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-
-                </ul>
-
-            </x-ui.alert>
-
-        @endif
 
         {{-- Formulario --}}
         <x-ui.card
@@ -58,7 +40,7 @@
             description="Completa los datos solicitados para registrar un nuevo lote."
         >
 
-            <form data-ajax-form
+            <form data-ajax-form data-lot-create-form
                 method="POST"
                 action="{{ route('lotes.store') }}"
                 class="space-y-6"
@@ -69,6 +51,7 @@
                 {{-- Datos principales --}}
                 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 
+                    <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100 md:col-span-2">1. Identificación y origen agrícola</h2>
                     {{-- Productor --}}
                     <div>
 
@@ -100,6 +83,7 @@
 
                         </select>
 
+                        @if(auth()->user()->hasPermission('productores.crear'))<a data-workspace-link data-workspace-target="id_productor" data-workspace-title="Registrar productor" href="{{ route('productores.create') }}" class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 dark:text-brand-300"><x-ui.icon name="plus" class="h-4 w-4" />¿No encuentras al productor? Registrar nuevo</a>@endif
                         @error('id_productor')
                             <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
@@ -148,6 +132,7 @@
 
                     </div>
 
+                    <h2 class="border-t border-slate-100 pt-4 text-base font-semibold text-slate-900 dark:border-slate-700 dark:text-slate-100 md:col-span-2">2. Características y peso declarado</h2>
                     {{-- Producto --}}
                     <div>
 
@@ -220,7 +205,7 @@
 
                     </div>
 
-                    {{-- Fecha de recepción --}}
+                    {{-- Fecha prevista de recepción --}}
                     <div>
 
                         <label
@@ -276,9 +261,9 @@
 
                                 <option
                                     value="{{ $estadoValue }}"
-                                    @selected(old('estado', 'RECIBIDO') === $estadoValue)
+                                    @selected(old('estado', 'PENDIENTE_RECEPCION') === $estadoValue)
                                 >
-                                    {{ $estadoValue }}
+                                    {{ $estado instanceof \App\Enums\LoteEstado ? $estado->label() : $estadoValue }}
                                 </option>
                             @endforeach
 
@@ -296,6 +281,7 @@
 
                 <x-ui.master-select name="unidad_medida" kind="unidad" label="Unidad de peso *" :value="'Kilogramo'" required weight-only />
                 <p class="text-xs text-slate-500 dark:text-slate-400">El peso se convierte automáticamente a kilogramos para los reportes.</p>
+                <div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-800"><h2 class="font-semibold dark:text-slate-100">3. Resumen antes de guardar</h2><p data-lot-create-summary aria-live="polite" class="mt-2 text-sm text-slate-600 dark:text-slate-300">Completa los datos principales para revisar el lote.</p><p class="mt-2 text-xs text-slate-500">Guardar el registro no confirma el peso real ni el ingreso físico.</p></div>
                 {{-- Separador --}}
                 <div class="border-t border-slate-100 dark:border-slate-700"></div>
 

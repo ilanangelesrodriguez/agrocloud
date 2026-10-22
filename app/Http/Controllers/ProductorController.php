@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Productor;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -49,15 +50,15 @@ class ProductorController extends Controller
     /**
      * Mostrar formulario para crear un productor.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('productores.create');
+        return $request->header('X-Workspace-Drawer') ? view('productores._form', ['drawer' => true]) : view('productores.create');
     }
 
     /**
      * Guardar un nuevo productor.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'ruc' => [
@@ -115,11 +116,7 @@ class ProductorController extends Controller
             ->exists();
 
         if ($existe) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'ruc' => 'Ya existe un productor registrado con este RUC.',
-                ]);
+            throw \Illuminate\Validation\ValidationException::withMessages(['ruc' => 'Ya existe un productor registrado con este RUC.']);
         }
 
         /*
@@ -133,7 +130,8 @@ class ProductorController extends Controller
         */
 
         $validated = app(\App\Services\UbigeoService::class)->normalize($validated);
-        Productor::create($validated);
+        $productor = Productor::create($validated);
+        if ($request->header('X-Workspace-Drawer')) return response()->json(['saved' => true, 'module' => 'productores', 'message' => 'Productor registrado correctamente.', 'item' => ['id' => $productor->id_productor, 'label' => $productor->nombre_razon_social.' — RUC: '.$productor->ruc]]);
 
         return redirect()
             ->route('productores.index')
@@ -167,25 +165,28 @@ class ProductorController extends Controller
 
         $lotes = $productorModel
             ->lotes()
+            ->with('recepcion')
             ->orderByDesc('fecha_recepcion')
             ->paginate(10)
             ->withQueryString();
 
+        $resumenEstados = $productorModel->lotes()->select('estado')->selectRaw('COUNT(*) as total')->groupBy('estado')->get();
         return view(
             'productores.lotes',
-            compact('productorModel', 'lotes')
+            compact('productorModel', 'lotes', 'resumenEstados')
         );
     }
 
     /**
      * Mostrar formulario para editar un productor.
      */
-    public function edit(int $productor): View
+    public function edit(Request $request, int $productor): View
     {
         $productorModel = Productor::query()
             ->forCurrentCompany()
             ->findOrFail($productor);
 
+        if ($request->header('X-Workspace-Drawer')) return view('productores._form', ['productorModel' => $productorModel, 'drawer' => true]);
         return view(
             'productores.edit',
             compact('productorModel')
@@ -198,7 +199,7 @@ class ProductorController extends Controller
     public function update(
         Request $request,
         int $productor
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $productorModel = Productor::query()
             ->forCurrentCompany()
             ->findOrFail($productor);
@@ -264,15 +265,12 @@ class ProductorController extends Controller
             ->exists();
 
         if ($duplicado) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'ruc' => 'Ya existe otro productor registrado con este RUC.',
-                ]);
+            throw \Illuminate\Validation\ValidationException::withMessages(['ruc' => 'Ya existe otro productor registrado con este RUC.']);
         }
 
         $validated = app(\App\Services\UbigeoService::class)->normalize($validated);
         $productorModel->update($validated);
+        if ($request->header('X-Workspace-Drawer')) return response()->json(['saved' => true, 'module' => 'productores', 'message' => 'Productor actualizado correctamente.', 'item' => ['id' => $productorModel->id_productor, 'label' => $productorModel->nombre_razon_social.' — RUC: '.$productorModel->ruc]]);
 
         return redirect()
             ->route(
@@ -285,7 +283,7 @@ class ProductorController extends Controller
     /**
      * Eliminar un productor.
      */
-    public function destroy(int $productor): RedirectResponse
+    public function destroy(Request $request, int $productor): RedirectResponse|JsonResponse
     {
         /*
         |--------------------------------------------------------------------------
@@ -307,6 +305,7 @@ class ProductorController extends Controller
         */
 
         if ($productorModel->lotes()->exists()) {
+            if ($request->header('X-Workspace-Drawer')) throw \Illuminate\Validation\ValidationException::withMessages(['productor' => 'No se puede eliminar este productor porque tiene lotes asociados.']);
             return redirect()
                 ->route('productores.index')
                 ->with(
@@ -330,6 +329,7 @@ class ProductorController extends Controller
         */
 
         $productorModel->delete();
+        if ($request->header('X-Workspace-Drawer')) return response()->json(['saved' => true, 'module' => 'productores', 'message' => 'Productor eliminado correctamente.']);
 
         return redirect()
             ->route('productores.index')

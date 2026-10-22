@@ -6,6 +6,18 @@ use Illuminate\Validation\ValidationException;
 
 class UbigeoService
 {
+    public function departamentos(): \Illuminate\Support\Collection
+    {
+        return collect(json_decode(file_get_contents(public_path('data/ubigeo/1_ubigeo_departamentos.json')), true)['ubigeo_departamentos'])->sortBy('departamento')->values();
+    }
+
+    public function provincias(string $departamento): \Illuminate\Support\Collection
+    {
+        $parent = $this->departamentos()->first(fn ($row) => $row['departamento'] === $departamento);
+        if (!$parent) return collect();
+        return collect(json_decode(file_get_contents(public_path('data/ubigeo/2_ubigeo_provincias.json')), true)['ubigeo_provincias'])->where('departamento_id', $parent['id'])->sortBy('provincia')->values();
+    }
+
     public function normalize(array $data): array
     {
         $parent = null;

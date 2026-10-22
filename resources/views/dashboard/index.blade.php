@@ -1,6 +1,6 @@
 <x-layouts.app title="Dashboard">
     @if ($user?->isSuperAdmin())
-        <div class="space-y-6">
+        <div class="space-y-6"><a wire:navigate href="{{ route('admin.solicitudes.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-brand-700 dark:border-slate-700 dark:text-brand-300"><x-ui.icon name="building-plus" class="h-4 w-4" />Revisar solicitudes de acceso</a>
             <div class="flex flex-col gap-4 rounded-2xl border border-brand-100 bg-brand-50/60 px-5 py-5 sm:flex-row sm:items-end sm:justify-between dark:border-brand-900/50 dark:bg-brand-950/20">
                 <div class="border-l-4 border-brand-500 pl-4">
                     <p class="text-sm font-medium text-brand-700 dark:text-brand-300">Administración global</p>

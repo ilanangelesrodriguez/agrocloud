@@ -36,6 +36,7 @@ class PermisoController extends Controller
 
     public function edit(Permiso $permiso): View
     {
+        $permiso->load('roles')->loadCount('roles');
         return view('permisos.edit', compact('permiso'));
     }
 

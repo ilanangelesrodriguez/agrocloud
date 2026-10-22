@@ -22,6 +22,7 @@
     let uploadBusy = false;
 
     function notify(message, type = 'success') {
+        if (type !== 'info') document.dispatchEvent(new CustomEvent('agrocloud:toast', { detail: { message, type } }));
         notification.textContent = message;
         notification.className = `rounded-xl border px-4 py-3 text-sm ${type === 'success'
             ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200'
@@ -122,6 +123,25 @@
             total.textContent = String(data.evidencias_count);
         }
         if (analyzed) analyzed.textContent = String(list.querySelectorAll('[data-evidencia-id][data-analyzed="1"]').length);
+        const count = list.querySelectorAll('[data-evidencia-id]').length;
+        const done = list.querySelectorAll('[data-analyzed="1"]').length;
+        const progress = root.querySelector('[data-analysis-progress]');
+        if (progress) { progress.max = Math.max(1, count); progress.value = done; }
+        const progressLabel = root.querySelector('[data-analysis-progress-label]');
+        if (progressLabel) progressLabel.textContent = `${done} de ${count} fotografías analizadas con IA. La revisión humana es una etapa independiente.`;
+        const cards = [...list.querySelectorAll('[data-evidencia-id]')];
+        const reviewNext = root.querySelector('[data-validation-next]');
+        if (reviewNext && count > 0) { reviewNext.removeAttribute('aria-disabled'); reviewNext.removeAttribute('tabindex'); reviewNext.classList.remove('pointer-events-none', 'opacity-50'); reviewNext.querySelector('[data-validation-next-label]').textContent = 'Continuar revisión humana'; }
+        const covered = new Set(cards.map(card => card.dataset.frutoId).filter(Boolean)).size;
+        const fruitTotal = Number(root.querySelector('[data-fruit-total]')?.textContent || 0);
+        const human = cards.filter(card => card.dataset.reviewed === '1').length;
+        if (root.querySelector('[data-fruit-covered]')) root.querySelector('[data-fruit-covered]').textContent = String(covered);
+        if (root.querySelector('[data-fruit-missing]')) root.querySelector('[data-fruit-missing]').textContent = String(Math.max(0, fruitTotal - covered));
+        if (root.querySelector('[data-human-reviewed]')) root.querySelector('[data-human-reviewed]').textContent = String(human);
+        if (root.querySelector('[data-human-total]')) root.querySelector('[data-human-total]').textContent = String(count);
+        const fruitProgress = root.querySelector('[data-fruit-progress]'); if (fruitProgress) fruitProgress.value = covered;
+        const humanProgress = root.querySelector('[data-human-progress]'); if (humanProgress) { humanProgress.max = Math.max(1, count); humanProgress.value = human; }
+        root.querySelectorAll('[data-fruit-pick]').forEach(button => { button.hidden = cards.some(card => card.dataset.frutoNumero === button.dataset.fruitPick); });
     }
 
     function clearPreview(form) {
@@ -152,12 +172,37 @@
         });
     }
 
+    function useFile(form, files) {
+        if (!files?.length) return;
+        if (uploadBusy || root.dataset.analysisBusy === '1') { notify('Espera a que termine el proceso actual.', 'info'); return; }
+        if (files.length !== 1) { notify('Selecciona una fotografía por vez para conservar su vínculo con el fruto.', 'error'); return; }
+        const input = form.querySelector('[data-file-input]');
+        try { const transfer = new DataTransfer(); transfer.items.add(files[0]); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true })); }
+        catch (_) { notify('Utiliza el selector de archivos de tu navegador.', 'error'); }
+    }
+    for (const form of uploadForms) {
+        form.querySelector('[data-camera-input]')?.addEventListener('change', event => useFile(form, event.target.files));
+        const dropzone = form.querySelector('[data-photo-dropzone]');
+        dropzone?.addEventListener('dragover', event => { event.preventDefault(); dropzone.classList.add('ring-2', 'ring-emerald-500'); });
+        dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('ring-2', 'ring-emerald-500'));
+        dropzone?.addEventListener('drop', event => { event.preventDefault(); dropzone.classList.remove('ring-2', 'ring-emerald-500'); useFile(form, event.dataTransfer.files); });
+    }
+    root.addEventListener('click', event => {
+        const fruit = event.target.closest('[data-fruit-pick]');
+        if (fruit) { const input = root.querySelector('[name=numero_fruto]'); if (input) { input.value = fruit.dataset.fruitPick; input.dispatchEvent(new Event('input', { bubbles: true })); input.focus(); } return; }
+        const button = event.target.closest('[data-photo-view]');
+        if (!button) return;
+        const card = button.closest('[data-evidencia-id]');
+        card.querySelectorAll('[data-photo-panel]').forEach(panel => panel.classList.toggle('hidden', panel.dataset.photoPanel !== button.dataset.photoView));
+        card.querySelectorAll('[data-photo-view]').forEach(control => control.setAttribute('aria-pressed', String(control === button)));
+    });
+
     root.addEventListener('submit', async event => {
         const form = event.target;
         if (!(form instanceof HTMLFormElement)) return;
         if (form.matches('[data-upload-form]')) {
             event.preventDefault();
-            if (uploadBusy) return;
+            if (uploadBusy || root.dataset.analysisBusy === '1') return;
             const file = form.querySelector('[data-file-input]')?.files?.[0];
             if (!file) return;
             uploadBusy = true;
@@ -165,6 +210,7 @@
             buttons.forEach(button => { button.disabled = true; });
             const progress = form.querySelector('[data-upload-progress]');
             if (progress) { progress.textContent = 'Preparando fotografía…'; progress.classList.remove('hidden'); }
+            let automaticAnalysis = null;
             try {
                 const optimized = await optimizeImage(file);
                 if (optimized.size > MAX_SERVER_BYTES) throw new Error('La imagen supera el límite de 3 MiB.');
@@ -174,6 +220,8 @@
                 notify('Guardando evidencia; no cierres esta pestaña.', 'info');
                 const result = await sendForm(form, payload);
                 replaceEvidence(result, true);
+                automaticAnalysis = [...list.querySelectorAll('[data-evidencia-id]')]
+                    .find(card => card.dataset.evidenciaId === String(result.evidencia_id))?.querySelector('[data-ia-form]');
                 form.reset();
                 clearPreview(form);
                 notify(result.message || 'Fotografía guardada.');
@@ -185,6 +233,7 @@
                 uploadBusy = false;
                 buttons.forEach(button => { button.disabled = false; });
             }
+            if (automaticAnalysis?.isConnected && root.dataset.analysisBusy !== '1') automaticAnalysis.requestSubmit();
             return;
         }
 
@@ -198,6 +247,7 @@
             const analysisButtons = [...root.querySelectorAll('[data-ia-form] button[type="submit"]')];
             const uploadButtons = [...root.querySelectorAll('[data-upload-button]')];
             const fileInputs = [...root.querySelectorAll('[data-file-input]')];
+            const previousDisabled = new Map([...analysisButtons, ...uploadButtons, ...fileInputs].map(control => [control, control.disabled]));
             analysisButtons.forEach(control => { control.disabled = true; });
             uploadButtons.forEach(control => { control.disabled = true; });
             fileInputs.forEach(control => { control.disabled = true; });
@@ -218,9 +268,7 @@
                     button.classList.remove('animate-pulse');
                 }
             } finally {
-                analysisButtons.forEach(control => { control.disabled = false; });
-                uploadButtons.forEach(control => { control.disabled = false; });
-                fileInputs.forEach(control => { control.disabled = false; });
+                previousDisabled.forEach((disabled, control) => { if (control.isConnected) control.disabled = disabled; });
                 root.dataset.analysisBusy = '0';
             }
         }

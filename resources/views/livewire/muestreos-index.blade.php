@@ -7,7 +7,7 @@
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Selecciona un lote y da seguimiento a sus muestras de inspección.</p>
             </div>
         </div>
-        @if(auth()->user()->hasPermission('muestreos.crear'))
+        @if(auth()->user()->rol?->codigo === 'INSPECTOR' && auth()->user()->hasPermission('muestreos.crear'))
             <a href="{{ route('muestreos.create') }}" wire:navigate class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
                 <x-ui.icon name="plus" class="h-4 w-4" /> Crear muestreo
             </a>
@@ -27,12 +27,8 @@
                     <x-ui.icon name="search" class="h-4 w-4" />Buscar
                 </span>
             </x-ui.button>
-            @if($filtro !== '')
-                <button type="button" wire:click="limpiarBusqueda" class="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">
-                    Limpiar
-                </button>
-            @endif
         </form>
+        <x-ui.operational-filters :estados="$estados" :productos="$productos" :can-clear="$filtro !== '' || trim($buscar) !== '' || $estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" :active="$estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" />
     </x-ui.card>
 
     <x-ui.card title="Muestreos registrados" description="Muestras vinculadas con lotes de tu empresa.">
@@ -52,7 +48,7 @@
                             <td class="px-3 py-3"><a href="{{ route('muestreos.show', $m->id_muestreo) }}" wire:navigate class="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline dark:text-brand-300">Ver detalle <x-ui.icon name="chevron-right" class="h-4 w-4" /></a></td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">No se encontraron muestreos para esta búsqueda.</td></tr>
+                        <tr><td colspan="6" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400"><x-ui.icon name="clipboard-list" class="mx-auto mb-3 h-7 w-7 text-slate-400" /><p class="font-semibold dark:text-slate-100">{{ $filtro || $estado || $producto || $desde || $hasta ? 'No hay coincidencias con estos filtros' : 'Todavía no hay muestreos registrados' }}</p><p class="mt-2">El inspector necesita un lote con recepción confirmada para iniciar la muestra.</p>@if(auth()->user()->rol?->codigo === 'INSPECTOR' && auth()->user()->hasPermission('muestreos.crear'))<a wire:navigate href="{{ route('muestreos.create') }}" class="mt-3 inline-flex font-semibold text-brand-700 dark:text-brand-300">Seleccionar lote y crear muestreo</a>@elseif(auth()->user()->hasPermission('recepciones.ver'))<a wire:navigate href="{{ route('recepciones.index') }}" class="mt-3 inline-flex font-semibold text-brand-700 dark:text-brand-300">Consultar recepciones</a>@endif</td></tr>
                     @endforelse
                 </tbody>
             </table>
