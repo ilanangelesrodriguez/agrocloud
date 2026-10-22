@@ -129,4 +129,30 @@ class OperationalWorkflowTest extends TestCase
         $this->get('/dashboard')->assertOk()->assertSee('Lotes disponibles para producción');
         $this->get('/reportes/operativos?desde=2026-10-12&hasta=2026-10-01')->assertRedirect()->assertSessionHasErrors('hasta');
     }
+    public function test_large_sample_generates_all_fruit_in_one_database_insert(): void
+    {
+        $company = $this->company('20777777777');
+        $inspector = $this->user('INSPECTOR', $company);
+        $lot = $this->lot($company, 'LOTE-GRANDE');
+        \App\Models\Recepcion::create(['id_empresa' => $company->id_empresa, 'id_lote' => $lot->id_lote,
+            'id_usuario' => $inspector->id_usuario, 'documento' => 'G-001', 'peso_recibido_kg' => 100, 'recibido_en' => now()]);
+        \Illuminate\Support\Facades\DB::enableQueryLog();
+        try {
+            $this->actingAs($inspector)->post('/muestreos', [
+                'id_lote' => $lot->id_lote, 'tamano_muestra' => 100000, 'metodo' => 'Aleatorio simple',
+                'protocolo' => 'Protocolo de prueba grande', 'criterio_muestra' => 'Cobertura del lote completo',
+                'seleccion_frutos' => 'Selección aleatoria distribuida',
+            ])->assertRedirect();
+            $inserts = collect(\Illuminate\Support\Facades\DB::getQueryLog())->filter(fn ($q) => str_contains(strtolower($q['query']), 'insert into frutos_muestra'));
+            $this->assertCount(1, $inserts);
+        } finally {
+            \Illuminate\Support\Facades\DB::disableQueryLog();
+            \Illuminate\Support\Facades\DB::flushQueryLog();
+        }
+        $sample = Muestreo::where('id_lote', $lot->id_lote)->firstOrFail();
+        $this->assertSame(100000, $sample->frutos()->count());
+        $this->assertSame('M'.$sample->id_muestreo.'-F100000', $sample->frutos()->where('numero', 100000)->firstOrFail()->codigo);
+        $this->assertSame('EN_MUESTREO', $lot->fresh()->estado->value);
+    }
+
 }

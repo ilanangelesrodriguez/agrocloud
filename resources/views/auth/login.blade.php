@@ -17,6 +17,7 @@
         </p>
     </div>
 
+    @if(session('status'))<p role="status" class="mb-5 rounded-xl bg-brand-50 p-4 text-sm text-brand-800 dark:bg-brand-950 dark:text-brand-200">{{ session('status') }}</p>@endif
     <form data-ajax-form method="POST" action="{{ route(\App\Constants\RouteNames::LOGIN_STORE) }}" class="space-y-5">
         @csrf
 
@@ -48,6 +49,7 @@
         </x-ui.button>
     </form>
 
+    <p class="mt-5 text-center text-sm"><a href="{{ route('password.request') }}" class="font-semibold text-brand-700 dark:text-brand-300 hover:underline">¿Olvidaste tu contraseña?</a></p>
     <p class="mt-6 text-center text-xs leading-5 text-slate-400">
         El acceso está limitado a usuarios activos de AgroCloud AI.
     </p>

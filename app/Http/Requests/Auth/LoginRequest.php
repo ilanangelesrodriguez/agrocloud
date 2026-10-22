@@ -41,7 +41,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         $credentials = [
-            'correo' => $this->string('correo')->toString(),
+            fn ($query) => $query->whereRaw('LOWER(TRIM(correo)) = ?', [$this->string('correo')->toString()]),
             'password' => $this->string('password')->toString(),
             'estado' => true,
         ];

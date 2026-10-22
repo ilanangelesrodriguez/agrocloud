@@ -33,6 +33,11 @@ function renderRows(container, notifications) {
         link.href = n.url;
         link.className = 'block rounded-xl p-3 transition hover:bg-slate-100 dark:hover:bg-slate-800 ' + (n.leida ? 'opacity-75' : 'bg-brand-50/50 dark:bg-brand-900/20');
         link.setAttribute('data-notification-item', '');
+        link.addEventListener('click', (event) => {
+            if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || !window.Livewire) return;
+            event.preventDefault();
+            window.Livewire.navigate(link.href);
+        });
         const heading = document.createElement('div');
         heading.className = 'flex flex-wrap items-center justify-between gap-2';
         const title = document.createElement('strong');
@@ -122,6 +127,8 @@ document.addEventListener('keydown', (event) => {
         root()?.querySelector('[data-notifications-toggle]')?.setAttribute('aria-expanded', 'false');
     }
 });
+document.addEventListener('notifications-read', refresh);
+
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh(); });
 window.addEventListener('focus', refresh);
 document.addEventListener('DOMContentLoaded', init);

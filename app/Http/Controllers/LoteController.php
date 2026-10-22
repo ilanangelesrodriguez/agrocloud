@@ -179,7 +179,8 @@ class LoteController extends Controller
         $protocolos = DB::table('eventos_trazabilidad')->where('id_empresa', $loteModel->id_empresa)->where('entidad', 'Muestreo')->where('evento', 'PROTOCOLO_MUESTREO')->whereIn('registro', $loteModel->muestreos->modelKeys())->orderByDesc('id')->get()->unique('registro')->mapWithKeys(fn ($e) => [$e->registro => json_decode($e->cambios, true)['protocolo'] ?? null]);
         $usuario = auth()->user();
         $accion = ['titulo' => 'Consulta el expediente', 'descripcion' => 'El lote conserva sus operaciones y decisiones para consulta.', 'url' => null, 'icono' => 'eye'];
-        if ($bloqueado) $accion = ['titulo' => 'Atender incidencias bloqueantes', 'descripcion' => 'El supervisor debe verificar y cerrar las incidencias altas o críticas antes de liberar el lote.', 'url' => route('incidencias.index', ['lote' => $loteModel->id_lote]), 'icono' => 'alert-triangle'];
+        if ($loteModel->estado === LoteEstado::ANULADO) $accion = ['titulo' => 'Lote anulado', 'descripcion' => 'Este lote no puede ingresar a recepción. Su expediente e historial permanecen disponibles.', 'url' => null, 'icono' => 'clipboard-list'];
+        elseif ($bloqueado) $accion = ['titulo' => 'Atender incidencias bloqueantes', 'descripcion' => 'El supervisor debe verificar y cerrar las incidencias altas o críticas antes de liberar el lote.', 'url' => route('incidencias.index', ['lote' => $loteModel->id_lote]), 'icono' => 'alert-triangle'];
         elseif (!$loteModel->recepcion && $loteModel->muestreos->isEmpty()) $accion = ['titulo' => 'Confirmar ingreso físico', 'descripcion' => 'Esta operación corresponde al personal de Recepción. El registro del lote no confirma su ingreso.', 'url' => $usuario->rol?->codigo === 'RECEPCION' && $usuario->hasPermission('recepciones.crear') && $usuario->hasPermission('recepciones.ver') ? route('recepciones.revisar', $loteModel->id_lote) : null, 'icono' => 'building'];
         elseif ($loteModel->muestreos->isEmpty()) $accion = ['titulo' => 'Crear muestreo', 'descripcion' => 'El lote tiene recepción confirmada. El inspector puede registrar la muestra y su protocolo.', 'url' => $usuario->rol?->codigo === 'INSPECTOR' && $usuario->hasPermission('muestreos.crear') ? route('muestreos.create', ['lote' => $loteModel->id_lote]) : null, 'icono' => 'clipboard-list'];
         elseif (!$ultimaInspeccion) $accion = ['titulo' => 'Iniciar inspección', 'descripcion' => 'El inspector debe iniciar la captura desde el muestreo registrado.', 'url' => $usuario->rol?->codigo === 'INSPECTOR' && $usuario->hasPermission('muestreos.ver') ? route('muestreos.show', $loteModel->muestreos->sortByDesc('id_muestreo')->first()->id_muestreo) : null, 'icono' => 'camera'];
@@ -202,7 +203,7 @@ class LoteController extends Controller
             ->forCurrentCompany()
             ->findOrFail($lote);
 
-        abort_if($loteModel->recepcion()->exists() || $loteModel->muestreos()->exists(), 422, 'El lote ya ingresó al flujo operativo. Sus datos se conservan para trazabilidad.');
+        abort_if($loteModel->estado === LoteEstado::ANULADO || $loteModel->recepcion()->exists() || $loteModel->muestreos()->exists(), 422, 'El lote ya ingresó al flujo operativo. Sus datos se conservan para trazabilidad.');
 
         $productores = Productor::query()
             ->forCurrentCompany()
@@ -231,7 +232,7 @@ class LoteController extends Controller
                 ->lockForUpdate()
                 ->findOrFail($lote);
 
-            abort_if($loteModel->recepcion()->exists() || $loteModel->muestreos()->exists(), 422, 'El lote ya ingresó al flujo operativo. Sus datos se conservan para trazabilidad.');
+            abort_if($loteModel->estado === LoteEstado::ANULADO || $loteModel->recepcion()->exists() || $loteModel->muestreos()->exists(), 422, 'El lote ya ingresó al flujo operativo. Sus datos se conservan para trazabilidad.');
 
             $data = $request->validate([
                 'id_productor' => [
@@ -325,53 +326,10 @@ class LoteController extends Controller
     }
 
 
-/**
- * Eliminar un lote que no tenga registros asociados.
- */
-public function destroy(int $lote): RedirectResponse
-{
-    $loteModel = Lote::query()
-        ->forCurrentCompany()
-        ->findOrFail($lote);
-
-    // Impedir la eliminación si el lote tiene muestreos.
-    if (
-        \Illuminate\Support\Facades\DB::table('muestreo')
-            ->where('id_lote', $loteModel->id_lote)
-            ->exists()
-    ) {
-        return redirect()
-            ->route('lotes.index')
-            ->with(
-                'error',
-                'No se puede eliminar este lote porque tiene muestreos asociados.'
-            );
+    /** La ruta histórica de eliminación ahora conserva el registro y su historial. */
+    public function destroy(int $lote): RedirectResponse
+    {
+        app(\App\Services\AnularLote::class)->ejecutar($lote);
+        return redirect()->route('lotes.index')->with('success', 'Lote anulado. Su historial se conserva para trazabilidad.');
     }
-
-    // Impedir la eliminación si el lote tiene dictámenes de calidad.
-    if (
-        \Illuminate\Support\Facades\DB::table('dictamen_calidad')
-            ->where('id_lote', $loteModel->id_lote)
-            ->exists()
-    ) {
-        return redirect()
-            ->route('lotes.index')
-            ->with(
-                'error',
-                'No se puede eliminar este lote porque tiene dictámenes de calidad asociados.'
-            );
-    }
-
-    $codigoLote = $loteModel->codigo_lote;
-
-    $loteModel->delete();
-
-    return redirect()
-        ->route('lotes.index')
-        ->with(
-            'success',
-            "El lote {$codigoLote} fue eliminado correctamente."
-        );
-}
-
 }

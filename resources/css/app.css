@@ -190,11 +190,11 @@ html.dark [data-theme-option][aria-pressed='true'] {
 /* --- AGROCLOUD DARK MODE: FIN --- */
 
 /* Los avisos de búsqueda no deben cambiar el centro vertical de los iconos. */
-.relative:has(> [data-search-input]) > .absolute {
-    top: 0;
+.relative:has(> [data-search-input]) > svg.absolute {
+    top: 1.375rem;
     bottom: auto;
-    height: 2.75rem;
-    translate: none;
+    height: 1rem;
+    translate: 0 -50%;
     transform: none;
 }
 

@@ -50,6 +50,26 @@ class User extends Authenticatable
         ];
     }
 
+    public function setCorreoAttribute(string $value): void
+    {
+        $this->attributes['correo'] = mb_strtolower(trim($value));
+    }
+
+    public function getEmailForPasswordReset(): string
+    {
+        return $this->correo;
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\ResetAccountPassword($token));
+    }
+
+    public function routeNotificationForMail($notification = null): string
+    {
+        return $this->correo;
+    }
+
     public function getAuthPasswordName(): string
     {
         return 'password_hash';

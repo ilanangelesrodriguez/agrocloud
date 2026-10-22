@@ -87,7 +87,7 @@
                         </div>
                         <div class="space-y-4 p-5">
                             <x-ui.input name="current_password" label="Contraseña actual *" type="password" autocomplete="current-password" required />
-                            <x-ui.input name="password" label="Nueva contraseña *" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required />
+                            <x-ui.input name="password" label="Nueva contraseña *" type="password" placeholder="Mínimo 12 caracteres, mayúsculas, minúsculas y números" autocomplete="new-password" required />
                             <x-ui.input name="password_confirmation" label="Confirmar nueva contraseña *" type="password" placeholder="Repite la contraseña" autocomplete="new-password" required />
                             <x-ui.button type="submit" class="w-full"><span class="inline-flex items-center gap-2"><x-ui.icon name="lock" class="h-4 w-4" />Cambiar contraseña</span></x-ui.button>
                         </div>

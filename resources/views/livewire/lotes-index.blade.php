@@ -28,6 +28,7 @@
         <x-ui.operational-filters :estados="$estados" :productos="$productos" :can-clear="$filtro !== '' || trim($buscar) !== '' || $estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" :active="$estado !== '' || $producto !== '' || $desde !== '' || $hasta !== ''" />
     </x-ui.card>
 
+    @error('lote')<p role="alert" class="text-sm text-red-600">{{ $message }}</p>@enderror
     <x-ui.card>
         <div class="mb-5">
             <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Listado de lotes</h2>
@@ -49,7 +50,10 @@
                             <td class="whitespace-nowrap px-4 py-4"><x-ui.state-badge :state="$estado" /></td>
                             <td class="whitespace-nowrap px-4 py-4"><div class="flex justify-end gap-2">
                                 @if (auth()->user()->hasPermission('lotes.ver'))<a href="{{ route('lotes.show', $lote->id_lote) }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"><x-ui.icon name="eye" class="h-4 w-4" />Ver</a>@endif
-                                @if (auth()->user()->hasPermission('lotes.editar') && !$lote->recepcion_exists && !$lote->muestreos_exists)<a href="{{ route('lotes.edit', $lote->id_lote) }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"><x-ui.icon name="pencil" class="h-4 w-4" />Editar</a>@endif
+                                @if (auth()->user()->hasPermission('lotes.editar') && $estado !== 'ANULADO' && !$lote->recepcion_exists && !$lote->muestreos_exists)<a href="{{ route('lotes.edit', $lote->id_lote) }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"><x-ui.icon name="pencil" class="h-4 w-4" />Editar</a>@endif
+                                @if(auth()->user()->hasPermission('lotes.eliminar') && $estado === 'PENDIENTE_RECEPCION' && !$lote->recepcion_exists && !$lote->muestreos_exists)
+                                    <button type="button" wire:click="anular({{ $lote->id_lote }})" wire:confirm="¿Anular este lote? No podrá recibirse y su historial se conservará." class="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 dark:border-red-800 dark:text-red-300">Anular</button>
+                                @endif
                             </div></td>
                         </tr>
                     @empty

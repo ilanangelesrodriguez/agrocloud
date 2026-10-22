@@ -52,8 +52,9 @@
                         @error('id_rol')<p class="text-sm text-red-600 dark:text-red-300">{{ $message }}</p>@enderror
                     @endif
                 </div>
-                <x-ui.input name="password" label="{{ $editing ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}" type="password" placeholder="{{ $editing ? 'Deja en blanco para conservarla' : 'Ingresa una contraseña segura' }}" :required="! $editing" autocomplete="new-password" />
-                <x-ui.input name="password_confirmation" label="{{ $editing ? 'Confirmar nueva contraseña' : 'Confirmar contraseña *' }}" type="password" placeholder="Repite la contraseña" :required="! $editing" autocomplete="new-password" />
+                <x-ui.input name="password" label="{{ $editing ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}" type="password" placeholder="{{ $editing ? 'Deja en blanco para conservarla' : 'Ingresa una contraseña segura' }}" :required="! $editing" autocomplete="new-password" minlength="12" maxlength="255" />
+                <p class="text-xs text-slate-500">Mínimo 12 caracteres, con mayúsculas, minúsculas y números.</p>
+                <x-ui.input name="password_confirmation" label="{{ $editing ? 'Confirmar nueva contraseña' : 'Confirmar contraseña *' }}" type="password" placeholder="Repite la contraseña" :required="! $editing" autocomplete="new-password" minlength="12" maxlength="255" />
             </div>
         </section>
     </div>

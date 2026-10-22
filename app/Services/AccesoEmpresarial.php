@@ -47,19 +47,30 @@ class AccesoEmpresarial
     {
         abort_unless(auth()->user()?->isSuperAdmin(), 403);
         if (!$this->correoDisponible()) return false;
-        $token = Str::random(64);
-        $s = DB::transaction(function () use ($id, $token) {
-            $s = SolicitudAcceso::lockForUpdate()->with(['usuario', 'empresa'])->findOrFail($id);
-            abort_unless($s->estado === 'APROBADA' && !$s->activada_en && $s->empresa?->estado && $s->usuario && !$s->usuario->estado, 422, 'La invitación no está disponible para esta solicitud.');
-            $s->fill(['invitacion_hash' => hash('sha256', $token), 'invitacion_expira_en' => now()->addHours(72), 'invitacion_enviada_en' => null, 'historial' => $this->auditar($s, 'INVITACION_GENERADA', 'Enlace temporal de un solo uso; los enlaces anteriores dejan de ser válidos.')])->save();
-            return $s;
-        });
         try {
-            $url = route('acceso.invitacion', ['solicitud' => $s->id, 'token' => $token]);
-            Mail::send('emails.invitacion-empresa', compact('s', 'url'), fn ($mail) => $mail->to($s->correo)->subject('Activa tu acceso empresarial a AgroCloud AI'));
-            SolicitudAcceso::whereKey($id)->where('invitacion_hash', hash('sha256', $token))->update(['invitacion_enviada_en' => now()]);
-            return true;
-        } catch (\Throwable $e) { report($e); return false; }
+            return DB::transaction(function () use ($id) {
+                $s = SolicitudAcceso::lockForUpdate()->with(['usuario', 'empresa'])->findOrFail($id);
+                abort_unless($s->estado === 'APROBADA' && !$s->activada_en && $s->empresa?->estado && $s->usuario && !$s->usuario->estado, 422, 'La invitación no está disponible para esta solicitud.');
+                $token = Str::random(64);
+                $s->fill(['invitacion_hash' => hash('sha256', $token), 'invitacion_expira_en' => now()->addHours(72),
+                    'historial' => $this->auditar($s, 'INVITACION_GENERADA', 'Enlace temporal de un solo uso. Sustituye el enlace anterior únicamente si el envío se completa.')])->save();
+                $url = route('acceso.invitacion', ['solicitud' => $s->id, 'token' => $token]);
+                // El bloqueo serializa reenvíos y activación. Si SMTP falla, se restaura
+                // el token anterior por rollback; nunca guardar tokens en texto plano.
+                Mail::send('emails.invitacion-empresa', compact('s', 'url'), fn ($mail) => $mail->to($s->correo)->subject('Activa tu acceso empresarial a AgroCloud AI'));
+                $s->fill(['invitacion_enviada_en' => now(), 'historial' => $this->auditar($s, 'INVITACION_ENVIADA', 'El transporte de correo aceptó el mensaje; no confirma su recepción.')])->save();
+                return true;
+            });
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            report($e);
+            DB::transaction(function () use ($id) {
+                $s = SolicitudAcceso::lockForUpdate()->findOrFail($id);
+                $s->update(['historial' => $this->auditar($s, 'INVITACION_ENVIO_FALLIDO', 'No se pudo completar el envío. Se conserva la invitación anterior y se puede reintentar.')]);
+            });
+            return false;
+        }
     }
 
     public function notificarRechazo(SolicitudAcceso $s): bool

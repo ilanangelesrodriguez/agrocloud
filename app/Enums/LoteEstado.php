@@ -14,6 +14,7 @@ enum LoteEstado: string
     case OBSERVADO = 'OBSERVADO';
     case RETENIDO = 'RETENIDO';
     case RECHAZADO = 'RECHAZADO';
+    case ANULADO = 'ANULADO';
 
     public function label(): string
     {
@@ -29,6 +30,7 @@ enum LoteEstado: string
             self::OBSERVADO => 'Observado',
             self::RETENIDO => 'Retenido por incidencia',
             self::RECHAZADO => 'Rechazado',
+            self::ANULADO => 'Anulado',
         };
     }
 }

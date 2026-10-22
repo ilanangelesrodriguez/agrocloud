@@ -65,14 +65,14 @@ class MuestreoController extends Controller
                 'estado' => 'REGISTRADO',
             ]);
             app(\App\Observers\OperationalObserver::class)->record($muestreo, 'PROTOCOLO_MUESTREO', $sampling);
-            $now = now();
-            for ($start = 1; $start <= $data['tamano_muestra']; $start += 500) {
-                $rows = [];
-                for ($n = $start; $n <= min($start + 499, $data['tamano_muestra']); $n++) {
-                    $rows[] = ['id_empresa' => $empresaId, 'id_muestreo' => $muestreo->id_muestreo, 'numero' => $n, 'codigo' => 'M'.$muestreo->id_muestreo.'-F'.str_pad((string) $n, 5, '0', STR_PAD_LEFT), 'created_at' => $now, 'updated_at' => $now];
-                }
-                \App\Models\FrutoMuestra::insert($rows);
-            }
+            // PostgreSQL genera la serie en el servidor: una inserción, sin 200 viajes
+            // a Neon ni mantener 100 000 modelos/filas en la memoria de PHP.
+            DB::insert(
+                "INSERT INTO frutos_muestra (id_empresa, id_muestreo, numero, codigo, created_at, updated_at)
+                 SELECT ?, ?, numero, ? || '-F' || LPAD(numero::text, GREATEST(5, LENGTH(numero::text)), '0'), ?, ?
+                 FROM generate_series(1, CAST(? AS integer)) AS frutos(numero)",
+                [$empresaId, $muestreo->id_muestreo, 'M'.$muestreo->id_muestreo, now(), now(), $data['tamano_muestra']]
+            );
             if ($lote->estado === LoteEstado::RECIBIDO) {
                 $lote->update(['estado' => LoteEstado::EN_MUESTREO]);
             }

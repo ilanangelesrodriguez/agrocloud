@@ -7,6 +7,8 @@ use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
+    use \App\Http\Requests\Concerns\NormalizesEmail;
+
     public function authorize(): bool
     {
         return (bool) $this->user()?->hasPermission('usuarios.crear');
@@ -28,9 +30,9 @@ class StoreUserRequest extends FormRequest
                 'email',
                 'regex:/^[^@\s]+@(?:[^@\s.]+\.)+[^@\s.]+$/u',
                 'max:255',
-                Rule::unique('usuario', 'correo'),
+                new \App\Rules\UniqueUserEmail,
             ],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'confirmed', ...\App\Support\PasswordPolicy::rules()],
             'telefono' => ['nullable', 'string', 'max:30', new \App\Rules\PhoneNumber],
             'cargo' => ['nullable', 'string', 'max:150'],
             'foto_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],

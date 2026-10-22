@@ -8,7 +8,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\{Rule, ValidationException};
-use Illuminate\Validation\Rules\Password;
 
 class SolicitudAccesoController extends Controller
 {
@@ -152,7 +151,7 @@ class SolicitudAccesoController extends Controller
     {
         abort_unless($service->habilitado(), 503);
         $data = $request->validate([
-            'password' => ['required', 'confirmed', 'max:255', Password::min(12)->mixedCase()->numbers()],
+            'password' => ['required', 'confirmed', ...\App\Support\PasswordPolicy::rules()],
         ]);
 
         DB::transaction(function () use ($solicitud, $token, $data) {

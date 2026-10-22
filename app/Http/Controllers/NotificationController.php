@@ -12,8 +12,7 @@ class NotificationController extends Controller
 {
     public function index(Request $request): View
     {
-        $notificaciones = $request->user()->notifications()->latest()->paginate(20);
-        return view('notificaciones.index', compact('notificaciones'));
+        return view('notificaciones.index');
     }
 
     public function feed(Request $request): JsonResponse
@@ -44,10 +43,7 @@ class NotificationController extends Controller
         $notification->markAsRead();
         $data = $notification->data;
         $url = (string) ($data['url'] ?? '');
-        // Impide redirecciones a otras páginas/sitios.
-        if (!str_starts_with($url, '/') || str_starts_with($url, '//') || str_contains($url, "\\")) {
-            $url = route('notificaciones.index');
-        }
+        $url = \App\Services\NotificationDestination::resolve($url);
         return redirect()->to($url);
     }
 
