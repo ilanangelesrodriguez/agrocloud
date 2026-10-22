@@ -5,7 +5,7 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "test": "node --test tests/frontend/empresa-form.test.cjs tests/frontend/theme.test.cjs"
+        "test": "node --test tests/frontend/empresa-form.test.cjs tests/frontend/theme.test.cjs tests/frontend/feedback.test.cjs"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

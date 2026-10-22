@@ -179,7 +179,7 @@ class UsuarioController extends Controller
 
     private function savedResponse(Request $request, string $message): RedirectResponse|JsonResponse
     {
-        if ($request->header('X-User-Module') === 'true' && $request->expectsJson()) {
+        if ($request->header('X-User-Module') === 'true') {
             return response()->json(['saved' => true, 'message' => $message]);
         }
 

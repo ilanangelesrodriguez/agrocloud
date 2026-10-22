@@ -14,6 +14,43 @@ import './operational-workspace';
 import './quality-decision';
 import './image-viewer';
 
+function showFormErrors(form, errors) {
+    form.querySelector('[data-form-errors]')?.remove();
+    form.querySelectorAll('[data-form-field-error]').forEach((message) => message.remove());
+    form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
+
+    const messages = [...new Set(Object.values(errors || {}).flatMap((value) => Array.isArray(value) ? value : [value]).filter(Boolean).map(String))];
+    if (messages.length) {
+        const summary = document.createElement('div');
+        summary.dataset.formErrors = '';
+        summary.setAttribute('role', 'alert');
+        summary.className = 'mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200';
+        const list = document.createElement('ul');
+        list.className = 'list-disc space-y-1 pl-5';
+        messages.forEach((message) => {
+            const item = document.createElement('li');
+            item.textContent = message;
+            list.append(item);
+        });
+        summary.append(list);
+        form.prepend(summary);
+    }
+
+    let first;
+    Object.entries(errors || {}).forEach(([name, fieldErrors]) => {
+        const input = form.elements.namedItem(name);
+        if (!input?.setAttribute) return;
+        input.setAttribute('aria-invalid', 'true');
+        const fieldMessage = document.createElement('p');
+        fieldMessage.dataset.formFieldError = name;
+        fieldMessage.className = 'mt-1 text-sm text-red-600 dark:text-red-300';
+        fieldMessage.textContent = (Array.isArray(fieldErrors) ? fieldErrors : [fieldErrors]).join(' ');
+        input.closest('div')?.append(fieldMessage);
+        first ||= input;
+    });
+    first?.focus();
+}
+
 let appListeners;
 let securitySubscribedChannel = null;
 const initializeApp = () => {
@@ -191,7 +228,7 @@ document.addEventListener('submit', async (event) => {
         };
 
         if (form.matches('[data-workspace-drawer-form], [data-workspace-inline-form]')) requestOptions.headers['X-Workspace-Drawer'] = 'true';
-        if (form.matches('[data-user-drawer-form], [data-user-inline-form]')) requestOptions.headers['X-User-Module'] = 'true';
+        if (form.matches('[data-user-drawer-form], [data-user-inline-form]') || form.closest('[data-user-drawer]')) requestOptions.headers['X-User-Module'] = 'true';
         if (form.matches('[data-catalog-modal-form], [data-catalog-inline-form]')) requestOptions.headers['X-Master-Module'] = 'true';
 
         if (method === 'GET') {
@@ -208,25 +245,15 @@ document.addEventListener('submit', async (event) => {
 
         if (response.status === 422 && response.headers.get('content-type')?.includes('application/json')) {
             const result = await response.json();
-            form.querySelector('[data-form-errors]')?.remove();
             const messages = [...new Set(Object.values(result.errors || { message: [result.message] }).flat().filter(Boolean))];
             showToast(messages.length ? messages : 'Revisa los datos ingresados.', 'error');
-            form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
-            let first;
-            Object.keys(result.errors || {}).forEach((name) => {
-                const input = form.elements.namedItem(name);
-                if (input?.setAttribute) { input.setAttribute('aria-invalid', 'true'); first ||= input; }
-            });
-            first?.focus();
+            showFormErrors(form, result.errors || { message: [result.message || 'Revisa los datos ingresados.'] });
             return;
         }
         if (!response.ok) {
             throw new Error(`El servidor respondió con ${response.status}.`);
         }
 
-        if (typeof window.Livewire?.navigate !== 'function') {
-            throw new Error('Livewire Navigate no está disponible.');
-        }
         if (response.headers.get('content-type')?.includes('application/json')) {
             const result = await response.json();
             if (result.updated && form.matches('[data-access-form]')) {
@@ -256,6 +283,9 @@ document.addEventListener('submit', async (event) => {
             navigating = true;
             window.Livewire.navigate(destination.href);
         } else {
+            if (typeof window.Livewire?.navigate !== 'function') {
+                throw new Error('Livewire Navigate no está disponible.');
+            }
             const html = new DOMParser().parseFromString(await response.text(), 'text/html');
             queueToasts(collectFlashToasts(html));
             navigating = true;

@@ -16,6 +16,17 @@ class LoginRequest extends FormRequest
         return true;
     }
 
+    /**
+     * El formulario público ya guarda el correo en minúsculas.
+     * Se aplica la misma normalización al login y a su rate limiter.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('correo'))) {
+            $this->merge(['correo' => mb_strtolower(trim($this->input('correo')))]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -30,16 +41,15 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         $credentials = [
-            'correo' => trim($this->string('correo')->toString()),
+            'correo' => $this->string('correo')->toString(),
             'password' => $this->string('password')->toString(),
             'estado' => true,
         ];
 
-        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
+        if (!Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
-
             throw ValidationException::withMessages([
-                'correo' => 'Las credenciales ingresadas no son correctas o el usuario está inactivo.',
+                'correo' => 'No se pudo iniciar sesión. Comprueba el correo y contraseña; si recibiste una invitación, activa primero la cuenta desde su enlace.',
             ]);
         }
 
@@ -48,14 +58,12 @@ class LoginRequest extends FormRequest
 
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
         event(new Lockout($this));
-
         $seconds = RateLimiter::availableIn($this->throttleKey());
-
         throw ValidationException::withMessages([
             'correo' => "Demasiados intentos. Vuelve a intentarlo en {$seconds} segundos.",
         ]);
