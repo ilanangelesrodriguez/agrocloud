@@ -14,7 +14,13 @@ test('E2E autenticado: navegar por dashboard, productores y lotes', async ({ pag
 test('E2E autenticado: registrar, buscar y editar un productor ficticio', async ({ page }) => {
     const suffix = String(Date.now()).slice(-9);
     const name = `Productor ficticio E2E ${suffix}`;
-    await page.goto('/productores/crear');
+    const response = await page.goto('/productores/crear/nuevo');
+
+    expect(response.status()).toBe(200);
+
+    await expect(
+        page.locator('[name="ruc"]')
+    ).toBeVisible();
     await page.locator('[name="ruc"]').fill(`10${suffix}`);
     await page.locator('[name="nombre_razon_social"]').fill(name);
     await page.locator('[name="fundo"]').fill('Fundo inicial QA');
