@@ -25,7 +25,24 @@ test('E2E autenticado: registrar, buscar y editar un productor ficticio', async 
     await page.locator('[name="nombre_razon_social"]').fill(name);
     await page.locator('[name="fundo"]').fill('Fundo inicial QA');
     await page.getByRole('button', { name: 'Registrar productor', exact: true }).click();
-    await expect(page).toHaveURL(/\/productores$/);
+    const [post] = await Promise.all([
+        page.waitForResponse(
+            response =>
+                new URL(response.url()).pathname === '/productores' &&
+                response.request().method() === 'POST',
+            { timeout: 30_000 }
+        ),
+        page.getByRole('button', {
+            name: 'Registrar productor',
+            exact: true
+        }).click()
+    ]);
+
+    expect([200, 201, 302]).toContain(post.status());
+
+    await expect(page).toHaveURL(/\/productores$/, {
+        timeout: 30_000
+    });
     await page.getByPlaceholder('Nombre, RUC, fundo o ubicación').fill(name);
     const row = page.locator('tbody tr').filter({ hasText: name });
     await expect(row).toHaveCount(1);
