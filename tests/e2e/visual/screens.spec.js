@@ -20,7 +20,9 @@ async function capture(page, info, url, mobile = false) {
 test('Visual: dashboard de empresa en escritorio', async ({ page }, info) => { await capture(page, info, '/dashboard'); });
 test('Visual: productores en escritorio', async ({ page }, info) => { await capture(page, info, '/productores'); });
 test('Visual: lotes en escritorio', async ({ page }, info) => { await capture(page, info, '/lotes'); });
-test('Visual: formulario de productor en móvil', async ({ page }, info) => { await capture(page, info, '/productores/crear', true); });
+test('Visual: formulario de productor en móvil', async ({ page }, info) => {
+    await capture(page, info, '/productores/crear/nuevo', true);
+});
 test('Visual: dashboard de empresa en móvil', async ({ page }, info) => { await capture(page, info, '/dashboard', true); });
 
 test.describe('Administración global', () => {
