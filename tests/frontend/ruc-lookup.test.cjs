@@ -74,7 +74,7 @@ test('un RUC incompleto no consulta y un error de red permite continuar', async 
     ui.changeRuc('20330791412');
     await ui.click();
     assert.equal(calls, 1);
-    assert.match(ui.status.textContent, /puedes continuar/);
+    assert.match(ui.status.textContent, /manualmente/);
     assert.equal(ui.query.disabled, false);
 });
 
