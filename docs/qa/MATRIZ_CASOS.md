@@ -61,3 +61,27 @@ Fuente: [catalogo_casos.json](../../scripts/qa/catalogo_casos.json). Los resulta
 | CP-FE-005 | Frontend | si no carga el catálogo los campos permanecen editables | DOM sintético | Media |
 | CP-FE-006 | Frontend | contador de descripción y error para logo demasiado grande | DOM sintético | Media |
 | CP-FE-007 | Frontend | los botones de tema sincronizan estado, etiqueta y preferencia guardada | DOM sintético | Media |
+| CP-RUC-001 | Verificación RUC | Agregar verificación tributaria sin alterar los registros existentes | Unitaria / SQLite aislado | Alta |
+| CP-RUC-002 | Verificación RUC | Reutilizar la consulta RUC y comparar cada razón social declarada | Unitaria / HTTP simulado | Alta |
+| CP-RUC-003 | Verificación RUC | Clasificar errores del proveedor sin exponer su respuesta interna | Unitaria / HTTP simulado | Alta |
+| CP-RUC-004 | Verificación RUC | Mantener pendiente una consulta sin conexión y permitir reintentar | Unitaria / HTTP simulado | Alta |
+| CP-RUC-005 | Verificación RUC | Descartar respuestas RUC inconsistentes o malformadas | Unitaria / HTTP simulado | Alta |
+| CP-RUC-006 | Verificación RUC | Evitar solicitudes externas sin clave o con RUC incompleto | Unitaria / HTTP simulado | Alta |
+| CP-RUC-007 | Verificación RUC | Separar el estado tributario de la coincidencia de razón social | Unitaria / HTTP simulado | Alta |
+| CP-FE-008 | Verificación RUC | Consulta muestra datos sin sobrescribirlos y permite aplicar explícitamente la razón social | DOM sintético | Alta |
+| CP-FE-009 | Verificación RUC | Descarta una respuesta cuando el usuario cambia el RUC durante la consulta | DOM sintético | Alta |
+| CP-FE-010 | Verificación RUC | Un RUC incompleto no consulta y un error de red permite continuar | DOM sintético | Alta |
+| CP-FE-011 | Verificación RUC | Consulta pública envía POST con CSRF sin exponer los datos en la URL | DOM sintético | Alta |
+| CP-E2E-004 | Interfaz | Errores nativos quedan junto a cada campo y se limpian al corregir, sin toast | E2E / Chromium | Alta |
+| CP-E2E-005 | Interfaz | Errores del servidor no se duplican y mantienen el texto seguro | E2E / Chromium | Alta |
+| CP-E2E-006 | Operación autenticada | E2E autenticado: navegar por dashboard, productores y lotes | E2E / Chromium | Alta |
+| CP-E2E-007 | Operación autenticada | E2E autenticado: registrar, buscar y editar un productor ficticio | E2E / Chromium | Alta |
+| CP-E2E-008 | Operación autenticada | E2E seguridad: impedir acceso a productor ajeno y administración global | E2E / Chromium | Alta |
+| CP-E2E-009 | Calidad visual | Visual: dashboard de empresa en escritorio | E2E / Chromium | Alta |
+| CP-E2E-010 | Calidad visual | Visual: productores en escritorio | E2E / Chromium | Alta |
+| CP-E2E-011 | Calidad visual | Visual: lotes en escritorio | E2E / Chromium | Alta |
+| CP-E2E-012 | Calidad visual | Visual: formulario de productor en móvil | E2E / Chromium | Alta |
+| CP-E2E-013 | Calidad visual | Visual: dashboard de empresa en móvil | E2E / Chromium | Alta |
+| CP-E2E-014 | Calidad visual | Visual: empresas en escritorio | E2E / Chromium | Alta |
+| CP-E2E-015 | Calidad visual | Visual: roles y permisos en escritorio | E2E / Chromium | Alta |
+| CP-E2E-016 | Calidad visual | Visual: solicitud de acceso en móvil | E2E / Chromium | Alta |

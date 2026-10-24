@@ -1668,6 +1668,545 @@
       ],
       "resultado_esperado": "Las aserciones del navegador se cumplen sin consultar una base de datos.",
       "evidencia": "reports/e2e.xml y trazas de Playwright si falla"
+    },
+    {
+      "id": "CP-RUC-001",
+      "requerimiento": "QA-RUC",
+      "titulo": "Agregar verificación tributaria sin alterar los registros existentes",
+      "modulo": "Verificación RUC",
+      "categoria": "Unitaria / SQLite aislado",
+      "prioridad": "Alta",
+      "test": "Tests\\Unit\\SunatMigrationTest::test_adds_nullable_verification_without_changing_existing_records",
+      "archivo": "tests/Unit/SunatMigrationTest.php",
+      "objetivo": "Agregar verificación tributaria sin alterar los registros existentes",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "SQLite en memoria disponible; no utilizar bases reales"
+      ],
+      "pasos": [
+        "Preparar registros en SQLite en memoria",
+        "Aplicar y revertir la migración aditiva",
+        "Comprobar los campos originales y las columnas nuevas"
+      ],
+      "resultado_esperado": "Los registros originales permanecen intactos y el estado de activación no se confunde con el estado tributario.",
+      "evidencia": "reports/unit.xml: clase, método y variantes de datos; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-RUC-002",
+      "requerimiento": "QA-RUC",
+      "titulo": "Reutilizar la consulta RUC y comparar cada razón social declarada",
+      "modulo": "Verificación RUC",
+      "categoria": "Unitaria / HTTP simulado",
+      "prioridad": "Alta",
+      "test": "Tests\\Unit\\SunatRucServiceTest::test_caches_provider_data_but_compares_each_declared_name_on_server",
+      "archivo": "tests/Unit/SunatRucServiceTest.php",
+      "objetivo": "Reutilizar la consulta RUC y comparar cada razón social declarada",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "HTTP simulado y caché en memoria; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar la respuesta HTTP simulada del escenario",
+        "Invocar la consulta o verificación de RUC",
+        "Comprobar resultado, caché y llamadas HTTP esperadas"
+      ],
+      "resultado_esperado": "Se cumple el comportamiento del método enlazado sin exponer credenciales ni consultar servicios reales.",
+      "evidencia": "reports/unit.xml: clase, método y variantes de datos; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-RUC-003",
+      "requerimiento": "QA-RUC",
+      "titulo": "Clasificar errores del proveedor sin exponer su respuesta interna",
+      "modulo": "Verificación RUC",
+      "categoria": "Unitaria / HTTP simulado",
+      "prioridad": "Alta",
+      "test": "Tests\\Unit\\SunatRucServiceTest::test_classifies_errors_without_exposing_provider_body",
+      "archivo": "tests/Unit/SunatRucServiceTest.php",
+      "objetivo": "Clasificar errores del proveedor sin exponer su respuesta interna",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "HTTP simulado y caché en memoria; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar la respuesta HTTP simulada del escenario",
+        "Invocar la consulta o verificación de RUC",
+        "Comprobar resultado, caché y llamadas HTTP esperadas"
+      ],
+      "resultado_esperado": "Se cumple el comportamiento del método enlazado sin exponer credenciales ni consultar servicios reales.",
+      "evidencia": "reports/unit.xml: clase, método y variantes de datos; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-RUC-004",
+      "requerimiento": "QA-RUC",
+      "titulo": "Mantener pendiente una consulta sin conexión y permitir reintentar",
+      "modulo": "Verificación RUC",
+      "categoria": "Unitaria / HTTP simulado",
+      "prioridad": "Alta",
+      "test": "Tests\\Unit\\SunatRucServiceTest::test_connection_failure_is_pending_and_can_be_retried",
+      "archivo": "tests/Unit/SunatRucServiceTest.php",
+      "objetivo": "Mantener pendiente una consulta sin conexión y permitir reintentar",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "HTTP simulado y caché en memoria; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar la respuesta HTTP simulada del escenario",
+        "Invocar la consulta o verificación de RUC",
+        "Comprobar resultado, caché y llamadas HTTP esperadas"
+      ],
+      "resultado_esperado": "Se cumple el comportamiento del método enlazado sin exponer credenciales ni consultar servicios reales.",
+      "evidencia": "reports/unit.xml: clase, método y variantes de datos; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-RUC-005",
+      "requerimiento": "QA-RUC",
+      "titulo": "Descartar respuestas RUC inconsistentes o malformadas",
+      "modulo": "Verificación RUC",
+      "categoria": "Unitaria / HTTP simulado",
+      "prioridad": "Alta",
+      "test": "Tests\\Unit\\SunatRucServiceTest::test_rejects_mismatched_or_malformed_responses",
+      "archivo": "tests/Unit/SunatRucServiceTest.php",
+      "objetivo": "Descartar respuestas RUC inconsistentes o malformadas",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "HTTP simulado y caché en memoria; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar la respuesta HTTP simulada del escenario",
+        "Invocar la consulta o verificación de RUC",
+        "Comprobar resultado, caché y llamadas HTTP esperadas"
+      ],
+      "resultado_esperado": "Se cumple el comportamiento del método enlazado sin exponer credenciales ni consultar servicios reales.",
+      "evidencia": "reports/unit.xml: clase, método y variantes de datos; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-RUC-006",
+      "requerimiento": "QA-RUC",
+      "titulo": "Evitar solicitudes externas sin clave o con RUC incompleto",
+      "modulo": "Verificación RUC",
+      "categoria": "Unitaria / HTTP simulado",
+      "prioridad": "Alta",
+      "test": "Tests\\Unit\\SunatRucServiceTest::test_missing_key_and_invalid_format_make_no_http_requests",
+      "archivo": "tests/Unit/SunatRucServiceTest.php",
+      "objetivo": "Evitar solicitudes externas sin clave o con RUC incompleto",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "HTTP simulado y caché en memoria; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar la respuesta HTTP simulada del escenario",
+        "Invocar la consulta o verificación de RUC",
+        "Comprobar resultado, caché y llamadas HTTP esperadas"
+      ],
+      "resultado_esperado": "Se cumple el comportamiento del método enlazado sin exponer credenciales ni consultar servicios reales.",
+      "evidencia": "reports/unit.xml: clase, método y variantes de datos; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-RUC-007",
+      "requerimiento": "QA-RUC",
+      "titulo": "Separar el estado tributario de la coincidencia de razón social",
+      "modulo": "Verificación RUC",
+      "categoria": "Unitaria / HTTP simulado",
+      "prioridad": "Alta",
+      "test": "Tests\\Unit\\SunatRucServiceTest::test_tax_status_is_separate_from_name_match",
+      "archivo": "tests/Unit/SunatRucServiceTest.php",
+      "objetivo": "Separar el estado tributario de la coincidencia de razón social",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "HTTP simulado y caché en memoria; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar la respuesta HTTP simulada del escenario",
+        "Invocar la consulta o verificación de RUC",
+        "Comprobar resultado, caché y llamadas HTTP esperadas"
+      ],
+      "resultado_esperado": "Se cumple el comportamiento del método enlazado sin exponer credenciales ni consultar servicios reales.",
+      "evidencia": "reports/unit.xml: clase, método y variantes de datos; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-FE-008",
+      "requerimiento": "QA-RUC",
+      "titulo": "Consulta muestra datos sin sobrescribirlos y permite aplicar explícitamente la razón social",
+      "modulo": "Verificación RUC",
+      "categoria": "DOM sintético",
+      "prioridad": "Alta",
+      "test": "consulta muestra datos sin sobrescribirlos y permite aplicar explícitamente la razón social",
+      "archivo": "tests/frontend/ruc-lookup.test.cjs",
+      "objetivo": "Consulta muestra datos sin sobrescribirlos y permite aplicar explícitamente la razón social",
+      "precondiciones": [
+        "Node.js instalado",
+        "DOM y HTTP simulados; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar el formulario y la respuesta simulada",
+        "Disparar la consulta o modificación de RUC",
+        "Comprobar datos, descarte de respuestas antiguas y estado de los controles"
+      ],
+      "resultado_esperado": "Se conservan los datos manuales, se descartan respuestas antiguas y la consulta pública usa POST con CSRF.",
+      "evidencia": "reports/frontend.xml: nombre del caso; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-FE-009",
+      "requerimiento": "QA-RUC",
+      "titulo": "Descarta una respuesta cuando el usuario cambia el RUC durante la consulta",
+      "modulo": "Verificación RUC",
+      "categoria": "DOM sintético",
+      "prioridad": "Alta",
+      "test": "descarta una respuesta cuando el usuario cambia el RUC durante la consulta",
+      "archivo": "tests/frontend/ruc-lookup.test.cjs",
+      "objetivo": "Descarta una respuesta cuando el usuario cambia el RUC durante la consulta",
+      "precondiciones": [
+        "Node.js instalado",
+        "DOM y HTTP simulados; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar el formulario y la respuesta simulada",
+        "Disparar la consulta o modificación de RUC",
+        "Comprobar datos, descarte de respuestas antiguas y estado de los controles"
+      ],
+      "resultado_esperado": "Se conservan los datos manuales, se descartan respuestas antiguas y la consulta pública usa POST con CSRF.",
+      "evidencia": "reports/frontend.xml: nombre del caso; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-FE-010",
+      "requerimiento": "QA-RUC",
+      "titulo": "Un RUC incompleto no consulta y un error de red permite continuar",
+      "modulo": "Verificación RUC",
+      "categoria": "DOM sintético",
+      "prioridad": "Alta",
+      "test": "un RUC incompleto no consulta y un error de red permite continuar",
+      "archivo": "tests/frontend/ruc-lookup.test.cjs",
+      "objetivo": "Un RUC incompleto no consulta y un error de red permite continuar",
+      "precondiciones": [
+        "Node.js instalado",
+        "DOM y HTTP simulados; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar el formulario y la respuesta simulada",
+        "Disparar la consulta o modificación de RUC",
+        "Comprobar datos, descarte de respuestas antiguas y estado de los controles"
+      ],
+      "resultado_esperado": "Se conservan los datos manuales, se descartan respuestas antiguas y la consulta pública usa POST con CSRF.",
+      "evidencia": "reports/frontend.xml: nombre del caso; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-FE-011",
+      "requerimiento": "QA-RUC",
+      "titulo": "Consulta pública envía POST con CSRF sin exponer los datos en la URL",
+      "modulo": "Verificación RUC",
+      "categoria": "DOM sintético",
+      "prioridad": "Alta",
+      "test": "consulta pública envía POST con CSRF sin exponer los datos en la URL",
+      "archivo": "tests/frontend/ruc-lookup.test.cjs",
+      "objetivo": "Consulta pública envía POST con CSRF sin exponer los datos en la URL",
+      "precondiciones": [
+        "Node.js instalado",
+        "DOM y HTTP simulados; sin consultas reales"
+      ],
+      "pasos": [
+        "Preparar el formulario y la respuesta simulada",
+        "Disparar la consulta o modificación de RUC",
+        "Comprobar datos, descarte de respuestas antiguas y estado de los controles"
+      ],
+      "resultado_esperado": "Se conservan los datos manuales, se descartan respuestas antiguas y la consulta pública usa POST con CSRF.",
+      "evidencia": "reports/frontend.xml: nombre del caso; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-004",
+      "requerimiento": "QA-UI",
+      "titulo": "Errores nativos quedan junto a cada campo y se limpian al corregir, sin toast",
+      "modulo": "Interfaz",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "errores nativos quedan junto a cada campo y se limpian al corregir, sin toast",
+      "archivo": "tests/e2e/form-validation.spec.js",
+      "objetivo": "Errores nativos quedan junto a cada campo y se limpian al corregir, sin toast",
+      "precondiciones": [
+        "Dependencias Playwright y Chromium instalados",
+        "Formulario aislado sin conexión a una base de datos"
+      ],
+      "pasos": [
+        "Cargar el formulario de prueba y el módulo de validación",
+        "Provocar errores nativos o del servidor y corregir campos",
+        "Comprobar mensajes asociados, foco y ausencia de toasts"
+      ],
+      "resultado_esperado": "Los errores aparecen debajo del campo, se limpian al corregirlo y no se duplican ni se interpretan como HTML.",
+      "evidencia": "reports/e2e.xml: nombre del caso; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-005",
+      "requerimiento": "QA-UI",
+      "titulo": "Errores del servidor no se duplican y mantienen el texto seguro",
+      "modulo": "Interfaz",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "errores del servidor no se duplican y mantienen el texto seguro",
+      "archivo": "tests/e2e/form-validation.spec.js",
+      "objetivo": "Errores del servidor no se duplican y mantienen el texto seguro",
+      "precondiciones": [
+        "Dependencias Playwright y Chromium instalados",
+        "Formulario aislado sin conexión a una base de datos"
+      ],
+      "pasos": [
+        "Cargar el formulario de prueba y el módulo de validación",
+        "Provocar errores nativos o del servidor y corregir campos",
+        "Comprobar mensajes asociados, foco y ausencia de toasts"
+      ],
+      "resultado_esperado": "Los errores aparecen debajo del campo, se limpian al corregirlo y no se duplican ni se interpretan como HTML.",
+      "evidencia": "reports/e2e.xml: nombre del caso; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-006",
+      "requerimiento": "QA-E2E",
+      "titulo": "E2E autenticado: navegar por dashboard, productores y lotes",
+      "modulo": "Operación autenticada",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "E2E autenticado: navegar por dashboard, productores y lotes",
+      "archivo": "tests/e2e/internal/operations.spec.js",
+      "objetivo": "E2E autenticado: navegar por dashboard, productores y lotes",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "El recorrido funciona y los recursos de otra empresa o de administración global quedan protegidos.",
+      "evidencia": "reports/e2e-autenticado.xml y reports/browser/autenticado/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-007",
+      "requerimiento": "QA-E2E",
+      "titulo": "E2E autenticado: registrar, buscar y editar un productor ficticio",
+      "modulo": "Operación autenticada",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "E2E autenticado: registrar, buscar y editar un productor ficticio",
+      "archivo": "tests/e2e/internal/operations.spec.js",
+      "objetivo": "E2E autenticado: registrar, buscar y editar un productor ficticio",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "El recorrido funciona y los recursos de otra empresa o de administración global quedan protegidos.",
+      "evidencia": "reports/e2e-autenticado.xml y reports/browser/autenticado/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-008",
+      "requerimiento": "QA-E2E",
+      "titulo": "E2E seguridad: impedir acceso a productor ajeno y administración global",
+      "modulo": "Operación autenticada",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "E2E seguridad: impedir acceso a productor ajeno y administración global",
+      "archivo": "tests/e2e/internal/operations.spec.js",
+      "objetivo": "E2E seguridad: impedir acceso a productor ajeno y administración global",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "El recorrido funciona y los recursos de otra empresa o de administración global quedan protegidos.",
+      "evidencia": "reports/e2e-autenticado.xml y reports/browser/autenticado/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-009",
+      "requerimiento": "QA-VIS",
+      "titulo": "Visual: dashboard de empresa en escritorio",
+      "modulo": "Calidad visual",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "Visual: dashboard de empresa en escritorio",
+      "archivo": "tests/e2e/visual/screens.spec.js",
+      "objetivo": "Visual: dashboard de empresa en escritorio",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "La pantalla carga con etiquetas accesibles y sin desbordamiento horizontal en el tamaño indicado.",
+      "evidencia": "reports/e2e-visual.xml y reports/browser/visual/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-010",
+      "requerimiento": "QA-VIS",
+      "titulo": "Visual: productores en escritorio",
+      "modulo": "Calidad visual",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "Visual: productores en escritorio",
+      "archivo": "tests/e2e/visual/screens.spec.js",
+      "objetivo": "Visual: productores en escritorio",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "La pantalla carga con etiquetas accesibles y sin desbordamiento horizontal en el tamaño indicado.",
+      "evidencia": "reports/e2e-visual.xml y reports/browser/visual/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-011",
+      "requerimiento": "QA-VIS",
+      "titulo": "Visual: lotes en escritorio",
+      "modulo": "Calidad visual",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "Visual: lotes en escritorio",
+      "archivo": "tests/e2e/visual/screens.spec.js",
+      "objetivo": "Visual: lotes en escritorio",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "La pantalla carga con etiquetas accesibles y sin desbordamiento horizontal en el tamaño indicado.",
+      "evidencia": "reports/e2e-visual.xml y reports/browser/visual/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-012",
+      "requerimiento": "QA-VIS",
+      "titulo": "Visual: formulario de productor en móvil",
+      "modulo": "Calidad visual",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "Visual: formulario de productor en móvil",
+      "archivo": "tests/e2e/visual/screens.spec.js",
+      "objetivo": "Visual: formulario de productor en móvil",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "La pantalla carga con etiquetas accesibles y sin desbordamiento horizontal en el tamaño indicado.",
+      "evidencia": "reports/e2e-visual.xml y reports/browser/visual/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-013",
+      "requerimiento": "QA-VIS",
+      "titulo": "Visual: dashboard de empresa en móvil",
+      "modulo": "Calidad visual",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "Visual: dashboard de empresa en móvil",
+      "archivo": "tests/e2e/visual/screens.spec.js",
+      "objetivo": "Visual: dashboard de empresa en móvil",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "La pantalla carga con etiquetas accesibles y sin desbordamiento horizontal en el tamaño indicado.",
+      "evidencia": "reports/e2e-visual.xml y reports/browser/visual/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-014",
+      "requerimiento": "QA-VIS",
+      "titulo": "Visual: empresas en escritorio",
+      "modulo": "Calidad visual",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "Visual: empresas en escritorio",
+      "archivo": "tests/e2e/visual/screens.spec.js",
+      "objetivo": "Visual: empresas en escritorio",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "La pantalla carga con etiquetas accesibles y sin desbordamiento horizontal en el tamaño indicado.",
+      "evidencia": "reports/e2e-visual.xml y reports/browser/visual/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-015",
+      "requerimiento": "QA-VIS",
+      "titulo": "Visual: roles y permisos en escritorio",
+      "modulo": "Calidad visual",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "Visual: roles y permisos en escritorio",
+      "archivo": "tests/e2e/visual/screens.spec.js",
+      "objetivo": "Visual: roles y permisos en escritorio",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "La pantalla carga con etiquetas accesibles y sin desbordamiento horizontal en el tamaño indicado.",
+      "evidencia": "reports/e2e-visual.xml y reports/browser/visual/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-E2E-016",
+      "requerimiento": "QA-VIS",
+      "titulo": "Visual: solicitud de acceso en móvil",
+      "modulo": "Calidad visual",
+      "categoria": "E2E / Chromium",
+      "prioridad": "Alta",
+      "test": "Visual: solicitud de acceso en móvil",
+      "archivo": "tests/e2e/visual/screens.spec.js",
+      "objetivo": "Visual: solicitud de acceso en móvil",
+      "precondiciones": [
+        "CI con identidad de Neon testing verificada",
+        "Fixtures ficticias y contraseña temporal preparadas",
+        "Frontend compilado y Chromium instalado"
+      ],
+      "pasos": [
+        "Iniciar sesión sin grabar credenciales",
+        "Abrir la pantalla o realizar el recorrido indicado",
+        "Verificar aserciones y conservar la captura con su resultado"
+      ],
+      "resultado_esperado": "La pantalla carga con etiquetas accesibles y sin desbordamiento horizontal en el tamaño indicado.",
+      "evidencia": "reports/e2e-visual.xml y reports/browser/visual/; commit e ID de ejecución"
     }
   ]
 }

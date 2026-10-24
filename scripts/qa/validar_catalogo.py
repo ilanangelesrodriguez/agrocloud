@@ -15,7 +15,7 @@ def validate(root=Path('.')):
             actual.add(namespace + '\\' + classname + '::' + method)
     for path in (root / 'tests/frontend').glob('*.test.cjs'):
         actual.update(re.findall(r"\btest\('([^']+)'", path.read_text(encoding='utf-8')))
-    for path in (root / 'tests/e2e').glob('*.spec.js'):
+    for path in (root / 'tests/e2e').rglob('*.spec.js'):
         actual.update(re.findall(r"\btest\('([^']+)'", path.read_text(encoding='utf-8')))
     listed = {case['test'] for case in catalog}
     ids = {case['id'] for case in catalog}

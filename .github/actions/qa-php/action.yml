@@ -1,0 +1,16 @@
+name: PHP y dependencias reutilizables
+description: Prepara PHP 8.4 y reutiliza vendor según composer.lock.
+runs:
+  using: composite
+  steps:
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        extensions: mbstring, pdo_pgsql, pgsql, pdo_sqlite, dom, zip, gd, intl
+        coverage: pcov
+    - uses: actions/cache@v4
+      with:
+        path: vendor
+        key: composer-${{ runner.os }}-php84-${{ hashFiles('composer.lock') }}
+    - shell: bash
+      run: composer install --no-interaction --prefer-dist --no-progress

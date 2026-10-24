@@ -30,3 +30,4 @@ Thumbs.db
 /scripts/qa/__pycache__/
 /test-results/
 /playwright-report/
+/playwright/.auth/

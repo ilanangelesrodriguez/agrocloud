@@ -61,3 +61,27 @@ Las referencias `QA-*` son criterios internos de validación. No se presentan co
 | CP-FE-005 | QA-FE | [si no carga el catálogo los campos permanecen editables](../../tests/frontend/empresa-form.test.cjs) |
 | CP-FE-006 | QA-FE | [contador de descripción y error para logo demasiado grande](../../tests/frontend/empresa-form.test.cjs) |
 | CP-FE-007 | QA-FE | [los botones de tema sincronizan estado, etiqueta y preferencia guardada](../../tests/frontend/theme.test.cjs) |
+| CP-RUC-001 | QA-RUC | [test_adds_nullable_verification_without_changing_existing_records](../../tests/Unit/SunatMigrationTest.php) |
+| CP-RUC-002 | QA-RUC | [test_caches_provider_data_but_compares_each_declared_name_on_server](../../tests/Unit/SunatRucServiceTest.php) |
+| CP-RUC-003 | QA-RUC | [test_classifies_errors_without_exposing_provider_body](../../tests/Unit/SunatRucServiceTest.php) |
+| CP-RUC-004 | QA-RUC | [test_connection_failure_is_pending_and_can_be_retried](../../tests/Unit/SunatRucServiceTest.php) |
+| CP-RUC-005 | QA-RUC | [test_rejects_mismatched_or_malformed_responses](../../tests/Unit/SunatRucServiceTest.php) |
+| CP-RUC-006 | QA-RUC | [test_missing_key_and_invalid_format_make_no_http_requests](../../tests/Unit/SunatRucServiceTest.php) |
+| CP-RUC-007 | QA-RUC | [test_tax_status_is_separate_from_name_match](../../tests/Unit/SunatRucServiceTest.php) |
+| CP-FE-008 | QA-RUC | [consulta muestra datos sin sobrescribirlos y permite aplicar explícitamente la razón social](../../tests/frontend/ruc-lookup.test.cjs) |
+| CP-FE-009 | QA-RUC | [descarta una respuesta cuando el usuario cambia el RUC durante la consulta](../../tests/frontend/ruc-lookup.test.cjs) |
+| CP-FE-010 | QA-RUC | [un RUC incompleto no consulta y un error de red permite continuar](../../tests/frontend/ruc-lookup.test.cjs) |
+| CP-FE-011 | QA-RUC | [consulta pública envía POST con CSRF sin exponer los datos en la URL](../../tests/frontend/ruc-lookup.test.cjs) |
+| CP-E2E-004 | QA-UI | [errores nativos quedan junto a cada campo y se limpian al corregir, sin toast](../../tests/e2e/form-validation.spec.js) |
+| CP-E2E-005 | QA-UI | [errores del servidor no se duplican y mantienen el texto seguro](../../tests/e2e/form-validation.spec.js) |
+| CP-E2E-006 | QA-E2E | [E2E autenticado: navegar por dashboard, productores y lotes](../../tests/e2e/internal/operations.spec.js) |
+| CP-E2E-007 | QA-E2E | [E2E autenticado: registrar, buscar y editar un productor ficticio](../../tests/e2e/internal/operations.spec.js) |
+| CP-E2E-008 | QA-E2E | [E2E seguridad: impedir acceso a productor ajeno y administración global](../../tests/e2e/internal/operations.spec.js) |
+| CP-E2E-009 | QA-VIS | [Visual: dashboard de empresa en escritorio](../../tests/e2e/visual/screens.spec.js) |
+| CP-E2E-010 | QA-VIS | [Visual: productores en escritorio](../../tests/e2e/visual/screens.spec.js) |
+| CP-E2E-011 | QA-VIS | [Visual: lotes en escritorio](../../tests/e2e/visual/screens.spec.js) |
+| CP-E2E-012 | QA-VIS | [Visual: formulario de productor en móvil](../../tests/e2e/visual/screens.spec.js) |
+| CP-E2E-013 | QA-VIS | [Visual: dashboard de empresa en móvil](../../tests/e2e/visual/screens.spec.js) |
+| CP-E2E-014 | QA-VIS | [Visual: empresas en escritorio](../../tests/e2e/visual/screens.spec.js) |
+| CP-E2E-015 | QA-VIS | [Visual: roles y permisos en escritorio](../../tests/e2e/visual/screens.spec.js) |
+| CP-E2E-016 | QA-VIS | [Visual: solicitud de acceso en móvil](../../tests/e2e/visual/screens.spec.js) |
