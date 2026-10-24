@@ -11,7 +11,7 @@ class SolicitudAcceso extends Model
     protected $hidden = ['invitacion_hash'];
     protected function casts(): array
     {
-        return ['historial' => 'array', 'decidida_en' => 'datetime', 'invitacion_expira_en' => 'datetime', 'invitacion_enviada_en' => 'datetime', 'activada_en' => 'datetime'];
+        return ['sunat_verificacion' => 'array', 'historial' => 'array', 'decidida_en' => 'datetime', 'invitacion_expira_en' => 'datetime', 'invitacion_enviada_en' => 'datetime', 'activada_en' => 'datetime'];
     }
     public function empresa() { return $this->belongsTo(Empresa::class, 'id_empresa'); }
     public function usuario() { return $this->belongsTo(User::class, 'id_usuario'); }

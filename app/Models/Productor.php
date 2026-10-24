@@ -17,6 +17,7 @@ class Productor extends \Illuminate\Database\Eloquent\Model
     protected $fillable = [
         'id_empresa',
         'ruc',
+        'sunat_verificacion',
         'nombre_razon_social',
         'fundo',
         'ubicacion',
@@ -25,6 +26,11 @@ class Productor extends \Illuminate\Database\Eloquent\Model
         'distrito',
         'ubigeo',
     ];
+
+    protected function casts(): array
+    {
+        return ['sunat_verificacion' => 'array'];
+    }
 
     /**
      * Empresa a la que pertenece el productor.

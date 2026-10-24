@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active'])->group(function () {
 
+    Route::get('/consultas/ruc/productores', \App\Http\Controllers\ConsultaRucController::class)
+        ->middleware(['permission:productores.crear,productores.editar', 'throttle:15,1'])->name('productores.consulta-ruc');
+    Route::get('/consultas/ruc/empresa', \App\Http\Controllers\ConsultaRucController::class)
+        ->middleware(['permission:empresa.editar', 'throttle:15,1'])->name('empresa.consulta-ruc');
+    Route::get('/admin/consultas/ruc', \App\Http\Controllers\ConsultaRucController::class)
+        ->middleware(['superadmin', 'throttle:15,1'])->name('admin.consulta-ruc');
+
     /*
     |--------------------------------------------------------------------------
     | DASHBOARD

@@ -3,6 +3,8 @@
     @csrf
     @if ($producer) @method('PUT') @endif
     @include('inspecciones._mensajes')
+    <x-ui.ruc-lookup :endpoint="route('productores.consulta-ruc')" name-field="nombre_razon_social" />
+    @if($producer)<x-ui.sunat-status :verification="$producer->sunat_verificacion" />@endif
     <x-ui.card title="Datos del productor" description="Los campos con * son obligatorios.">
         <div class="grid gap-5 sm:grid-cols-[220px_minmax(0,1fr)]">
             <div>

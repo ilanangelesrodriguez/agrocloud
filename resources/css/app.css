@@ -27,6 +27,16 @@ html {
     color-scheme: light;
 }
 
+input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='true'] {
+    border-color: #ef4444 !important;
+    outline-color: #ef4444;
+}
+
+input[aria-invalid='true']:focus, select[aria-invalid='true']:focus, textarea[aria-invalid='true']:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgb(239 68 68 / 15%);
+}
+
 /* Desktop: sidebar fijo respecto al viewport, sin perder scroll en la pantalla principal. */
 .agrocloud-shell {
     --agrocloud-sidebar-width: 264px;

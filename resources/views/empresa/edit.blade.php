@@ -16,6 +16,8 @@
             <form method="POST" action="{{ route('empresa.update') }}" enctype="multipart/form-data" data-company-form data-ajax-form>
                 @csrf
                 @method('PUT')
+                <x-ui.ruc-lookup :endpoint="route('empresa.consulta-ruc')" />
+                <x-ui.sunat-status :verification="$empresa->sunat_verificacion" />
                 <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
                     <div class="min-w-0 space-y-5">
                         <section class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm" aria-labelledby="company-data-title">

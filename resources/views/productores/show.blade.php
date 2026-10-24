@@ -1,5 +1,6 @@
 <x-layouts.app title="Detalle del productor">
     <div class="space-y-5">
+        <x-ui.sunat-status :verification="$productorModel->sunat_verificacion" />
         <x-ui.back-link :href="route('productores.index')" label="Volver a productores" />
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>

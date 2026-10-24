@@ -39,6 +39,18 @@ class SolicitudAccesoController extends Controller
             'uso' => ['required', 'string', 'min:20', 'max:2000'],
             'consentimiento' => ['accepted'],
             'sitio_contacto' => ['nullable', 'max:0'],
+        ], [
+            'required' => 'Completa el campo :attribute.',
+            'max' => 'El campo :attribute no debe superar :max caracteres.',
+            'ruc.digits' => 'El RUC debe tener exactamente 11 dígitos.',
+            'correo.email' => 'Ingresa un correo electrónico válido.',
+            'uso.min' => 'Describe tu operación con al menos 20 caracteres.',
+            'tipo_empresa.in' => 'Selecciona un tipo de empresa de la lista.',
+            'consentimiento.accepted' => 'Debes autorizar el uso de tus datos para evaluar la solicitud.',
+        ], [
+            'ruc' => 'RUC', 'razon_social' => 'razón social', 'nombre_comercial' => 'nombre comercial',
+            'tipo_empresa' => 'tipo de empresa', 'nombre' => 'nombres', 'apellido' => 'apellidos',
+            'correo' => 'correo de contacto', 'telefono' => 'teléfono', 'uso' => 'descripción de la operación',
         ]);
         unset($data['consentimiento'], $data['sitio_contacto']);
 

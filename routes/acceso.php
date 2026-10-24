@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\SolicitudAccesoController as AdminSolicitudes;
 
 Route::middleware('guest')->group(function () {
     Route::get('/solicitar-acceso', [SolicitudAccesoController::class, 'crear'])->name('acceso.create');
+    Route::post('/solicitar-acceso/consulta-ruc', \App\Http\Controllers\ConsultaRucController::class)
+        ->middleware(['throttle:5,1', 'throttle:ruc-public'])->name('acceso.consulta-ruc');
     // Límite antiabuso por IP. Se aumenta de 3 a 10/h para redes compartidas;
     // los duplicados se controlan por RUC y correo en el servidor.
     Route::post('/solicitar-acceso', [SolicitudAccesoController::class, 'guardar'])->middleware('throttle:10,60')->name('acceso.store');

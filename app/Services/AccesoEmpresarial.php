@@ -19,8 +19,12 @@ class AccesoEmpresarial
     public function decidir(int $id, string $decision, string $motivo): SolicitudAcceso
     {
         abort_unless(auth()->user()?->isSuperAdmin(), 403);
-        return DB::transaction(function () use ($id, $decision, $motivo) {
+        // Query the provider before taking database locks or retrying a transaction.
+        $declared = SolicitudAcceso::findOrFail($id);
+        $verification = $decision === 'APROBADA' ? app(SunatRucService::class)->verificar($declared->ruc, $declared->razon_social) : null;
+        return DB::transaction(function () use ($id, $decision, $motivo, $declared, $verification) {
             $s = SolicitudAcceso::lockForUpdate()->findOrFail($id);
+            if ($s->ruc !== $declared->ruc || $s->razon_social !== $declared->razon_social) throw ValidationException::withMessages(['ruc' => 'La solicitud cambió durante la verificación. Actualiza e intenta nuevamente.']);
             if (in_array($s->estado, ['APROBADA', 'RECHAZADA'], true)) throw ValidationException::withMessages(['decision' => 'Esta solicitud ya fue decidida y no puede duplicarse.']);
             if ($decision === 'APROBADA') {
                 if (Empresa::where('ruc', $s->ruc)->exists()) throw ValidationException::withMessages(['ruc' => 'Ya existe una empresa con este RUC. Revisa su expediente antes de decidir.']);
@@ -29,6 +33,9 @@ class AccesoEmpresarial
                 if (!$rol) throw ValidationException::withMessages(['decision' => 'Configura un rol ADMIN activo antes de aprobar solicitudes.']);
                 app(MaestroCatalog::class)->validate(['tipo_empresa' => $s->tipo_empresa], ['tipo_empresa' => 'tipo_empresa'], null);
                 $empresa = Empresa::create(['ruc' => $s->ruc, 'razon_social' => $s->razon_social, 'nombre_comercial' => $s->nombre_comercial, 'tipo_empresa' => $s->tipo_empresa, 'correo' => $s->correo, 'telefono' => $s->telefono, 'estado' => true]);
+                $empresa->update(['sunat_verificacion' => $verification]);
+                $s->sunat_verificacion = $verification;
+                $s->historial = $this->auditar($s, 'CONSULTA_RUC', $verification['mensaje']);
                 $usuario = User::create(['id_empresa' => $empresa->id_empresa, 'id_rol' => $rol->id_rol, 'nombre' => $s->nombre, 'apellido' => $s->apellido, 'correo' => $s->correo, 'telefono' => $s->telefono, 'password_hash' => Str::random(64), 'estado' => false]);
                 $s->id_empresa = $empresa->id_empresa; $s->id_usuario = $usuario->id_usuario;
             }

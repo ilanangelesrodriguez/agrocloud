@@ -1,5 +1,6 @@
 <x-layouts.app title="Detalle de empresa">
     <div class="space-y-6">
+        <x-ui.sunat-status :verification="$empresa->sunat_verificacion" />
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div><x-ui.back-link :href="route('admin.empresas.index')" label="Regresar a empresas" /><p class="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-700 dark:text-brand-300">Tenant</p><h2 class="mt-2 text-2xl font-semibold text-slate-950 dark:text-slate-100">{{ $empresa->nombre_comercial }}</h2><p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $empresa->razon_social }} · RUC {{ $empresa->ruc }}</p></div>
             <div class="flex flex-wrap gap-2"><a wire:navigate href="{{ route('admin.empresas.usuarios.index', $empresa) }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700"><x-ui.icon name="users" class="h-4 w-4" />Usuarios</a><a wire:navigate href="{{ route('admin.empresas.edit', $empresa) }}" class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"><x-ui.icon name="pencil" class="h-4 w-4" />Editar empresa</a></div>

@@ -5,6 +5,7 @@ document.addEventListener('agrocloud:toast', (event) => {
     if (message) showToast(message, ['success', 'error', 'info'].includes(type) ? type : 'success');
 });
 import './search';
+import './ruc-lookup';
 import './masters';
 import './master-dialog';
 import './users';
@@ -14,42 +15,7 @@ import './operational-workspace';
 import './quality-decision';
 import './image-viewer';
 
-function showFormErrors(form, errors) {
-    form.querySelector('[data-form-errors]')?.remove();
-    form.querySelectorAll('[data-form-field-error]').forEach((message) => message.remove());
-    form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
-
-    const messages = [...new Set(Object.values(errors || {}).flatMap((value) => Array.isArray(value) ? value : [value]).filter(Boolean).map(String))];
-    if (messages.length) {
-        const summary = document.createElement('div');
-        summary.dataset.formErrors = '';
-        summary.setAttribute('role', 'alert');
-        summary.className = 'mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200';
-        const list = document.createElement('ul');
-        list.className = 'list-disc space-y-1 pl-5';
-        messages.forEach((message) => {
-            const item = document.createElement('li');
-            item.textContent = message;
-            list.append(item);
-        });
-        summary.append(list);
-        form.prepend(summary);
-    }
-
-    let first;
-    Object.entries(errors || {}).forEach(([name, fieldErrors]) => {
-        const input = form.elements.namedItem(name);
-        if (!input?.setAttribute) return;
-        input.setAttribute('aria-invalid', 'true');
-        const fieldMessage = document.createElement('p');
-        fieldMessage.dataset.formFieldError = name;
-        fieldMessage.className = 'mt-1 text-sm text-red-600 dark:text-red-300';
-        fieldMessage.textContent = (Array.isArray(fieldErrors) ? fieldErrors : [fieldErrors]).join(' ');
-        input.closest('div')?.append(fieldMessage);
-        first ||= input;
-    });
-    first?.focus();
-}
+import { showFormErrors } from './form-validation';
 
 let appListeners;
 let securitySubscribedChannel = null;
@@ -245,8 +211,6 @@ document.addEventListener('submit', async (event) => {
 
         if (response.status === 422 && response.headers.get('content-type')?.includes('application/json')) {
             const result = await response.json();
-            const messages = [...new Set(Object.values(result.errors || { message: [result.message] }).flat().filter(Boolean))];
-            showToast(messages.length ? messages : 'Revisa los datos ingresados.', 'error');
             showFormErrors(form, result.errors || { message: [result.message || 'Revisa los datos ingresados.'] });
             return;
         }
@@ -313,7 +277,7 @@ document.addEventListener('submit', (event) => {
     event.preventDefault();
     const data = new FormData(form);
     if (data.get('desde') > data.get('hasta')) {
-        showToast('La fecha final debe ser igual o posterior a la inicial.', 'error');
+        showFormErrors(form, { hasta: ['La fecha final debe ser igual o posterior a la inicial.'] });
         return;
     }
     const url = new URL(form.action);
@@ -340,30 +304,6 @@ document.addEventListener('livewire:navigating', () => {
         const input = document.getElementById(button.getAttribute('aria-controls'));
         if (input) input.type = 'password';
     });
-});
-
-// Keep browser validation, present its feedback consistently with server validation.
-let invalidFields = [];
-document.addEventListener('invalid', (event) => {
-    const input = event.target;
-    if (!input.closest('form[data-ajax-form]')) return;
-    event.preventDefault();
-    input.setAttribute('aria-invalid', 'true');
-    const label = input.labels?.[0]?.textContent.trim() || input.name;
-    const message = input.validity.valueMissing ? `Completa el campo ${label}.`
-        : input.validity.typeMismatch && input.type === 'email' ? 'Ingresa un correo electrónico válido.'
-        : `Revisa el campo ${label}.`;
-    invalidFields.push({ input, message });
-    if (invalidFields.length !== 1) return;
-    window.setTimeout(() => {
-        const fields = invalidFields;
-        invalidFields = [];
-        showToast([...new Set(fields.map((field) => field.message))], 'error');
-        fields[0].input.focus();
-    }, 0);
-}, true);
-document.addEventListener('input', (event) => {
-    if (event.target.closest('form[data-ajax-form]')) event.target.removeAttribute('aria-invalid');
 });
 
 // Broken company logos fall back to the application mark, without a broken-image icon.

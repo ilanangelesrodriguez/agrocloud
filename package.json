@@ -5,7 +5,7 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "test": "node --test tests/frontend/empresa-form.test.cjs tests/frontend/theme.test.cjs tests/frontend/feedback.test.cjs",
+        "test": "node --test tests/frontend/empresa-form.test.cjs tests/frontend/theme.test.cjs tests/frontend/feedback.test.cjs tests/frontend/ruc-lookup.test.cjs",
         "test:e2e": "playwright test"
     },
     "devDependencies": {
