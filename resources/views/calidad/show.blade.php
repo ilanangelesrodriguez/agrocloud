@@ -75,7 +75,7 @@
                             <p class="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">Se creó una nueva inspección para repetir el análisis; las evidencias anteriores permanecen guardadas.</p>
                         @endif
                     </x-ui.card>
-                @elseif($inspeccion->estado === 'VALIDADA' && auth()->user()->rol?->codigo === 'SUPERVISOR' && auth()->user()->hasPermission('calidad.clasificar') && $distintoInspector)
+                @elseif($inspeccion->estado === 'VALIDADA' && auth()->user()->rol?->codigo === 'SUPERVISOR' && auth()->user()->hasPermission('calidad.clasificar'))
                     <x-ui.card title="Emitir dictamen" description="La decisión libera, observa o rechaza el lote. La categoría comercial es una clasificación separada.">
                         <form data-ajax-form data-quality-decision data-quality-lot="{{ $inspeccion->muestreo->lote->codigo_lote }}" data-quality-supervisor="{{ auth()->user()->nombre_completo }}" data-confirm="Revisa la decisión y el protocolo antes de registrar el dictamen." data-confirm-title="Confirmar dictamen de calidad" data-confirm-label="Registrar dictamen" method="POST" action="{{ route('calidad.dictamen.store', $inspeccion->id_inspeccion) }}" class="space-y-4">
                             @csrf
