@@ -130,6 +130,7 @@ class ProductorController extends Controller
         */
 
         $validated = app(\App\Services\UbigeoService::class)->normalize($validated);
+        $validated['sunat_verificacion'] = app(\App\Services\SunatRucService::class)->verificar($validated['ruc'], $validated['nombre_razon_social']);
         $productor = Productor::create($validated);
         if ($request->header('X-Workspace-Drawer')) return response()->json(['saved' => true, 'module' => 'productores', 'message' => 'Productor registrado correctamente.', 'item' => ['id' => $productor->id_productor, 'label' => $productor->nombre_razon_social.' — RUC: '.$productor->ruc]]);
 
@@ -269,6 +270,7 @@ class ProductorController extends Controller
         }
 
         $validated = app(\App\Services\UbigeoService::class)->normalize($validated);
+        $validated['sunat_verificacion'] = app(\App\Services\SunatRucService::class)->verificar($validated['ruc'], $validated['nombre_razon_social']);
         $productorModel->update($validated);
         if ($request->header('X-Workspace-Drawer')) return response()->json(['saved' => true, 'module' => 'productores', 'message' => 'Productor actualizado correctamente.', 'item' => ['id' => $productorModel->id_productor, 'label' => $productorModel->nombre_razon_social.' — RUC: '.$productorModel->ruc]]);
 

@@ -2,6 +2,14 @@
 
 return [
 
+    'ruc' => [
+        'url' => env('RUC_API_URL', 'https://zodipe.com/api/v1/ruc'),
+        'key' => env('RUC_API_KEY'),
+        'cache_seconds' => (int) env('RUC_CACHE_SECONDS', 86400),
+        'ca_bundle' => env('RUC_CA_BUNDLE', env('CLOUDINARY_CA_BUNDLE')),
+        'public_daily_limit' => (int) env('RUC_PUBLIC_DAILY_LIMIT', 10),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

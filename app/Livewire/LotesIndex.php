@@ -45,6 +45,12 @@ class LotesIndex extends Component
         $this->resetPage();
     }
 
+    public function anular(int $id): void
+    {
+        app(\App\Services\AnularLote::class)->ejecutar($id);
+        session()->flash('success', 'Lote anulado. Se conserva su historial.');
+    }
+
     public function render()
     {
         $lotes = Lote::query()

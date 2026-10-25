@@ -1,0 +1,30 @@
+name: Laravel y navegador sobre testing
+description: Reutiliza la compilación y prepara únicamente la identidad de Neon testing autorizada.
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/qa-php
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+    - shell: bash
+      run: npm ci --no-audit --no-fund
+    - uses: actions/download-artifact@v4
+      with:
+        name: qa-build
+        path: public/build
+    - shell: bash
+      run: |
+        cp .env.example .env
+        php artisan config:clear
+        php scripts/qa/verificar_bd.php
+        password="$(openssl rand -base64 32)"
+        echo "::add-mask::$password"
+        echo "QA_E2E_PASSWORD=$password" >> "$GITHUB_ENV"
+    - uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+    - shell: bash
+      run: npx playwright install --with-deps chromium

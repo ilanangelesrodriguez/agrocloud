@@ -5,6 +5,7 @@ document.addEventListener('agrocloud:toast', (event) => {
     if (message) showToast(message, ['success', 'error', 'info'].includes(type) ? type : 'success');
 });
 import './search';
+import './ruc-lookup';
 import './masters';
 import './master-dialog';
 import './users';
@@ -13,6 +14,8 @@ import './workspace-drawer';
 import './operational-workspace';
 import './quality-decision';
 import './image-viewer';
+
+import { showFormErrors } from './form-validation';
 
 let appListeners;
 let securitySubscribedChannel = null;
@@ -177,10 +180,10 @@ document.addEventListener('submit', async (event) => {
     let navigating = false;
 
     try {
-        const method = (form.method || 'GET').toUpperCase();
+        const method = (event.submitter?.getAttribute('formmethod') || form.method || 'GET').toUpperCase();
         const formData = new FormData(form);
-        if (event.submitter?.name) formData.append(event.submitter.name, event.submitter.value);
-        const requestUrl = new URL(form.action, window.location.href);
+        if (event.submitter?.name) formData.set(event.submitter.name, event.submitter.value);
+        const requestUrl = new URL(event.submitter?.getAttribute('formaction') || form.action, window.location.href);
         const requestOptions = {
             method,
             credentials: 'same-origin',
@@ -191,7 +194,7 @@ document.addEventListener('submit', async (event) => {
         };
 
         if (form.matches('[data-workspace-drawer-form], [data-workspace-inline-form]')) requestOptions.headers['X-Workspace-Drawer'] = 'true';
-        if (form.matches('[data-user-drawer-form], [data-user-inline-form]')) requestOptions.headers['X-User-Module'] = 'true';
+        if (form.matches('[data-user-drawer-form], [data-user-inline-form]') || form.closest('[data-user-drawer]')) requestOptions.headers['X-User-Module'] = 'true';
         if (form.matches('[data-catalog-modal-form], [data-catalog-inline-form]')) requestOptions.headers['X-Master-Module'] = 'true';
 
         if (method === 'GET') {
@@ -208,25 +211,13 @@ document.addEventListener('submit', async (event) => {
 
         if (response.status === 422 && response.headers.get('content-type')?.includes('application/json')) {
             const result = await response.json();
-            form.querySelector('[data-form-errors]')?.remove();
-            const messages = [...new Set(Object.values(result.errors || { message: [result.message] }).flat().filter(Boolean))];
-            showToast(messages.length ? messages : 'Revisa los datos ingresados.', 'error');
-            form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
-            let first;
-            Object.keys(result.errors || {}).forEach((name) => {
-                const input = form.elements.namedItem(name);
-                if (input?.setAttribute) { input.setAttribute('aria-invalid', 'true'); first ||= input; }
-            });
-            first?.focus();
+            showFormErrors(form, result.errors || { message: [result.message || 'Revisa los datos ingresados.'] });
             return;
         }
         if (!response.ok) {
             throw new Error(`El servidor respondió con ${response.status}.`);
         }
 
-        if (typeof window.Livewire?.navigate !== 'function') {
-            throw new Error('Livewire Navigate no está disponible.');
-        }
         if (response.headers.get('content-type')?.includes('application/json')) {
             const result = await response.json();
             if (result.updated && form.matches('[data-access-form]')) {
@@ -256,6 +247,9 @@ document.addEventListener('submit', async (event) => {
             navigating = true;
             window.Livewire.navigate(destination.href);
         } else {
+            if (typeof window.Livewire?.navigate !== 'function') {
+                throw new Error('Livewire Navigate no está disponible.');
+            }
             const html = new DOMParser().parseFromString(await response.text(), 'text/html');
             queueToasts(collectFlashToasts(html));
             navigating = true;
@@ -283,7 +277,7 @@ document.addEventListener('submit', (event) => {
     event.preventDefault();
     const data = new FormData(form);
     if (data.get('desde') > data.get('hasta')) {
-        showToast('La fecha final debe ser igual o posterior a la inicial.', 'error');
+        showFormErrors(form, { hasta: ['La fecha final debe ser igual o posterior a la inicial.'] });
         return;
     }
     const url = new URL(form.action);
@@ -310,30 +304,6 @@ document.addEventListener('livewire:navigating', () => {
         const input = document.getElementById(button.getAttribute('aria-controls'));
         if (input) input.type = 'password';
     });
-});
-
-// Keep browser validation, present its feedback consistently with server validation.
-let invalidFields = [];
-document.addEventListener('invalid', (event) => {
-    const input = event.target;
-    if (!input.closest('form[data-ajax-form]')) return;
-    event.preventDefault();
-    input.setAttribute('aria-invalid', 'true');
-    const label = input.labels?.[0]?.textContent.trim() || input.name;
-    const message = input.validity.valueMissing ? `Completa el campo ${label}.`
-        : input.validity.typeMismatch && input.type === 'email' ? 'Ingresa un correo electrónico válido.'
-        : `Revisa el campo ${label}.`;
-    invalidFields.push({ input, message });
-    if (invalidFields.length !== 1) return;
-    window.setTimeout(() => {
-        const fields = invalidFields;
-        invalidFields = [];
-        showToast([...new Set(fields.map((field) => field.message))], 'error');
-        fields[0].input.focus();
-    }, 0);
-}, true);
-document.addEventListener('input', (event) => {
-    if (event.target.closest('form[data-ajax-form]')) event.target.removeAttribute('aria-invalid');
 });
 
 // Broken company logos fall back to the application mark, without a broken-image icon.

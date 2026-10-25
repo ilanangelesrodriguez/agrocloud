@@ -69,3 +69,30 @@ class ReportTests(unittest.TestCase):
         result = self.run_report('<testsuite><testcase classname="Example" name="test_one"/><testcase classname="Example" name="test_one"/></testsuite>')
         self.assertTrue(result['advertencias'])
         self.assertEqual(result['resultado'], 'Requiere revisión')
+
+    def test_visual_attachments_are_linked_to_their_case(self):
+        folder = self.root / 'out/browser/visual/assets'
+        folder.mkdir(parents=True)
+        (folder / 'screen.png').write_bytes(b'fixture-image')
+        (folder.parent / 'evidence.json').write_text(json.dumps({'cases': [{'test': 'Example::test_one', 'status': 'passed', 'files': [{'path': 'assets/screen.png'}]}]}), encoding='utf-8')
+        result = self.run_report('<testsuite><testcase classname="Example" name="test_one"/></testsuite>')
+        self.assertEqual(len(result['evidencias_visuales']), 1)
+        self.assertIn('browser/visual/assets/screen.png', (self.root / 'out/index.html').read_text(encoding='utf-8'))
+
+    def test_visual_attachment_cannot_escape_its_suite_directory(self):
+        folder = self.root / 'out/browser/visual'
+        folder.mkdir(parents=True)
+        (self.root / 'private.png').write_bytes(b'private')
+        (folder / 'evidence.json').write_text(json.dumps({'cases': [{'test': 'Example::test_one', 'status': 'passed', 'files': [{'path': '../../../private.png'}]}]}), encoding='utf-8')
+        result = self.run_report('<testsuite><testcase classname="Example" name="test_one"/></testsuite>')
+        self.assertFalse(result['evidencias_visuales'])
+        self.assertTrue(result['advertencias'])
+        self.assertEqual(result['resultado'], 'Requiere revisión')
+
+    def test_nested_playwright_titles_match_the_catalog(self):
+        catalog = json.loads(self.catalog.read_text(encoding='utf-8'))
+        catalog['casos'][0]['test'] = 'Pantalla visual'
+        self.catalog.write_text(json.dumps(catalog), encoding='utf-8')
+        result = self.run_report('<testsuite><testcase classname="screens.spec.js" name="Administración › Pantalla visual"/></testsuite>')
+        self.assertEqual(result['estados']['Aprobado'], 1)
+        self.assertEqual(result['estados']['No ejecutado'], 0)

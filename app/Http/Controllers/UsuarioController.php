@@ -57,8 +57,8 @@ class UsuarioController extends Controller
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $this->empresaId(), isset($usuario) ? $usuario->toArray() : []);
         $data['id_empresa'] = $this->empresaId();
-        $data['password_hash'] = $request->string('password')->toString();
-        $data['estado'] = $request->boolean('estado');
+        $data['password_hash'] = \Illuminate\Support\Str::random(64);
+        $data['estado'] = true;
         $uploaded = null;
 
         try {
@@ -68,7 +68,11 @@ class UsuarioController extends Controller
                 $data['foto_perfil_public_id'] = $uploaded['public_id'];
             }
 
-            $usuario = DB::transaction(fn () => User::query()->create($data));
+            $usuario = DB::transaction(function () use ($data) {
+                $user = User::query()->create($data);
+                $user->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64))])->save();
+                return $user;
+            });
         } catch (Throwable $e) {
             if ($uploaded) {
                 rescue(fn () => $cloudinary->deleteImage($uploaded['public_id']), report: true);
@@ -86,7 +90,7 @@ class UsuarioController extends Controller
 
         CompanySecurityUpdated::dispatch($data['id_empresa'], 'usuario', 'created', $usuario->id_usuario);
 
-        return $this->savedResponse($request, 'Usuario creado correctamente.');
+        return $this->savedResponse($request, 'Usuario creado. '.app(\App\Services\UserInvitation::class)->send($usuario));
     }
 
     public function edit(User $usuario): View
@@ -113,6 +117,11 @@ class UsuarioController extends Controller
 
         if ($request->filled('password')) {
             $data['password_hash'] = $request->string('password')->toString();
+        }
+
+        if ($usuario->invitation_hash && $data['correo'] !== $usuario->correo) {
+            // Un enlace enviado al correo anterior no debe verificar el nuevo correo.
+            $usuario->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64)), 'invitation_expires_at' => null]);
         }
 
         $oldPublicId = $usuario->foto_perfil_public_id;
@@ -179,7 +188,7 @@ class UsuarioController extends Controller
 
     private function savedResponse(Request $request, string $message): RedirectResponse|JsonResponse
     {
-        if ($request->header('X-User-Module') === 'true' && $request->expectsJson()) {
+        if ($request->header('X-User-Module') === 'true') {
             return response()->json(['saved' => true, 'message' => $message]);
         }
 

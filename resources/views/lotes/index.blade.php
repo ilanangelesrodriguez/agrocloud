@@ -285,7 +285,7 @@
                                             <form
                                                 method="POST"
                                                 action="{{ route('lotes.destroy', $lote->id_lote) }}"
-                                                onsubmit="return confirm('¿Estás seguro de que deseas eliminar el lote {{ $lote->codigo_lote }}? Esta acción no se puede deshacer.');"
+                                                onsubmit="return confirm('¿Estás seguro de que deseas anular el lote {{ $lote->codigo_lote }}? Se conservará su historial.');"
                                                 class="inline"
                                             >
                                                 @csrf
@@ -294,8 +294,8 @@
                                                 <button
                                                     type="submit"
                                                     class="inline-flex items-center justify-center rounded-lg border border-red-200 dark:border-red-900/50 bg-white dark:bg-slate-900 p-2 text-red-600 dark:text-red-400 transition hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 focus:outline-none focus:ring-4 focus:ring-red-100 dark:focus:ring-red-900/30"
-                                                    title="Eliminar lote"
-                                                    aria-label="Eliminar lote {{ $lote->codigo_lote }}"
+                                                    title="Anular lote"
+                                                    aria-label="Anular lote {{ $lote->codigo_lote }}"
                                                 >
                                                     <x-ui.icon name="trash" class="h-4 w-4" />
                                                 </button>

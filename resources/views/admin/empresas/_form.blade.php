@@ -2,6 +2,8 @@
 @php($empresaActual = $editing ? $empresa : null)
 
 <div class="space-y-6" data-company-form>
+    <x-ui.ruc-lookup :endpoint="route('admin.consulta-ruc')" />
+    @if($empresaActual)<x-ui.sunat-status :verification="$empresaActual->sunat_verificacion" />@endif
 
 
     <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">

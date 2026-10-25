@@ -66,6 +66,7 @@ class EmpresaAdminController extends Controller
     public function store(StoreCompanyRequest $request, CloudinaryService $cloudinary): RedirectResponse
     {
         $data = $request->safe()->except(['logo']);
+        $data['sunat_verificacion'] = app(\App\Services\SunatRucService::class)->verificar($data['ruc'], $data['razon_social']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['tipo_empresa' => 'tipo_empresa', 'rubro' => 'rubro', 'grupo_empresarial' => 'grupo'], null, isset($empresa) ? $empresa->toArray() : []);
         $data['estado'] = $request->boolean('estado');
         $upload = null;
@@ -136,6 +137,7 @@ class EmpresaAdminController extends Controller
         CloudinaryService $cloudinary,
     ): RedirectResponse {
         $data = $request->safe()->except(['logo']);
+        $data['sunat_verificacion'] = app(\App\Services\SunatRucService::class)->verificar($data['ruc'], $data['razon_social']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['tipo_empresa' => 'tipo_empresa', 'rubro' => 'rubro', 'grupo_empresarial' => 'grupo'], null, isset($empresa) ? $empresa->toArray() : []);
         $data['estado'] = $request->boolean('estado');
         $oldPublicId = $empresa->logo_public_id;

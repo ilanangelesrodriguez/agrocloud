@@ -7,6 +7,17 @@ use Tests\Support\DatabaseSafety;
 
 abstract class TestCase extends BaseTestCase
 {
+    public function actingAs(\Illuminate\Contracts\Auth\Authenticatable $user, $guard = null)
+    {
+        // Cambiar de identidad en una prueba equivale a iniciar otra sesión.
+        // Conservar el hash solo al seguir usando la misma cuenta permite probar
+        // que un cambio de contraseña invalida sus sesiones anteriores.
+        if ($this->app['auth']->guard($guard)->id() !== $user->getAuthIdentifier()) {
+            $this->app['session']->forget('password_hash_'.($guard ?? config('auth.defaults.guard')));
+        }
+        return parent::actingAs($user, $guard);
+    }
+
     public function createApplication()
     {
         $app = parent::createApplication();

@@ -1,11 +1,8 @@
-name: AgroCloud AI | Calidad y pruebas
+name: AgroCloud AI | Calidad, navegador y evidencias
 
-# Transición: ejecutar manualmente y comparar con phpunit.yml antes de activar push/PR.
 on:
   push:
-    branches:
-      - feature/ilan
-
+    branches: [feature/ilan]
   workflow_dispatch:
     inputs:
       cobertura:
@@ -16,38 +13,38 @@ on:
 permissions:
   contents: read
 
-# Comparte el bloqueo con el workflow anterior: una sola base Neon testing.
+# Un solo workflow utiliza Neon testing a la vez, incluidos los reintentos.
 concurrency:
   group: agrocloud-neon-testing
   cancel-in-progress: false
 
 jobs:
   calidad:
-    name: 01 · Calidad del código y pruebas unitarias
+    name: 01 · Calidad estática y dependencias
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mbstring, dom, zip, gd, intl
-          coverage: none
-      - name: Instalar dependencias PHP
-        run: composer install --no-interaction --prefer-dist --no-scripts
-      - name: Validar Composer y sintaxis PHP
+      - uses: ./.github/actions/qa-php
+      - name: Validar dependencias, sintaxis y formato QA
         run: |
           composer validate --strict
           find app config routes tests scripts/qa -name '*.php' -print0 | xargs -0 -n1 php -l
-      - name: Verificar formato de la infraestructura QA
-        run: vendor/bin/pint --test tests/Support tests/Unit/Support/DatabaseSafetyTest.php scripts/qa/verificar_bd.php
-      - name: Revisar vulnerabilidades de dependencias PHP
-        run: composer audit --locked --no-interaction
+          vendor/bin/pint --test tests/Support tests/Unit/Support/DatabaseSafetyTest.php scripts/qa/verificar_bd.php
+          composer audit --locked --no-interaction
       - name: Verificar catálogo y generador de informes
         run: |
           python3 scripts/qa/validar_catalogo.py
           python3 -m unittest discover -s scripts/qa -p 'test_*.py' -v
-      - name: Ejecutar pruebas unitarias sin conexión a Neon
+
+  unitarias:
+    name: 02 · Pruebas unitarias sin Neon
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/qa-php
+      - name: Ejecutar unitarias aisladas
         run: |
           mkdir -p reports
           vendor/bin/phpunit --testsuite Unitarias --log-junit reports/unitarias.xml
@@ -55,12 +52,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qa-unitarias
-          path: reports/*.xml
+          name: qa-resultados-unitarias
+          path: reports/unitarias.xml
           if-no-files-found: warn
 
   frontend:
-    name: 02 · Frontend y experiencia de interfaz
+    name: 03 · Frontend y compilación compartida
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -69,28 +66,32 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Instalar frontend
-        run: npm ci
-      - name: Revisar dependencias del frontend
-        run: npm audit --audit-level=high
-      - name: Compilar recursos de producción
+      - run: npm ci --no-audit --no-fund
+      - run: npm audit --audit-level=high
+      - name: Compilar una sola vez
         run: npm run build
-      - name: Ejecutar pruebas DOM existentes (sin navegador E2E)
+      - name: Compartir recursos compilados
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-build
+          path: public/build/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Comprobar interacciones frontend
         run: |
           mkdir -p reports
           node --test --test-reporter=junit --test-reporter-destination=reports/frontend.xml tests/frontend/*.test.cjs
-      - name: Guardar compilación y evidencia frontend
+      - name: Guardar evidencia frontend
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qa-frontend
-          path: |
-            public/build/
-            reports/*.xml
+          name: qa-resultados-frontend
+          path: reports/frontend.xml
           if-no-files-found: warn
 
   postgres:
-    name: 03 · PostgreSQL, funcionalidad y seguridad
+    name: 04 · PostgreSQL, funcionalidad y seguridad
+    needs: frontend
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -110,29 +111,23 @@ jobs:
       QUEUE_CONNECTION: sync
       MAIL_MAILER: array
       BROADCAST_CONNECTION: 'null'
+      RUC_API_KEY: ''
+      AGROCLOUD_AI_API_KEY: ''
+      CLOUDINARY_URL: ''
     steps:
       - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mbstring, pdo_pgsql, pgsql, dom, zip, gd, intl
-          coverage: pcov
-      - name: Instalar Laravel
-        run: composer install --no-interaction --prefer-dist
+      - uses: ./.github/actions/qa-php
       - name: Preparar entorno de pruebas
         run: |
           cp .env.example .env
           php artisan config:clear
           mkdir -p reports
-      - uses: actions/setup-node@v4
+      - uses: actions/download-artifact@v4
         with:
-          node-version: '22'
-          cache: npm
-      - name: Compilar vistas y frontend para Laravel
-        run: |
-          npm ci
-          npm run build
-          php artisan view:cache
+          name: qa-build
+          path: public/build
+      - name: Compilar vistas de Laravel
+        run: php artisan view:cache
       - name: Verificar conexión e identidad de Neon testing
         run: php scripts/qa/verificar_bd.php
       - name: Validar migraciones sobre Neon testing verificado
@@ -165,13 +160,145 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qa-postgres
+          name: qa-resultados-postgres
           path: reports/*.xml
           if-no-files-found: warn
 
+
+  navegador:
+    name: 05 · Navegador público
+    needs: frontend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/qa-php
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa-build
+          path: public/build
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      - name: Navegación pública sin credenciales de base de datos
+        run: npm run test:e2e
+      - name: Guardar informe y capturas públicas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-resultados-publico
+          path: |
+            reports/e2e-publico.xml
+            reports/browser/publico/
+          if-no-files-found: warn
+          retention-days: 30
+
+  autenticado:
+    name: 06 · E2E autenticado y aislamiento
+    needs: [postgres, frontend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APP_ENV: testing
+      APP_DEBUG: false
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      DB_CONNECTION: pgsql
+      DB_URL: ${{ secrets.NEON_TEST_DATABASE_URL }}
+      DB_SSLMODE: require
+      NEON_TEST_HOST: ${{ vars.NEON_TEST_HOST }}
+      NEON_PROD_HOST: ${{ vars.NEON_PROD_HOST }}
+      NEON_TEST_DATABASE: ${{ vars.NEON_TEST_DATABASE }}
+      NEON_TEST_USER: ${{ vars.NEON_TEST_USER }}
+      AGROCLOUD_ALLOW_PG_TESTS: '1'
+      SESSION_DRIVER: file
+      SESSION_SECURE_COOKIE: 'false'
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+      BROADCAST_CONNECTION: 'null'
+      RUC_API_KEY: ''
+      AGROCLOUD_AI_API_KEY: ''
+      CLOUDINARY_URL: ''
+      QA_BROWSER_SUITE: autenticado
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/qa-laravel
+      - name: Preparar datos ficticios sobre testing verificado
+        run: php scripts/qa/preparar_e2e.php
+      - name: Ejecutar recorridos autenticado
+        run: npx playwright test --config=playwright.auth.config.js
+      - name: Retirar las sesiones temporales
+        if: always()
+        run: rm -rf playwright/.auth
+      - name: Guardar capturas, trazas e informe de navegador
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-resultados-autenticado
+          path: |
+            reports/e2e-autenticado.xml
+            reports/browser/autenticado/
+          if-no-files-found: warn
+          retention-days: 30
+
+  visual:
+    name: 07 · Evidencias visuales, móvil y accesibilidad básica
+    needs: [autenticado, frontend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APP_ENV: testing
+      APP_DEBUG: false
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      DB_CONNECTION: pgsql
+      DB_URL: ${{ secrets.NEON_TEST_DATABASE_URL }}
+      DB_SSLMODE: require
+      NEON_TEST_HOST: ${{ vars.NEON_TEST_HOST }}
+      NEON_PROD_HOST: ${{ vars.NEON_PROD_HOST }}
+      NEON_TEST_DATABASE: ${{ vars.NEON_TEST_DATABASE }}
+      NEON_TEST_USER: ${{ vars.NEON_TEST_USER }}
+      AGROCLOUD_ALLOW_PG_TESTS: '1'
+      SESSION_DRIVER: file
+      SESSION_SECURE_COOKIE: 'false'
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+      BROADCAST_CONNECTION: 'null'
+      RUC_API_KEY: ''
+      AGROCLOUD_AI_API_KEY: ''
+      CLOUDINARY_URL: ''
+      QA_BROWSER_SUITE: visual
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/qa-laravel
+      - name: Preparar datos ficticios sobre testing verificado
+        run: php scripts/qa/preparar_e2e.php
+      - name: Ejecutar recorridos visual
+        run: npx playwright test --config=playwright.auth.config.js
+      - name: Retirar las sesiones temporales
+        if: always()
+        run: rm -rf playwright/.auth
+      - name: Guardar capturas, trazas e informe de navegador
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-resultados-visual
+          path: |
+            reports/e2e-visual.xml
+            reports/browser/visual/
+          if-no-files-found: warn
+          retention-days: 30
+
   informe:
-    name: 04 · Informe QA y evidencias
-    needs: [calidad, frontend, postgres]
+    name: 08 · Informe QA consolidado y galería
+    needs: [calidad, unitarias, frontend, postgres, navegador, autenticado, visual]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -181,19 +308,17 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          pattern: qa-*
+          pattern: qa-resultados-*
           path: qa-artifacts
-      - name: Consolidar evidencias JUnit
-        run: |
-          mkdir -p reports/evidencias
-          if [ -d qa-artifacts ]; then find qa-artifacts -name '*.xml' -exec cp {} reports/evidencias/ \; ; fi
-      - name: Generar informe en español y resumen de GitHub
+      - name: Reunir evidencias sin sobrescribir resultados
+        run: python3 scripts/qa/reunir_evidencias.py
+      - name: Generar informe HTML, CSV, JSON y resumen de GitHub
         env:
           QA_STAGES: ${{ toJSON(needs) }}
         run: |
           python3 -c 'import json,os; from pathlib import Path; Path("reports/etapas.json").write_text(json.dumps({k:v["result"] for k,v in json.loads(os.environ["QA_STAGES"]).items()}))'
           python3 scripts/qa/generar_reporte.py --etapas "$(cat reports/etapas.json)"
-      - name: Publicar artefacto del informe
+      - name: Publicar informe descargable con imágenes y trazas
         if: always()
         uses: actions/upload-artifact@v4
         with:

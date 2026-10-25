@@ -1,12 +1,41 @@
 let pendingToasts = [];
 let confirmation = null;
 
+/**
+ * Los <dialog>.showModal() se dibujan en la top layer del navegador.
+ * Un toast con z-index:999999 fuera de esa capa seguirá quedando debajo.
+ * Crear el host dentro del modal activo evita ese problema sin alterar
+ * la semántica del dialog, el foco ni el bloqueo de la página.
+ */
+function toastContainer() {
+    const globalHost = document.querySelector('[data-toast-container]');
+    if (!globalHost) return null;
+
+    const dialogs = [...document.querySelectorAll('dialog:modal')];
+    if (!dialogs.length) return globalHost;
+
+    // El foco normalmente está dentro del dialog en la top layer superior.
+    // Esto también cubre el diálogo de confirmación abierto sobre un drawer.
+    const focusedDialog = document.activeElement?.closest?.('dialog:modal');
+    const topDialog = focusedDialog || dialogs[dialogs.length - 1];
+    let localHost = topDialog.querySelector('[data-modal-toast-container]');
+    if (!localHost) {
+        localHost = document.createElement('div');
+        localHost.setAttribute('data-modal-toast-container', '');
+        localHost.setAttribute('aria-live', 'polite');
+        localHost.setAttribute('aria-atomic', 'false');
+        localHost.className = 'pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[calc(100%-2rem)] max-w-sm max-h-[calc(100dvh-2rem)] flex-col gap-3 overflow-y-auto pb-[env(safe-area-inset-bottom)]';
+        topDialog.append(localHost);
+    }
+    return localHost;
+}
+
 export function showToast(message, type = 'success') {
-    const container = document.querySelector('[data-toast-container]');
+    const container = toastContainer();
     if (!container) return;
     const toast = document.createElement('div');
     toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
-    toast.className = `flex items-start gap-3 rounded-xl border p-4 text-sm shadow-lg ${type === 'error'
+    toast.className = `pointer-events-auto flex items-start gap-3 rounded-xl border p-4 text-sm shadow-lg ${type === 'error'
         ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200'
         : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'}`;
     const messages = [...new Set((Array.isArray(message) ? message : String(message).split('\n')).map((value) => String(value).trim()).filter(Boolean))];
@@ -76,6 +105,24 @@ export function confirmForm(form, submitter) {
     accept.classList.toggle('hover:bg-brand-700', primary);
     dialog.showModal();
 }
+
+// Al cerrar un dialog, traslada los mensajes aún visibles al host global.
+// Evita perder errores al cerrar drawers rápidamente y conserva sus temporizadores.
+document.addEventListener('close', (event) => {
+    if (!event.target.matches?.('dialog')) return;
+    const localHost = event.target.querySelector('[data-modal-toast-container]');
+    if (!localHost) return;
+    // Si aún hay otro modal (p. ej. drawer bajo confirmación), usar su
+    // top layer en vez de enviar el mensaje detrás al contenedor global.
+    const destination = toastContainer();
+    if (destination && destination !== localHost) {
+        while (localHost.firstElementChild) {
+            while (destination.children.length >= 3) destination.firstElementChild.remove();
+            destination.append(localHost.firstElementChild);
+        }
+    }
+    localHost.remove();
+}, true);
 
 document.addEventListener('click', (event) => {
     const dialog = document.querySelector('[data-confirm-dialog]');

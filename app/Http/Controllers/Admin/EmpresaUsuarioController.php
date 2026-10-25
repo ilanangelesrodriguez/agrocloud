@@ -68,8 +68,8 @@ class EmpresaUsuarioController extends Controller
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $empresa->id_empresa, isset($usuario) ? $usuario->toArray() : []);
         $data['id_empresa'] = $empresa->id_empresa;
-        $data['password_hash'] = $request->string('password')->toString();
-        $data['estado'] = $request->boolean('estado');
+        $data['password_hash'] = \Illuminate\Support\Str::random(64);
+        $data['estado'] = true;
         $upload = null;
 
         try {
@@ -79,7 +79,11 @@ class EmpresaUsuarioController extends Controller
                 $data['foto_perfil_public_id'] = $upload['public_id'];
             }
 
-            $usuario = DB::transaction(fn () => User::query()->create($data));
+            $usuario = DB::transaction(function () use ($data) {
+                $user = User::query()->create($data);
+                $user->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64))])->save();
+                return $user;
+            });
         } catch (Throwable $e) {
             if ($upload) {
                 rescue(fn () => $cloudinary->deleteImage($upload['public_id']), report: true);
@@ -96,7 +100,7 @@ class EmpresaUsuarioController extends Controller
 
         return redirect()
             ->route('admin.empresas.usuarios.index', $empresa)
-            ->with('success', 'Usuario creado para '.$empresa->nombre_comercial.'.');
+            ->with('success', 'Usuario creado para '.$empresa->nombre_comercial.'. '.app(\App\Services\UserInvitation::class)->send($usuario));
     }
 
     public function edit(Empresa $empresa, User $usuario): View
@@ -120,6 +124,11 @@ class EmpresaUsuarioController extends Controller
 
         if ($request->filled('password')) {
             $data['password_hash'] = $request->string('password')->toString();
+        }
+
+        if ($usuario->invitation_hash && $data['correo'] !== $usuario->correo) {
+            // Un enlace enviado al correo anterior no debe verificar el nuevo correo.
+            $usuario->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64)), 'invitation_expires_at' => null]);
         }
 
         $oldPublicId = $usuario->foto_perfil_public_id;

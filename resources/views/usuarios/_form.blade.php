@@ -52,8 +52,16 @@
                         @error('id_rol')<p class="text-sm text-red-600 dark:text-red-300">{{ $message }}</p>@enderror
                     @endif
                 </div>
-                <x-ui.input name="password" label="{{ $editing ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}" type="password" placeholder="{{ $editing ? 'Deja en blanco para conservarla' : 'Ingresa una contraseña segura' }}" :required="! $editing" autocomplete="new-password" />
-                <x-ui.input name="password_confirmation" label="{{ $editing ? 'Confirmar nueva contraseña' : 'Confirmar contraseña *' }}" type="password" placeholder="Repite la contraseña" :required="! $editing" autocomplete="new-password" />
+                @if ($editing && !$usuario->invitation_hash)
+                <x-ui.input name="password" label="{{ $editing ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}" type="password" placeholder="{{ $editing ? 'Deja en blanco para conservarla' : 'Ingresa una contraseña segura' }}" :required="! $editing" autocomplete="new-password" minlength="12" maxlength="255" />
+                <p class="text-xs text-slate-500">Mínimo 12 caracteres, con mayúsculas, minúsculas y números.</p>
+                <x-ui.input name="password_confirmation" label="{{ $editing ? 'Confirmar nueva contraseña' : 'Confirmar contraseña *' }}" type="password" placeholder="Repite la contraseña" :required="! $editing" autocomplete="new-password" minlength="12" maxlength="255" />
+                @else
+                    <p class="text-sm text-slate-600 dark:text-slate-300 sm:col-span-2">{{ $editing ? 'Activación pendiente. Si cambias el correo, guarda los cambios y luego reenvía la invitación.' : 'Se enviará una invitación por correo.' }} El usuario creará su contraseña desde un enlace de un solo uso válido durante 72 horas. Hasta entonces no podrá ingresar.</p>
+                    @if ($editing)
+                        <button type="submit" name="_method" value="POST" formmethod="POST" formaction="{{ route('users.invitation.resend', $usuario) }}" formnovalidate class="text-sm font-semibold text-brand-700">Reenviar invitación</button>
+                    @endif
+                @endif
             </div>
         </section>
     </div>
@@ -83,7 +91,9 @@
 
         <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm" aria-labelledby="user-status-title">
             <h3 id="user-status-title" class="text-base font-semibold text-slate-900 dark:text-slate-100">Estado de la cuenta</h3>
-            @if ($isSelf)
+            @if (!$editing)
+                <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Pendiente de activación por correo.</p>
+            @elseif ($isSelf)
                 <input type="hidden" name="estado" value="1">
                 <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">Tu propia cuenta se mantiene activa desde esta pantalla. Para tus datos personales usa también <a href="{{ route('perfil.edit') }}" wire:navigate class="font-semibold text-brand-700 dark:text-brand-300">Mi perfil</a>.</p>
             @else
