@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SecurityAndCompanySeeder::class,
             InspectorWorkflowSeeder::class,
+            OperationalPermissionsSeeder::class,
         ]);
     }
 }

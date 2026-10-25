@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active'])->group(function () {
 
+    Route::get('/consultas/ruc/productores', \App\Http\Controllers\ConsultaRucController::class)
+        ->middleware(['permission:productores.crear,productores.editar', 'throttle:15,1'])->name('productores.consulta-ruc');
+    Route::get('/consultas/ruc/empresa', \App\Http\Controllers\ConsultaRucController::class)
+        ->middleware(['permission:empresa.editar', 'throttle:15,1'])->name('empresa.consulta-ruc');
+    Route::get('/admin/consultas/ruc', \App\Http\Controllers\ConsultaRucController::class)
+        ->middleware(['superadmin', 'throttle:15,1'])->name('admin.consulta-ruc');
+
     /*
     |--------------------------------------------------------------------------
     | DASHBOARD
@@ -71,7 +78,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->name('usuarios.')
         ->group(function () {
 
-            Route::get('/', [UsuarioController::class, 'index'])
+            Route::get('/', \App\Livewire\UsuariosIndex::class)
                 ->middleware('permission:usuarios.ver')
                 ->name('index');
 
@@ -82,6 +89,10 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/', [UsuarioController::class, 'store'])
                 ->middleware('permission:usuarios.crear')
                 ->name('store');
+
+            Route::get('/{usuario}/detalle', [UsuarioController::class, 'show'])
+                ->middleware('permission:usuarios.ver')
+                ->name('show');
 
             Route::get('/{usuario}/editar', [UsuarioController::class, 'edit'])
                 ->middleware('permission:usuarios.editar')
@@ -115,7 +126,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             |--------------------------------------------------------------------------
             */
 
-            Route::get('/', [ProductorController::class, 'index'])
+            Route::get('/', \App\Livewire\ProductoresIndex::class)
                 ->middleware('permission:productores.ver')
                 ->name('index');
 
@@ -200,7 +211,7 @@ Route::middleware(['auth', 'active'])->group(function () {
                 |--------------------------------------------------------------------------
                 */
 
-                Route::get('/', [LoteController::class, 'index'])
+                Route::get('/', \App\Livewire\LotesIndex::class)
                     ->middleware('permission:lotes.ver')
                     ->name('index');
 
@@ -241,6 +252,16 @@ Route::middleware(['auth', 'active'])->group(function () {
                 Route::get('/{lote}', [LoteController::class, 'show'])
                     ->middleware('permission:lotes.ver')
                     ->name('show');
+
+                /*
+                |--------------------------------------------------------------------------
+                | ELIMINAR
+                |--------------------------------------------------------------------------
+                */
+
+                Route::delete('/{lote}', [LoteController::class, 'destroy'])
+                    ->middleware('permission:lotes.eliminar')
+                    ->name('destroy');
             });
 
     /*

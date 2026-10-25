@@ -13,6 +13,7 @@ class Empresa extends Model
 
     protected $fillable = [
         'ruc',
+        'sunat_verificacion',
         'razon_social',
         'nombre_comercial',
         'grupo_empresarial',
@@ -35,6 +36,7 @@ class Empresa extends Model
     protected function casts(): array
     {
         return [
+            'sunat_verificacion' => 'array',
             'estado' => 'boolean',
         ];
     }

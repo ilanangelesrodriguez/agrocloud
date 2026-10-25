@@ -1,6 +1,24 @@
 @props(['name', 'class' => 'h-5 w-5'])
 
 @switch($name)
+    @case('leaf')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="M20 3C11 3 4 5 4 12a7 7 0 0 0 7 7c7 0 9-7 9-16Z"/><path d="M3 21 14 10"/></svg>
+        @break
+    @case('layers')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="m12 3 10 5-10 5L2 8l10-5ZM2 12l10 5 10-5M2 16l10 5 10-5"/></svg>
+        @break
+    @case('tag')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="M3 3h8l10 10-8 8L3 11V3Z"/><circle cx="7.5" cy="7.5" r="1"/></svg>
+        @break
+    @case('alert-triangle')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v5M12 17v1"/></svg>
+        @break
+    @case('map-pin')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        @break
+    @case('ruler')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="m3 15 12-12 6 6L9 21l-6-6ZM7 11l3 3M11 7l3 3M15 3l3 3"/></svg>
+        @break
     @case('clipboard-list')
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><rect x="5" y="4" width="14" height="18" rx="2"/><path d="M9 4V2h6v2M9 10h6M9 14h6M9 18h4"/></svg>
         @break
@@ -46,6 +64,9 @@
     @case('chevron-right')
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
         @break
+    @case('minus')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="M5 12h14"/></svg>
+        @break
     @case('plus')
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         @break
@@ -75,6 +96,15 @@
         @break
     @case('briefcase')
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12h18"/></svg>
+        @break
+    @case('ellipsis')
+        <svg viewBox="0 0 24 24" fill="currentColor" {{ $attributes->class($class) }} aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+        @break
+    @case('x')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        @break
+    @case('eye-off')
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A11 11 0 0 1 12 5c6 0 9.5 7 9.5 7a18 18 0 0 1-3 3.8M6.2 6.2A20 20 0 0 0 2.5 12s3.5 7 9.5 7a11 11 0 0 0 5.8-1.8"/></svg>
         @break
     @case('eye')
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" {{ $attributes->class($class) }} aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>

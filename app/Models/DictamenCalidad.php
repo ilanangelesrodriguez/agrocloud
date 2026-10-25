@@ -12,4 +12,6 @@ class DictamenCalidad extends Model
     protected $guarded = ['id_dictamen'];
 
     public function inspeccion(): BelongsTo { return $this->belongsTo(Inspeccion::class, 'id_inspeccion', 'id_inspeccion'); }
+    public function lote() { return $this->belongsTo(Lote::class, 'id_lote'); }
+    public function supervisor() { return $this->belongsTo(User::class, 'id_supervisor'); }
 }

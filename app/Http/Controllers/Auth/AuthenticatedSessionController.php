@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -17,7 +18,7 @@ class AuthenticatedSessionController extends Controller
         return view('auth.login');
     }
 
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse|JsonResponse
     {
         $request->authenticate();
         $request->session()->regenerate();
@@ -26,16 +27,17 @@ class AuthenticatedSessionController extends Controller
             'ultimo_acceso' => now(),
         ])->saveQuietly();
 
-        return redirect()->intended(route(RouteNames::DASHBOARD));
+        $redirect = redirect()->intended(route(RouteNames::DASHBOARD));
+        return $request->expectsJson() ? response()->json(['redirect' => $redirect->getTargetUrl()]) : $redirect;
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): RedirectResponse|JsonResponse
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route(RouteNames::LOGIN);
+        return $request->expectsJson() ? response()->json(['redirect' => route(RouteNames::LOGIN)]) : redirect()->route(RouteNames::LOGIN);
     }
 }

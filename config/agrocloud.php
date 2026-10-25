@@ -8,8 +8,8 @@ return [
         'lastname' => env('AGROCLOUD_ADMIN_LASTNAME', 'AgroCloud'),
     ],
 
-    // Catálogo controlado para evitar cargos escritos de formas distintas.
-    // Puedes ampliar esta lista sin tocar la base de datos.
+    // Valores iniciales importados al maestro de cargos. La administración
+    // cotidiana del catálogo se realiza desde Maestros, en la base de datos.
     'cargos' => [
         'Administrador de empresa' => 'Administrador de empresa',
         'Responsable de recepción' => 'Responsable de recepción',

@@ -8,6 +8,7 @@ use Illuminate\Validation\Rule;
 
 class UpdateCompanyRequest extends FormRequest
 {
+    use NormalizesCompanyInput;
     public function authorize(): bool
     {
         return (bool) $this->user()?->hasPermission('empresa.editar');
@@ -33,9 +34,9 @@ class UpdateCompanyRequest extends FormRequest
             'departamento' => ['nullable', 'string', 'max:100'],
             'provincia' => ['nullable', 'string', 'max:100'],
             'distrito' => ['nullable', 'string', 'max:100'],
-            'telefono' => ['nullable', 'string', 'max:30', 'regex:/^(?=(?:.*\d){7,15}$)\+?[0-9][0-9\s().-]*$/'],
-            'correo' => ['nullable', 'email', 'max:255'],
-            'sitio_web' => ['nullable', 'url', 'max:255'],
+            'telefono' => ['nullable', 'string', 'max:30', new \App\Rules\PhoneNumber],
+            'correo' => $this->companyEmailRules(),
+            'sitio_web' => $this->companyWebsiteRules(),
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             // Solo EmpresaAdminController utiliza este campo. EmpresaController lo elimina explícitamente.
             'estado' => ['nullable', 'boolean'],
@@ -46,6 +47,8 @@ class UpdateCompanyRequest extends FormRequest
     {
         return [
             'telefono.regex' => 'El teléfono debe contener entre 7 y 15 dígitos y solo puede incluir +, espacios, guiones o paréntesis.',
+            'correo.regex' => 'Ingresa un correo corporativo con un dominio válido, por ejemplo contacto@empresa.com.',
+            'sitio_web.regex' => 'Ingresa un sitio web válido, por ejemplo https://empresa.com.',
         ];
     }
 }

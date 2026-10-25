@@ -18,5 +18,6 @@ class EvidenciaInspeccion extends Model
     protected function casts(): array { return ['resultado_ia' => 'array']; }
 
     public function inspeccion(): BelongsTo { return $this->belongsTo(Inspeccion::class, 'id_inspeccion', 'id_inspeccion'); }
+    public function fruto() { return $this->belongsTo(FrutoMuestra::class, 'id_fruto'); }
     public function validaciones(): HasMany { return $this->hasMany(ValidacionDeteccion::class, 'id_evidencia', 'id_evidencia'); }
 }

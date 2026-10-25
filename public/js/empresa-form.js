@@ -6,7 +6,7 @@
 (() => {
     'use strict';
 
-    const SOURCE = 'https://raw.githubusercontent.com/RitchieRD/ubigeos-peru-data/23cd3666b19f32bccdf36d90243c2a4462d6202c/json/';
+    const SOURCE = '/data/ubigeo/';
     const SOURCES = [
         '1_ubigeo_departamentos.json',
         '2_ubigeo_provincias.json',
@@ -25,13 +25,30 @@
 
     const fillDatalist = (element, items, key) => {
         if (!element) return;
+        const selected = element.value;
         const fragment = document.createDocumentFragment();
+        if (element.tagName === 'SELECT') {
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Selecciona una opción';
+            fragment.appendChild(placeholder);
+        }
         for (const item of items) {
             const option = document.createElement('option');
-            option.value = item[key];
+            option.value = item[key]; option.textContent = item[key];
             fragment.appendChild(option);
         }
         element.replaceChildren(fragment);
+        if (element.tagName === 'SELECT') {
+            const match = findByName(items, selected, key);
+            if (!match && selected) {
+                const legacy = document.createElement('option');
+                legacy.value = selected;
+                legacy.textContent = selected + ' (guardado)';
+                element.appendChild(legacy);
+            }
+            element.value = match ? match[key] : selected || '';
+        }
     };
 
     const readCache = () => {
@@ -91,9 +108,9 @@
 
         const { departamentos, provincias, distritos } = catalog;
         const options = {
-            departamentos: section.querySelector('#company-departments'),
-            provincias: section.querySelector('#company-provinces'),
-            distritos: section.querySelector('#company-districts'),
+            departamentos: fields.departamento.tagName === 'SELECT' ? fields.departamento : section.querySelector('#company-departments'),
+            provincias: fields.provincia.tagName === 'SELECT' ? fields.provincia : section.querySelector('#company-provinces'),
+            distritos: fields.distrito.tagName === 'SELECT' ? fields.distrito : section.querySelector('#company-districts'),
         };
         let selectedDepartment = null;
         let selectedProvince = null;
@@ -110,6 +127,7 @@
             selectedDepartment = nextDepartment;
             if (departmentChanged && !initial) {
                 fields.provincia.value = '';
+                fields.provincia.disabled = false;
                 fields.distrito.value = '';
             }
             fillDatalist(options.provincias, provincesOf(), 'provincia');
@@ -130,7 +148,7 @@
                 fields.ubigeo.readOnly = true;
             } else {
                 if (!initial && changed) fields.ubigeo.value = '';
-                fields.ubigeo.readOnly = false;
+                fields.ubigeo.readOnly = fields.departamento.tagName === 'SELECT';
             }
         };
 
@@ -148,6 +166,7 @@
                 sync();
             });
             input.addEventListener('change', () => {
+                changed = true; sync();
                 // Respeta mayúsculas/minúsculas en las consultas, guarda el nombre del catálogo.
                 const item = key === 'departamento' ? selectedDepartment :
                     key === 'provincia' ? selectedProvince : selectedDistrict;
@@ -265,11 +284,19 @@
         update();
     };
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const initialized = new WeakSet();
+    const initialize = () => {
         for (const form of document.querySelectorAll('[data-company-form]')) {
+            if (initialized.has(form)) continue;
+            initialized.add(form);
             initDescription(form);
             initLogo(form);
             void initLocation(form);
         }
-    });
+    };
+    if (window.agrocloudInitLocation) { window.agrocloudInitLocation(); return; }
+    window.agrocloudInitLocation = initialize;
+    document.addEventListener('DOMContentLoaded', initialize);
+    document.addEventListener('livewire:navigated', initialize);
+    if (document.readyState !== 'loading' && document.readyState) initialize();
 })();

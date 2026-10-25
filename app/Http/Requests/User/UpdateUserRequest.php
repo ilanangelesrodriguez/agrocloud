@@ -8,6 +8,8 @@ use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
+    use \App\Http\Requests\Concerns\NormalizesEmail;
+
     public function authorize(): bool
     {
         return (bool) $this->user()?->hasPermission('usuarios.editar');
@@ -30,12 +32,13 @@ class UpdateUserRequest extends FormRequest
             'correo' => [
                 'required',
                 'email',
+                'regex:/^[^@\s]+@(?:[^@\s.]+\.)+[^@\s.]+$/u',
                 'max:255',
-                Rule::unique('usuario', 'correo')->ignore($usuario?->getKey(), 'id_usuario'),
+                new \App\Rules\UniqueUserEmail($usuario?->getKey()),
             ],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'telefono' => ['nullable', 'string', 'max:30', 'regex:/^(?=(?:.*\d){7,15}$)\+?[0-9][0-9\s().-]*$/'],
-            'cargo' => ['nullable', Rule::in(array_keys(config('agrocloud.cargos', [])))],
+            'password' => ['nullable', 'confirmed', ...\App\Support\PasswordPolicy::rules()],
+            'telefono' => ['nullable', 'string', 'max:30', new \App\Rules\PhoneNumber],
+            'cargo' => ['nullable', 'string', 'max:150'],
             'foto_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'estado' => ['nullable', 'boolean'],
         ];
@@ -45,6 +48,7 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'telefono.regex' => 'El teléfono debe contener entre 7 y 15 dígitos y solo puede incluir +, espacios, guiones o paréntesis.',
+            'correo.regex' => 'Ingresa un correo válido con un dominio completo, por ejemplo usuario@empresa.com.',
         ];
     }
 }

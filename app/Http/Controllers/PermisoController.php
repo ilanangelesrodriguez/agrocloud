@@ -6,15 +6,15 @@ use App\Http\Requests\Permission\StorePermissionRequest;
 use App\Http\Requests\Permission\UpdatePermissionRequest;
 use App\Models\Permiso;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PermisoController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View|RedirectResponse
     {
-        $permisos = Permiso::query()->withCount('roles')->orderBy('modulo')->orderBy('nombre')->paginate(20);
-
-        return view('permisos.index', compact('permisos'));
+        if ($request->query()) return redirect()->route('permisos.index');
+        return view('permisos.index');
     }
 
     public function create(): View
@@ -36,6 +36,7 @@ class PermisoController extends Controller
 
     public function edit(Permiso $permiso): View
     {
+        $permiso->load('roles')->loadCount('roles');
         return view('permisos.edit', compact('permiso'));
     }
 

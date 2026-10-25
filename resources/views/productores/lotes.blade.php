@@ -4,8 +4,9 @@
 
         {{-- Regresar --}}
         <div>
-            <a
+            <a wire:navigate
                 href="{{ route('productores.show', $productorModel->id_productor) }}"
+                wire:navigate
                 class="inline-flex items-center gap-2 rounded-lg px-1 py-1 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-brand-700 dark:hover:text-brand-300"
             >
                 <x-ui.icon
@@ -17,6 +18,7 @@
             </a>
         </div>
 
+        <div class="flex flex-wrap gap-3">@foreach($resumenEstados as $resumen)<span class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700"><x-ui.state-badge :state="$resumen->estado" /><span class="font-semibold dark:text-slate-200">{{ $resumen->total }}</span></span>@endforeach</div>
         {{-- Encabezado --}}
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 
@@ -82,7 +84,7 @@
                     </p>
 
                     <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">
-                        {{ $productorModel->ubicacion ?: 'No registrada' }}
+                        {{ implode(' · ', array_filter([$productorModel->distrito, $productorModel->provincia, $productorModel->departamento])) ?: 'Ubicación por completar' }}
                     </p>
 
                 </div>
@@ -153,7 +155,7 @@
                                 <td class="whitespace-nowrap px-4 py-4">
 
                                     <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                                        {{ $lote->codigo_lote }}
+                                        @if(auth()->user()->hasPermission('lotes.ver'))<a wire:navigate href="{{ route('lotes.show', $lote->id_lote) }}" class="inline-flex items-center gap-2 text-brand-700 dark:text-brand-300">{{ $lote->codigo_lote }}<x-ui.icon name="chevron-right" class="h-4 w-4" /></a>@else{{ $lote->codigo_lote }}@endif
                                     </span>
 
                                 </td>
@@ -170,7 +172,7 @@
 
                                 {{-- Peso --}}
                                 <td class="whitespace-nowrap px-4 py-4 text-right text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    {{ number_format((float) $lote->peso_kg, 2, ',', '.') }}
+                                    {{ number_format((float) $lote->peso_operativo_kg, 2, ',', '.') }}
                                     kg
                                 </td>
 
@@ -193,10 +195,7 @@
                                     @endphp
 
                                     @if ($estado)
-                                        <x-ui.status-badge
-                                            :active="$estado === 'RECIBIDO'"
-                                            :label="$estado"
-                                        />
+                                        <x-ui.state-badge :state="$estado" />
                                     @else
                                         <span class="text-sm text-slate-500 dark:text-slate-400">
                                             —

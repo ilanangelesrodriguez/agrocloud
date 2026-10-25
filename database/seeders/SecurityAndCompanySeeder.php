@@ -190,6 +190,15 @@ class SecurityAndCompanySeeder extends Seeder
                 'LOTES',
                 'Permite editar la información de los lotes.',
             ],
+
+            [
+                'lotes.eliminar',
+                'Eliminar lotes',
+                'LOTES',
+                'Permite eliminar lotes que no tengan muestreos ni dictámenes de calidad asociados.',
+            ],
+
+
             // Seguridad y empresas globales:
             // reservadas para SUPERADMIN.
             [
@@ -328,10 +337,11 @@ class SecurityAndCompanySeeder extends Seeder
 
 
 
-            // Lotes
+           // Lotes
            'lotes.ver',
            'lotes.crear',
            'lotes.editar',
+           'lotes.eliminar',
         ];
 
 

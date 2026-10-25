@@ -19,13 +19,9 @@
             <div class="grid gap-x-5 gap-y-4 p-5 sm:grid-cols-2">
                 <x-ui.input name="nombre" label="Nombre *" :value="$editing ? $usuario->nombre : null" placeholder="Ej. Juan" autocomplete="given-name" required />
                 <x-ui.input name="apellido" label="Apellido *" :value="$editing ? $usuario->apellido : null" placeholder="Ej. Pérez García" autocomplete="family-name" required />
-                <x-ui.input name="correo" label="Correo *" type="email" :value="$editing ? $usuario->correo : null" placeholder="Ej. juan.perez@empresa.pe" autocomplete="email" required />
-                <x-ui.input name="telefono" label="Teléfono" type="tel" :value="$editing ? $usuario->telefono : null" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" pattern="^\+?[0-9][0-9\s().-]*$" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
-                <x-ui.select name="cargo" label="Cargo" :value="$cargoActual" placeholder="Selecciona un cargo">
-                    @foreach (config('agrocloud.cargos', []) as $value => $label)
-                        <option value="{{ $value }}" @selected($cargoActual === $value)>{{ $label }}</option>
-                    @endforeach
-                </x-ui.select>
+                <x-ui.input name="correo" label="Correo *" type="email" :value="$editing ? $usuario->correo : null" placeholder="Ej. juan.perez@empresa.pe" autocomplete="email" pattern="^[^@\s]+@(?:[^@\s.]+\.)+[^@\s.]+$" title="Ingresa un correo válido con un dominio completo, por ejemplo usuario@empresa.com." required />
+                <x-ui.input name="telefono" label="Teléfono" type="tel" :value="$editing ? $usuario->telefono : null" placeholder="Ej. +51 999 888 777" autocomplete="tel" inputmode="tel" maxlength="30" title="Ingresa entre 7 y 15 dígitos; puedes usar +, espacios, guiones o paréntesis." />
+                <x-ui.master-select name="cargo" kind="cargo" label="Cargo" :value="$cargoActual" :company-id="$editing ? $usuario->id_empresa : ($empresa->id_empresa ?? auth()->user()->id_empresa)" />
             </div>
         </section>
 
@@ -56,8 +52,16 @@
                         @error('id_rol')<p class="text-sm text-red-600 dark:text-red-300">{{ $message }}</p>@enderror
                     @endif
                 </div>
-                <x-ui.input name="password" label="{{ $editing ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}" type="password" placeholder="{{ $editing ? 'Deja en blanco para conservarla' : 'Ingresa una contraseña segura' }}" :required="! $editing" autocomplete="new-password" />
-                <x-ui.input name="password_confirmation" label="{{ $editing ? 'Confirmar nueva contraseña' : 'Confirmar contraseña *' }}" type="password" placeholder="Repite la contraseña" :required="! $editing" autocomplete="new-password" />
+                @if ($editing && !$usuario->invitation_hash)
+                <x-ui.input name="password" label="{{ $editing ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}" type="password" placeholder="{{ $editing ? 'Deja en blanco para conservarla' : 'Ingresa una contraseña segura' }}" :required="! $editing" autocomplete="new-password" minlength="12" maxlength="255" />
+                <p class="text-xs text-slate-500">Mínimo 12 caracteres, con mayúsculas, minúsculas y números.</p>
+                <x-ui.input name="password_confirmation" label="{{ $editing ? 'Confirmar nueva contraseña' : 'Confirmar contraseña *' }}" type="password" placeholder="Repite la contraseña" :required="! $editing" autocomplete="new-password" minlength="12" maxlength="255" />
+                @else
+                    <p class="text-sm text-slate-600 dark:text-slate-300 sm:col-span-2">{{ $editing ? 'Activación pendiente. Si cambias el correo, guarda los cambios y luego reenvía la invitación.' : 'Se enviará una invitación por correo.' }} El usuario creará su contraseña desde un enlace de un solo uso válido durante 72 horas. Hasta entonces no podrá ingresar.</p>
+                    @if ($editing)
+                        <button type="submit" name="_method" value="POST" formmethod="POST" formaction="{{ route('users.invitation.resend', $usuario) }}" formnovalidate class="text-sm font-semibold text-brand-700">Reenviar invitación</button>
+                    @endif
+                @endif
             </div>
         </section>
     </div>
@@ -87,9 +91,11 @@
 
         <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm" aria-labelledby="user-status-title">
             <h3 id="user-status-title" class="text-base font-semibold text-slate-900 dark:text-slate-100">Estado de la cuenta</h3>
-            @if ($isSelf)
+            @if (!$editing)
+                <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Pendiente de activación por correo.</p>
+            @elseif ($isSelf)
                 <input type="hidden" name="estado" value="1">
-                <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">Tu propia cuenta se mantiene activa desde esta pantalla. Para tus datos personales usa también <a href="{{ route('perfil.edit') }}" class="font-semibold text-brand-700 dark:text-brand-300">Mi perfil</a>.</p>
+                <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">Tu propia cuenta se mantiene activa desde esta pantalla. Para tus datos personales usa también <a href="{{ route('perfil.edit') }}" wire:navigate class="font-semibold text-brand-700 dark:text-brand-300">Mi perfil</a>.</p>
             @else
                 <label class="mt-3 flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 dark:bg-slate-800 p-3.5">
                     <input type="hidden" name="estado" value="0">

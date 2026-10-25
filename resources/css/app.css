@@ -20,10 +20,21 @@
     --color-brand-700: #146f47;
     --color-brand-800: #14583b;
     --color-brand-900: #124932;
+    --color-brand-950: #072c1d;
 }
 
 html {
     color-scheme: light;
+}
+
+input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='true'] {
+    border-color: #ef4444 !important;
+    outline-color: #ef4444;
+}
+
+input[aria-invalid='true']:focus, select[aria-invalid='true']:focus, textarea[aria-invalid='true']:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgb(239 68 68 / 15%);
 }
 
 /* Desktop: sidebar fijo respecto al viewport, sin perder scroll en la pantalla principal. */
@@ -188,3 +199,35 @@ html.dark [data-theme-option][aria-pressed='true'] {
 }
 /* --- AGROCLOUD DARK MODE: FIN --- */
 
+/* Los avisos de búsqueda no deben cambiar el centro vertical de los iconos. */
+.relative:has(> [data-search-input]) > svg.absolute {
+    top: 1.375rem;
+    bottom: auto;
+    height: 1rem;
+    translate: 0 -50%;
+    transform: none;
+}
+
+[data-search-input][aria-invalid='true'] {
+    border-color: var(--color-red-500);
+}
+
+[data-search-input][aria-invalid='true']:focus {
+    --tw-ring-color: var(--color-red-100);
+}
+
+html.dark [data-search-input][aria-invalid='true']:focus {
+    --tw-ring-color: var(--color-red-900);
+}
+
+
+/* Navegación de la landing; respeta la preferencia de movimiento reducido. */
+@media (prefers-reduced-motion: no-preference) {
+    html:has([data-public-landing]) { scroll-behavior: smooth; }
+}
+[data-public-landing] a:focus-visible,
+[data-public-landing] summary:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 4px;
+    border-radius: 0.5rem;
+}

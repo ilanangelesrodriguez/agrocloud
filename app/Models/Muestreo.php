@@ -16,6 +16,7 @@ class Muestreo extends Model
     protected $guarded = ['id_muestreo'];
 
     public function lote(): BelongsTo { return $this->belongsTo(Lote::class, 'id_lote', 'id_lote'); }
+    public function frutos() { return $this->hasMany(FrutoMuestra::class, 'id_muestreo'); }
     public function inspector(): BelongsTo { return $this->belongsTo(User::class, 'id_inspector', 'id_usuario'); }
     public function inspecciones(): HasMany { return $this->hasMany(Inspeccion::class, 'id_muestreo', 'id_muestreo'); }
 }

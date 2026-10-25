@@ -16,7 +16,7 @@ class Lote extends Model
     protected $primaryKey = 'id_lote';
 
     protected $attributes = [
-        'estado' => 'RECIBIDO',
+        'estado' => 'PENDIENTE_RECEPCION',
     ];
 
     protected $fillable = [
@@ -26,6 +26,7 @@ class Lote extends Model
         'producto',
         'variedad',
         'peso_kg',
+        'unidad_medida',
         'fecha_recepcion',
         'estado',
     ];
@@ -47,4 +48,12 @@ class Lote extends Model
             'id_productor'
         );
     }
+
+    public function recepcion() { return $this->hasOne(Recepcion::class, 'id_lote'); }
+    public function muestreos() { return $this->hasMany(Muestreo::class, 'id_lote'); }
+    public function getPesoOperativoKgAttribute(): string
+    {
+        return (string) ($this->recepcion?->peso_recibido_kg ?? $this->peso_kg);
+    }
+
 }

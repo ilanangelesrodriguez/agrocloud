@@ -14,21 +14,24 @@ class InspeccionController extends Controller
 {
     public function index(): View
     {
-        $inspecciones = Inspeccion::query()->forCurrentCompany()
-            ->with(['muestreo.lote', 'inspector'])->withCount('evidencias')
-            ->latest('id_inspeccion')->paginate(12);
-
-        return view('inspecciones.index', compact('inspecciones'));
+        return view('inspecciones.index');
     }
 
     public function store(Request $request, int $muestreo): RedirectResponse
     {
+        abort_unless($request->user()->rol?->codigo === 'INSPECTOR', 403);
         $inspeccion = DB::transaction(function () use ($request, $muestreo) {
+            $abierta = Inspeccion::forCurrentCompany()->where('id_muestreo', $muestreo)->where('estado', 'EN_CAPTURA')->lockForUpdate()->first();
+            if ($abierta) {
+                self::canOperate($abierta, $request);
+                return $abierta;
+            }
             $muestra = Muestreo::query()->forCurrentCompany()->lockForUpdate()->findOrFail($muestreo);
             abort_if($muestra->estado === 'COMPLETADO', 422, 'Este muestreo ya fue completado.');
             // Una única inspección abierta por muestreo; una reinspección crea otra tras el dictamen.
             $abierta = $muestra->inspecciones()->where('estado', 'EN_CAPTURA')->first();
             if ($abierta) {
+                self::canOperate($abierta, $request);
                 return $abierta;
             }
             abort_if($muestra->inspecciones()->where('estado', 'VALIDADA')->exists(), 422,
@@ -40,7 +43,7 @@ class InspeccionController extends Controller
                 'estado' => 'EN_CAPTURA',
             ]);
             $muestra->update(['estado' => 'EN_INSPECCION']);
-            $muestra->lote()->update(['estado' => LoteEstado::EN_INSPECCION]);
+            $muestra->lote->update(['estado' => LoteEstado::EN_INSPECCION]);
             return $nueva;
         });
 
@@ -50,7 +53,8 @@ class InspeccionController extends Controller
     public function show(int $inspeccion): View
     {
         $inspeccion = $this->getInspection($inspeccion);
-        return view('inspecciones.show', compact('inspeccion'));
+$progreso = app(\App\Services\ProgresoInspeccion::class)->calcular($inspeccion);
+        return view('inspecciones.show', compact('inspeccion', 'progreso'));
     }
 
     /** Impide que el inspector modifique inspecciones ajenas o cerradas. */
@@ -63,7 +67,10 @@ class InspeccionController extends Controller
             || (int) $inspeccion->id_inspector === (int) $request->user()->id_usuario, 403,
             'Esta inspección está asignada a otro inspector.');
         if ($inspeccion->id_inspector === null) {
-            $inspeccion->update(['id_inspector' => $request->user()->id_usuario]);
+            $claimed = Inspeccion::forCurrentCompany()->whereKey($inspeccion->id_inspeccion)->whereNull('id_inspector')->where('estado', 'EN_CAPTURA')->update(['id_inspector' => $request->user()->id_usuario]);
+            $inspeccion->refresh();
+            abort_unless((int) $inspeccion->id_inspector === (int) $request->user()->id_usuario && $inspeccion->estado === 'EN_CAPTURA', 409, 'Otro inspector tomó esta inspección o su estado cambió.');
+            if ($claimed) app(\App\Observers\OperationalObserver::class)->record($inspeccion, 'INSPECTOR_ASIGNADO', ['id_inspector' => $request->user()->id_usuario]);
         }
     }
 

@@ -10,7 +10,7 @@
         </div>
 
         <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-            <form method="POST" action="{{ route('perfil.update') }}" enctype="multipart/form-data">
+            <form data-ajax-form method="POST" action="{{ route('perfil.update') }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" aria-labelledby="profile-data-title">
@@ -59,7 +59,7 @@
                     </div>
                 </section>
                 <div class="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-end sm:px-6">
-                    <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">Cancelar</a>
+                    <a wire:navigate href="{{ route('dashboard') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">Cancelar</a>
                     <x-ui.button type="submit"><span class="inline-flex items-center gap-2"><x-ui.icon name="save" class="h-4 w-4" />Guardar perfil</span></x-ui.button>
                 </div>
             </form>
@@ -77,7 +77,7 @@
                     </div>
                 </section>
 
-                <form method="POST" action="{{ route('perfil.password.update') }}">
+                <form data-ajax-form method="POST" action="{{ route('perfil.password.update') }}">
                     @csrf
                     @method('PUT')
                     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" aria-labelledby="profile-password-title">
@@ -87,7 +87,7 @@
                         </div>
                         <div class="space-y-4 p-5">
                             <x-ui.input name="current_password" label="Contraseña actual *" type="password" autocomplete="current-password" required />
-                            <x-ui.input name="password" label="Nueva contraseña *" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required />
+                            <x-ui.input name="password" label="Nueva contraseña *" type="password" placeholder="Mínimo 12 caracteres, mayúsculas, minúsculas y números" autocomplete="new-password" required />
                             <x-ui.input name="password_confirmation" label="Confirmar nueva contraseña *" type="password" placeholder="Repite la contraseña" autocomplete="new-password" required />
                             <x-ui.button type="submit" class="w-full"><span class="inline-flex items-center gap-2"><x-ui.icon name="lock" class="h-4 w-4" />Cambiar contraseña</span></x-ui.button>
                         </div>

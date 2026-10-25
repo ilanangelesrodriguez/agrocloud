@@ -21,14 +21,24 @@ use Throwable;
 
 class EmpresaUsuarioController extends Controller
 {
-    public function index(Request $request, Empresa $empresa): View
+    public function index(Request $request, Empresa $empresa)
+    {
+        if ($request->query()) {
+            $data = $request->validate(['q' => ['nullable', 'string', 'max:150'], 'estado' => ['nullable', 'in:0,1'], 'rol' => ['nullable', 'integer']]);
+            $request->session()->put('admin.empresa.'.$empresa->id_empresa.'.usuarios.filters', $data);
+            return redirect()->route('admin.empresas.usuarios.index', $empresa);
+        }
+        return view('admin.empresas.usuarios.index', compact('empresa'));
+    }
+
+    public function listingData(Request $request, Empresa $empresa): array
     {
         $usuarios = $this->filteredQuery($request, $empresa)
             ->with('rol')
             ->orderBy('nombre')
             ->orderBy('apellido')
             ->paginate(15)
-            ->withQueryString();
+            ;
 
         $roles = $this->companyRoles();
         $stats = [
@@ -40,7 +50,7 @@ class EmpresaUsuarioController extends Controller
                 ->count(),
         ];
 
-        return view('admin.empresas.usuarios.index', compact('empresa', 'usuarios', 'roles', 'stats'));
+        return compact('empresa', 'usuarios', 'roles', 'stats');
     }
 
     public function create(Empresa $empresa): View
@@ -56,9 +66,10 @@ class EmpresaUsuarioController extends Controller
         CloudinaryService $cloudinary,
     ): RedirectResponse {
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $empresa->id_empresa, isset($usuario) ? $usuario->toArray() : []);
         $data['id_empresa'] = $empresa->id_empresa;
-        $data['password_hash'] = $request->string('password')->toString();
-        $data['estado'] = $request->boolean('estado');
+        $data['password_hash'] = \Illuminate\Support\Str::random(64);
+        $data['estado'] = true;
         $upload = null;
 
         try {
@@ -68,7 +79,11 @@ class EmpresaUsuarioController extends Controller
                 $data['foto_perfil_public_id'] = $upload['public_id'];
             }
 
-            $usuario = DB::transaction(fn () => User::query()->create($data));
+            $usuario = DB::transaction(function () use ($data) {
+                $user = User::query()->create($data);
+                $user->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64))])->save();
+                return $user;
+            });
         } catch (Throwable $e) {
             if ($upload) {
                 rescue(fn () => $cloudinary->deleteImage($upload['public_id']), report: true);
@@ -85,7 +100,7 @@ class EmpresaUsuarioController extends Controller
 
         return redirect()
             ->route('admin.empresas.usuarios.index', $empresa)
-            ->with('success', 'Usuario creado para '.$empresa->nombre_comercial.'.');
+            ->with('success', 'Usuario creado para '.$empresa->nombre_comercial.'. '.app(\App\Services\UserInvitation::class)->send($usuario));
     }
 
     public function edit(Empresa $empresa, User $usuario): View
@@ -104,10 +119,16 @@ class EmpresaUsuarioController extends Controller
     ): RedirectResponse {
         $this->assertBelongsToCompany($empresa, $usuario);
         $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $empresa->id_empresa, isset($usuario) ? $usuario->toArray() : []);
         $data['estado'] = $request->boolean('estado');
 
         if ($request->filled('password')) {
             $data['password_hash'] = $request->string('password')->toString();
+        }
+
+        if ($usuario->invitation_hash && $data['correo'] !== $usuario->correo) {
+            // Un enlace enviado al correo anterior no debe verificar el nuevo correo.
+            $usuario->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64)), 'invitation_expires_at' => null]);
         }
 
         $oldPublicId = $usuario->foto_perfil_public_id;
@@ -214,6 +235,7 @@ class EmpresaUsuarioController extends Controller
 
     private function filteredQuery(Request $request, Empresa $empresa): Builder
     {
+        if (!$request->query()) $request->query->add(session('admin.empresa.'.$empresa->id_empresa.'.usuarios.filters', []));
         $search = trim((string) $request->string('q'));
         $estado = $request->string('estado')->toString();
         $rolId = $request->integer('rol');

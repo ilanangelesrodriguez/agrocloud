@@ -1,0 +1,1 @@
+<x-layouts.app title="Revisar recepción"><div class="space-y-5"><x-ui.back-link :href="route('recepciones.index')" label="Volver a recepciones" />@include('operaciones._recepcion')</div></x-layouts.app>
