@@ -63,7 +63,6 @@ class CalidadController extends Controller
             abort_if($inspection->dictamen()->exists(), 422, 'Esta inspección ya tiene un dictamen.');
             $muestra = $inspection->muestreo;
             $lote = \App\Models\Lote::forCurrentCompany()->lockForUpdate()->findOrFail($muestra->id_lote);
-            abort_if((int) $inspection->id_inspector === (int) $request->user()->id_usuario, 422, 'El dictamen requiere un supervisor distinto del inspector.');
             $inspection->load(['evidencias.validaciones', 'hallazgos']);
             abort_if($data['decision'] === 'APROBADO' && app(\App\Services\IncidenciasOperativas::class)->bloqueaLiberacion($inspection->id_empresa, $lote->id_lote), 422, 'El lote tiene incidencias altas o críticas sin cierre del supervisor. Atiéndelas antes de liberar.');
             if ($data['decision'] !== 'OBSERVADO') {
