@@ -180,10 +180,10 @@ document.addEventListener('submit', async (event) => {
     let navigating = false;
 
     try {
-        const method = (form.method || 'GET').toUpperCase();
+        const method = (event.submitter?.getAttribute('formmethod') || form.method || 'GET').toUpperCase();
         const formData = new FormData(form);
-        if (event.submitter?.name) formData.append(event.submitter.name, event.submitter.value);
-        const requestUrl = new URL(form.action, window.location.href);
+        if (event.submitter?.name) formData.set(event.submitter.name, event.submitter.value);
+        const requestUrl = new URL(event.submitter?.getAttribute('formaction') || form.action, window.location.href);
         const requestOptions = {
             method,
             credentials: 'same-origin',

@@ -23,3 +23,10 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name(RouteNames::LOGOUT);
 
 Route::put('/perfil/tema', [ThemePreferenceController::class, 'update'])->middleware(['auth', 'active'])->name('perfil.tema.update');
+
+Route::get('/invitacion-usuario/{usuario}/{token}', [\App\Http\Controllers\Auth\UserInvitationController::class, 'show'])
+    ->whereNumber('usuario')->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:20,1')->name('users.invitation');
+Route::post('/invitacion-usuario/{usuario}/{token}', [\App\Http\Controllers\Auth\UserInvitationController::class, 'activate'])
+    ->whereNumber('usuario')->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:20,1')->name('users.invitation.activate');
+Route::post('/usuarios/{usuario}/reenviar-invitacion', [\App\Http\Controllers\Auth\UserInvitationController::class, 'resend'])
+    ->whereNumber('usuario')->middleware(['auth', 'active', 'throttle:5,1'])->name('users.invitation.resend');

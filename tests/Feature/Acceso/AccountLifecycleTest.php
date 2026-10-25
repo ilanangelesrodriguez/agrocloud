@@ -23,6 +23,79 @@ class AccountLifecycleTest extends TestCase
         return $user;
     }
 
+    private function invitedAccount(): User
+    {
+        $company = Empresa::create(['ruc' => '20987654321', 'razon_social' => 'Invitaciones', 'nombre_comercial' => 'Invitaciones', 'estado' => true]);
+        $role = Rol::firstOrCreate(['codigo' => 'ADMIN'], ['nombre' => 'Administrador', 'estado' => true]);
+        $user = $this->account('nueva@example.test');
+        $user->forceFill(['id_empresa' => $company->id_empresa, 'id_rol' => $role->id_rol,
+            'invitation_hash' => hash('sha256', str_repeat('a', 64)), 'invitation_expires_at' => now()->addHours(72)])->save();
+        return $user;
+    }
+
+    public function test_both_user_creation_forms_create_pending_accounts_and_send_invitations(): void
+    {
+        $seed = $this->invitedAccount();
+        $root = $this->account();
+        $company = $seed->empresa;
+        config(['mail.default' => 'smtp']);
+        Mail::shouldReceive('send')->twice()->andReturnNull();
+        $data = ['nombre' => 'Nueva', 'apellido' => 'Persona', 'id_rol' => $seed->id_rol];
+        $root->update(['id_empresa' => $company->id_empresa]);
+        $this->actingAs($root);
+        foreach ([route('usuarios.store'), route('admin.empresas.usuarios.store', $company)] as $index => $url) {
+            $correo = "invitada{$index}@example.test";
+            $this->post($url, [...$data, 'correo' => $correo])->assertRedirect()->assertSessionHasNoErrors();
+            $user = User::where('correo', $correo)->firstOrFail();
+            $this->assertNotNull($user->invitation_hash);
+            $this->assertTrue($user->invitation_expires_at->isFuture());
+            $this->assertSame($company->id_empresa, $user->id_empresa);
+        }
+    }
+
+    public function test_user_invitation_blocks_login_and_recovery_then_activates_once(): void
+    {
+        Notification::fake();
+        $user = $this->invitedAccount();
+        $this->post(route('login.store'), ['correo' => $user->correo, 'password' => 'AnteriorClave2026'])->assertSessionHasErrors('correo');
+        $this->post(route('password.email'), ['correo' => $user->correo]);
+        Notification::assertNotSentTo($user, ResetAccountPassword::class);
+        $url = route('users.invitation', ['usuario' => $user, 'token' => str_repeat('a', 64)]);
+        $this->get($url)->assertOk()->assertHeader('Referrer-Policy', 'no-referrer');
+        $form = ['password' => 'NuevaClaveSegura2026', 'password_confirmation' => 'NuevaClaveSegura2026'];
+        $this->post($url, $form)->assertRedirect(route('login'));
+        $this->assertNull($user->fresh()->invitation_hash);
+        $this->assertTrue(Hash::check($form['password'], $user->fresh()->password_hash));
+        $this->post($url, $form)->assertGone();
+        $this->post(route('login.store'), ['correo' => $user->correo, 'password' => $form['password']])->assertRedirect();
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_expired_or_disabled_invitation_cannot_activate(): void
+    {
+        $user = $this->invitedAccount();
+        $url = route('users.invitation', ['usuario' => $user, 'token' => str_repeat('a', 64)]);
+        $this->travel(73)->hours();
+        $this->get($url)->assertGone();
+        $this->travelBack();
+        $user->update(['estado' => false]);
+        $this->post($url, ['password' => 'NuevaClaveSegura2026', 'password_confirmation' => 'NuevaClaveSegura2026'])->assertGone();
+        $this->assertNotNull($user->fresh()->invitation_hash);
+    }
+
+    public function test_user_invitation_failure_preserves_old_token_and_success_rotates_it(): void
+    {
+        $user = $this->invitedAccount();
+        config(['mail.default' => 'smtp']);
+        $hash = $user->invitation_hash;
+        Mail::shouldReceive('send')->once()->andThrow(new \RuntimeException('SMTP unavailable'));
+        $this->assertStringContainsString('No se pudo enviar', app(\App\Services\UserInvitation::class)->send($user));
+        $this->assertSame($hash, $user->fresh()->invitation_hash);
+        Mail::shouldReceive('send')->once()->andReturnNull();
+        $this->assertStringContainsString('Invitación enviada', app(\App\Services\UserInvitation::class)->send($user));
+        $this->assertNotSame($hash, $user->fresh()->invitation_hash);
+    }
+
     public function test_normalizes_email_and_rejects_case_insensitive_duplicates(): void
     {
         $user = $this->account('  ANA@EXAMPLE.TEST  ');

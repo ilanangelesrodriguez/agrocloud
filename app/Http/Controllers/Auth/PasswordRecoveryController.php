@@ -21,7 +21,7 @@ class PasswordRecoveryController extends Controller
     private function credentials(string $correo, bool $lock = false): array
     {
         return [fn ($q) => $q->whereRaw('LOWER(TRIM(correo)) = ?', [$correo])
-            ->where('estado', true)->whereHas('rol', fn ($r) => $r->where('estado', true))
+            ->where('estado', true)->whereNull('invitation_hash')->whereHas('rol', fn ($r) => $r->where('estado', true))
             ->where(fn ($company) => $company->whereNull('id_empresa')->orWhereHas('empresa', fn ($e) => $e->where('estado', true)))
             ->when($lock, fn ($query) => $query->lockForUpdate())];
     }

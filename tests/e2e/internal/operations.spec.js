@@ -24,7 +24,6 @@ test('E2E autenticado: registrar, buscar y editar un productor ficticio', async 
     await page.locator('[name="ruc"]').fill(`10${suffix}`);
     await page.locator('[name="nombre_razon_social"]').fill(name);
     await page.locator('[name="fundo"]').fill('Fundo inicial QA');
-    await page.getByRole('button', { name: 'Registrar productor', exact: true }).click();
     const [post] = await Promise.all([
         page.waitForResponse(
             response =>

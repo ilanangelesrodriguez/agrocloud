@@ -32,6 +32,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password_hash',
         'remember_token',
+        'invitation_hash',
     ];
 
     protected $appends = [
@@ -44,6 +45,7 @@ class User extends Authenticatable
             'id_empresa' => 'integer',
             'id_rol' => 'integer',
             'estado' => 'boolean',
+            'invitation_expires_at' => 'datetime',
             'email_verified_at' => 'datetime',
             'ultimo_acceso' => 'datetime',
             'password_hash' => 'hashed',
