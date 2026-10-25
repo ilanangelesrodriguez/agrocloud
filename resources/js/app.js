@@ -9,6 +9,7 @@ import './ruc-lookup';
 import './masters';
 import './master-dialog';
 import './users';
+import './profile';
 import './catalogs';
 import './workspace-drawer';
 import './operational-workspace';

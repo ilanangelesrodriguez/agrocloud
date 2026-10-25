@@ -2592,6 +2592,50 @@
       ],
       "resultado_esperado": "La interfaz corresponde al procedimiento y a la acción de calidad seleccionados.",
       "evidencia": "JUnit frontend; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-OPS-009",
+      "requerimiento": "QA-OPS",
+      "titulo": "Descartar imágenes no pertinentes sin perder historial y exigir reemplazo",
+      "modulo": "Operaciones",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Operaciones\\OperationalWorkflowTest::test_discarded_image_requires_replacement_and_explicit_human_relevance",
+      "archivo": "tests/Feature/Operaciones/OperationalWorkflowTest.php",
+      "objetivo": "Descartar imágenes no pertinentes sin perder historial y exigir reemplazo",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Preparar muestra, imágenes o procedimientos de las empresas del caso",
+        "Intentar las operaciones incompletas o no autorizadas",
+        "Verificar los estados, la cobertura y la conservación de los registros"
+      ],
+      "resultado_esperado": "Las operaciones rechazadas no permiten cerrar la inspección ni alterar datos de otra empresa. Se conservan los registros históricos.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-OPS-010",
+      "requerimiento": "QA-OPS",
+      "titulo": "Aislar la administración Livewire de procedimientos entre empresas",
+      "modulo": "Operaciones",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Operaciones\\OperationalWorkflowTest::test_sampling_livewire_list_cannot_modify_another_company_procedure",
+      "archivo": "tests/Feature/Operaciones/OperationalWorkflowTest.php",
+      "objetivo": "Aislar la administración Livewire de procedimientos entre empresas",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo"
+      ],
+      "pasos": [
+        "Preparar muestra, imágenes o procedimientos de las empresas del caso",
+        "Intentar las operaciones incompletas o no autorizadas",
+        "Verificar los estados, la cobertura y la conservación de los registros"
+      ],
+      "resultado_esperado": "Las operaciones rechazadas no permiten cerrar la inspección ni alterar datos de otra empresa. Se conservan los registros históricos.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
     }
   ]
 }

@@ -1,7 +1,7 @@
 @php
     $detectados = $foto->resultado_ia['detections'] ?? [];
     $completa = $foto->estado_ia === 'COMPLETADO';
-    $puedeAnalizar = $inspeccion->estado === 'EN_CAPTURA'
+    $puedeAnalizar = $foto->pertinencia !== 'INVALIDA' && $inspeccion->estado === 'EN_CAPTURA'
         && auth()->user()->rol?->codigo === 'INSPECTOR'
         && auth()->user()->hasPermission('inspecciones.analizar')
         && (!$inspeccion->id_inspector || (int) $inspeccion->id_inspector === (int) auth()->id());
@@ -9,7 +9,7 @@
         && $foto->updated_at?->lt(now()->subMinutes(4));
     $resumen = $foto->resultado_ia['summary'] ?? [];
 @endphp
-<article data-fruto-id="{{ $foto->id_fruto }}" data-fruto-numero="{{ $foto->fruto?->numero }}" data-reviewed="{{ isset($revisiones[$foto->id_evidencia]) ? '1' : '0' }}" data-evidencia-id="{{ $foto->id_evidencia }}" data-analyzed="{{ $completa ? '1' : '0' }}" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition dark:border-slate-700 dark:bg-slate-900">
+<article data-usable="{{ $foto->pertinencia === 'INVALIDA' ? '0' : '1' }}" data-fruto-id="{{ $foto->id_fruto }}" data-fruto-numero="{{ $foto->fruto?->numero }}" data-reviewed="{{ isset($revisiones[$foto->id_evidencia]) ? '1' : '0' }}" data-evidencia-id="{{ $foto->id_evidencia }}" data-analyzed="{{ $completa ? '1' : '0' }}" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition dark:border-slate-700 dark:bg-slate-900">
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-slate-700 sm:px-5">
         <div>
             <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Evidencia #{{ $foto->id_evidencia }}</p>
@@ -37,6 +37,7 @@
             <p class="mt-2 text-center text-xs font-medium text-slate-500 dark:text-slate-400">Resultado IA</p>
         </div>
     </div>
+    @if($foto->pertinencia === 'INVALIDA')<p class="border-t border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"><strong>Descartada para evaluación.</strong> {{ $foto->motivo_descarte }} Se conserva como historial y no cubre este fruto; registra una fotografía de reemplazo.</p>@endif
     <div class="space-y-3 px-4 py-4 sm:px-5">
         <div class="flex flex-wrap items-center gap-2 text-xs"><span class="text-slate-500">Revisión humana:</span><x-ui.state-badge :state="isset($revisiones[$foto->id_evidencia]) ? 'VALIDADA' : 'PENDIENTE'" :label="isset($revisiones[$foto->id_evidencia]) ? 'Revisada' : 'Pendiente de revisión'" /></div>
         @if($completa)

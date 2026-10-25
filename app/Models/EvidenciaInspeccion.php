@@ -13,6 +13,7 @@ class EvidenciaInspeccion extends Model
 
     protected $table = 'evidencia_inspeccion';
     protected $primaryKey = 'id_evidencia';
+    protected $attributes = ['pertinencia' => 'PENDIENTE'];
     protected $guarded = ['id_evidencia'];
 
     protected function casts(): array { return ['resultado_ia' => 'array']; }

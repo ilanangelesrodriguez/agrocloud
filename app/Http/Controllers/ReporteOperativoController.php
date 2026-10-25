@@ -103,7 +103,7 @@ class ReporteOperativoController extends Controller
         $inspection = $dictamen->inspeccion;
         if (!$inspection) return 0;
         $manuales = $inspection->hallazgos->pluck('id_evidencia')->filter();
-        return $inspection->evidencias->filter(fn ($foto) => $foto->validaciones->contains('confirmada', true) || $manuales->contains($foto->id_evidencia))->pluck('id_fruto')->filter()->unique()->count();
+        return $inspection->evidencias->where('pertinencia', '!=', 'INVALIDA')->filter(fn ($foto) => $foto->validaciones->contains('confirmada', true) || $manuales->contains($foto->id_evidencia))->pluck('id_fruto')->filter()->unique()->count();
     }
 
 }

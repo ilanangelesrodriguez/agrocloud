@@ -85,6 +85,7 @@ class OperationalWorkflowTest extends TestCase
                 ->post(route('inspecciones.revision.store', [$i->id_inspeccion, $evidencia->id_evidencia]), [
                     'conclusion' => 'SIN_HALLAZGOS',
                     'revision_completa' => '1',
+                    'imagen_pertinente' => '1',
                 ])->assertRedirect();
         }
         $this->actingAs($inspector)->post('/inspecciones/'.$i->id_inspeccion.'/finalizar')->assertRedirect();
@@ -235,6 +236,42 @@ class OperationalWorkflowTest extends TestCase
         $this->assertSame('APROBADO', $inspection->fresh()->dictamen->decision);
         $this->assertSame('OBSERVADO', $inspection->dictamenes()->first()->decision);
         $this->post($url, $data)->assertUnprocessable();
+    }
+
+    public function test_discarded_image_requires_replacement_and_explicit_human_relevance(): void
+    {
+        $company = $this->company('20666111666');
+        $inspector = $this->user('INSPECTOR', $company);
+        $lot = $this->lot($company, 'REEMPLAZO-FOTO');
+        $sample = Muestreo::create(['id_empresa' => $company->id_empresa, 'id_lote' => $lot->id_lote,
+            'id_inspector' => $inspector->id_usuario, 'tamano_muestra' => 1, 'metodo' => 'Aleatorio simple', 'estado' => 'EN_INSPECCION']);
+        $fruit = \App\Models\FrutoMuestra::create(['id_empresa' => $company->id_empresa, 'id_muestreo' => $sample->id_muestreo, 'numero' => 1, 'codigo' => 'M1-F00001']);
+        $inspection = Inspeccion::create(['id_empresa' => $company->id_empresa, 'id_muestreo' => $sample->id_muestreo, 'id_inspector' => $inspector->id_usuario, 'estado' => 'EN_CAPTURA']);
+        $photoData = ['id_empresa' => $company->id_empresa, 'id_inspeccion' => $inspection->id_inspeccion, 'id_fruto' => $fruit->id,
+            'imagen_url' => 'https://example.test/fruit.jpg', 'imagen_public_id' => 'fruit', 'estado_ia' => 'COMPLETADO', 'resultado_ia' => ['detections' => []]];
+        $photo = EvidenciaInspeccion::create($photoData);
+        $this->actingAs($inspector)->post(route('inspecciones.revision.store', [$inspection->id_inspeccion, $photo->id_evidencia]), ['revision_completa' => '1'])->assertSessionHasErrors('imagen_pertinente');
+        $this->post(route('inspecciones.evidencias.descartar', [$inspection->id_inspeccion, $photo->id_evidencia]), ['motivo_descarte' => 'La fotografía no muestra el fruto identificado.'])->assertRedirect(route('inspecciones.evidencias', $inspection->id_inspeccion));
+        $this->assertSame('INVALIDA', $photo->fresh()->pertinencia);
+        $this->assertSame(1, app(\App\Services\ProgresoInspeccion::class)->calcular($inspection->fresh())['faltantes']);
+        $this->post(route('inspecciones.finalizar', $inspection->id_inspeccion), [])->assertUnprocessable();
+        $replacement = EvidenciaInspeccion::create([...$photoData, 'imagen_public_id' => 'replacement']);
+        $this->post(route('inspecciones.revision.store', [$inspection->id_inspeccion, $replacement->id_evidencia]), ['revision_completa' => '1', 'imagen_pertinente' => '1'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame('VALIDA', $replacement->fresh()->pertinencia);
+        $this->post(route('inspecciones.finalizar', $inspection->id_inspeccion), [])->assertRedirect();
+        $this->assertSame('VALIDADA', $inspection->fresh()->estado);
+        $this->assertDatabaseHas('evidencia_inspeccion', ['id_evidencia' => $photo->id_evidencia, 'pertinencia' => 'INVALIDA']);
+    }
+
+    public function test_sampling_livewire_list_cannot_modify_another_company_procedure(): void
+    {
+        $company = $this->company('20666111777');
+        $other = $this->company('20666111888');
+        $admin = $this->user('ADMIN', $company);
+        $procedure = \App\Models\SamplingProcedure::create(['id_empresa' => $other->id_empresa, 'nombre' => 'Procedimiento reservado', 'version' => '1', 'metodo' => 'Aleatorio simple', 'criterio_muestra' => 'Autorizado', 'seleccion_frutos' => 'Sectores', 'max_frutos' => 10, 'activo' => true]);
+        $this->actingAs($admin);
+        \Livewire\Livewire::test(\App\Livewire\SamplingProceduresIndex::class)->assertDontSee('Procedimiento reservado')->call('toggle', $procedure->id, true)->assertStatus(404);
+        $this->assertTrue($procedure->fresh()->activo);
     }
 
 }

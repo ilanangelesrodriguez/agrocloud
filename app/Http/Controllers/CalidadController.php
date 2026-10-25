@@ -23,10 +23,13 @@ class CalidadController extends Controller
         $inspeccion = Inspeccion::query()->forCurrentCompany()->with([
             'muestreo.lote.productor', 'evidencias.validaciones', 'hallazgos', 'dictamen.supervisor', 'dictamenes.supervisor', 'inspector',
         ])->findOrFail($inspeccion);
+        $inspeccion->setRelation('evidencias', $inspeccion->evidencias->where('pertinencia', '!=', 'INVALIDA'));
+        $activePhotos = $inspeccion->evidencias->modelKeys();
+        $inspeccion->setRelation('hallazgos', $inspeccion->hallazgos->filter(fn ($h) => !$h->id_evidencia || in_array($h->id_evidencia, $activePhotos)));
         $revisiones = app(\App\Services\RevisionEvidencias::class)->revisiones($inspeccion);
         $naturalezas = app(\App\Services\RevisionEvidencias::class)->naturalezas($inspeccion);
         $bloqueado = app(\App\Services\IncidenciasOperativas::class)->bloqueaLiberacion($inspeccion->id_empresa, $inspeccion->muestreo->id_lote);
-        $revisionCompleta = $inspeccion->evidencias->isNotEmpty() && count($revisiones) === $inspeccion->evidencias->count();
+        $revisionCompleta = app(\App\Services\RevisionEvidencias::class)->completa($inspeccion);
         $distintoInspector = (int) $inspeccion->id_inspector !== (int) auth()->id();
         $evento = $inspeccion->dictamen ? DB::table('eventos_trazabilidad')->where('id_empresa', $inspeccion->id_empresa)->where('entidad', 'DictamenCalidad')->where('registro', $inspeccion->dictamen->id_dictamen)->where('evento', 'REVISION_SUPERVISOR')->latest('id')->first() : null;
         $revisionSupervisor = $evento ? json_decode($evento->cambios, true) : [];
