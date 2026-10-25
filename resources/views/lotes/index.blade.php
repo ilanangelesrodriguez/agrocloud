@@ -225,11 +225,11 @@
                                 <td class="whitespace-nowrap px-4 py-4">
 
                                     <div class="text-sm text-slate-700 dark:text-slate-200">
-                                        {{ $lote->fecha_recepcion?->format('d/m/Y') }}
+                                        {{ ($lote->recepcion?->recibido_en ?? $lote->fecha_llegada_prevista)?->copy()->timezone('America/Lima')->format('d/m/Y') }}
                                     </div>
 
                                     <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                        {{ $lote->fecha_recepcion?->format('H:i') }}
+                                        {{ ($lote->recepcion?->recibido_en ?? $lote->fecha_llegada_prevista)?->copy()->timezone('America/Lima')->format('H:i') }}
                                     </div>
 
                                 </td>

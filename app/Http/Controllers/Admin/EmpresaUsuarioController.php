@@ -65,7 +65,7 @@ class EmpresaUsuarioController extends Controller
         Empresa $empresa,
         CloudinaryService $cloudinary,
     ): RedirectResponse {
-        $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil', 'motivo_seguridad']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $empresa->id_empresa, isset($usuario) ? $usuario->toArray() : []);
         $data['id_empresa'] = $empresa->id_empresa;
         $data['password_hash'] = \Illuminate\Support\Str::random(64);
@@ -118,18 +118,9 @@ class EmpresaUsuarioController extends Controller
         CloudinaryService $cloudinary,
     ): RedirectResponse {
         $this->assertBelongsToCompany($empresa, $usuario);
-        $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil', 'motivo_seguridad']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $empresa->id_empresa, isset($usuario) ? $usuario->toArray() : []);
         $data['estado'] = $request->boolean('estado');
-
-        if ($request->filled('password')) {
-            $data['password_hash'] = $request->string('password')->toString();
-        }
-
-        if ($usuario->invitation_hash && $data['correo'] !== $usuario->correo) {
-            // Un enlace enviado al correo anterior no debe verificar el nuevo correo.
-            $usuario->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64)), 'invitation_expires_at' => null]);
-        }
 
         $oldPublicId = $usuario->foto_perfil_public_id;
         $upload = null;
@@ -141,7 +132,16 @@ class EmpresaUsuarioController extends Controller
                 $data['foto_perfil_public_id'] = $upload['public_id'];
             }
 
-            DB::transaction(fn () => $usuario->update($data));
+            DB::transaction(function () use ($usuario, $data) {
+                if ($usuario->invitation_hash) {
+                    if ($data['correo'] !== $usuario->correo) {
+                        $usuario->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64)), 'invitation_expires_at' => null, 'invitation_delivery_status' => 'not_sent']);
+                    }
+                } else {
+                    app(\App\Services\EmailChange::class)->prepare($usuario, $data);
+                }
+                $usuario->update($data);
+            });
         } catch (Throwable $e) {
             if ($upload) {
                 rescue(fn () => $cloudinary->deleteImage($upload['public_id']), report: true);
@@ -162,12 +162,13 @@ class EmpresaUsuarioController extends Controller
 
         return redirect()
             ->route('admin.empresas.usuarios.index', $empresa)
-            ->with('success', 'Usuario actualizado correctamente.');
+            ->with('success', 'Usuario actualizado. Si cambiaste el correo, el anterior sigue vigente hasta verificar el nuevo; guarda los cambios y revisa la sección Seguridad y acceso.');
     }
 
-    public function toggleStatus(Empresa $empresa, User $usuario): RedirectResponse
+    public function toggleStatus(Request $request, Empresa $empresa, User $usuario): RedirectResponse
     {
         $this->assertBelongsToCompany($empresa, $usuario);
+        $request->validate(['motivo_seguridad' => [$usuario->estado ? 'required' : 'nullable', 'string', 'max:500']]);
         $usuario->update(['estado' => ! $usuario->estado]);
         CompanySecurityUpdated::dispatch($empresa->id_empresa, 'usuario', 'status_changed', $usuario->id_usuario);
 
@@ -265,7 +266,7 @@ class EmpresaUsuarioController extends Controller
 
     private function companyRoles()
     {
-        return Rol::query()
+        return Rol::query()->with('permisos')
             ->where('estado', true)
             ->where('codigo', '!=', 'SUPERADMIN')
             ->orderBy('nombre')

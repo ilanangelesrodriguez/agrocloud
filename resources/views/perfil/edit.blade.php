@@ -93,6 +93,17 @@
                         </div>
                     </section>
                 </form>
+            <section class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+                    <h3 class="font-semibold dark:text-slate-100">Cambiar correo de acceso</h3>
+                    <p class="my-3 text-xs text-slate-500">Tu correo actual continúa válido hasta confirmar la nueva dirección. El enlace vence en 24 horas.</p>
+                    @if($user->pending_email)<p class="mb-3 text-sm text-amber-700 dark:text-amber-300">Pendiente: {{ $user->pending_email }}. Puedes repetir la solicitud para reenviar el enlace.</p><form method="POST" action="{{ route('users.email.cancel', $user) }}" class="mb-4">@csrf<x-ui.button type="submit" variant="secondary">Cancelar cambio pendiente</x-ui.button></form>@endif
+                    <form method="POST" action="{{ route('profile.email') }}" class="space-y-4">@csrf
+                        <x-ui.input name="correo" type="email" label="Nuevo correo" required />
+                        <x-ui.input name="current_password" type="password" label="Contraseña actual" autocomplete="current-password" required />
+                        <x-ui.button type="submit">Solicitar verificación</x-ui.button>
+                    </form>
+                </section>
+                <section class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h3 class="font-semibold dark:text-slate-100">Notificaciones internas</h3><p class="my-3 text-xs text-slate-500">Marca los avisos habituales que prefieres silenciar. Los avisos críticos y los correos de seguridad siempre permanecen activos.</p><form method="POST" action="{{ route('profile.notifications') }}" class="space-y-3">@csrf @foreach(\App\Services\OperationalNotifier::OPTIONAL_KINDS as $kind => $label)<label class="flex gap-2 text-sm dark:text-slate-200"><input type="checkbox" name="muted[]" value="{{ $kind }}" @checked(in_array($kind, $user->muted_operational_kinds ?? [], true))>Silenciar {{ mb_strtolower($label) }}</label>@endforeach<x-ui.button type="submit" variant="secondary">Guardar preferencias</x-ui.button></form></section>
             </aside>
         </div>
     </div>

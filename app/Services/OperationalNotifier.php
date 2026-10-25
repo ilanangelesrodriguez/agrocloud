@@ -15,6 +15,7 @@ use Throwable;
  */
 class OperationalNotifier
 {
+    public const OPTIONAL_KINDS = ['LOTE_REGISTRADO' => 'Nuevos lotes', 'LOTE_RECIBIDO' => 'Lotes recibidos', 'INSPECCION_ASIGNADA' => 'Asignaciones de inspección', 'INSPECCION_VALIDADA' => 'Inspecciones listas', 'DICTAMEN_APROBADO' => 'Aprobaciones de calidad'];
     public static function roles(
         int $empresaId,
         array $roles,
@@ -92,6 +93,7 @@ class OperationalNotifier
 
     private static function deliver(array $users, OperationalAlert $alert): void
     {
+        if ($alert->priority === 'normal') $users = array_values(array_filter($users, fn ($user) => !in_array($alert->kind, $user->muted_operational_kinds ?? [], true)));
         if (!$users) {
             return;
         }

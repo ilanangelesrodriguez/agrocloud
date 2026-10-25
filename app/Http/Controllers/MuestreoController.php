@@ -32,27 +32,41 @@ class MuestreoController extends Controller
             ->orderByDesc('id_lote')->get();
         $loteSeleccionado = $request->integer('lote');
 
-        return view('muestreos.create', compact('lotes', 'loteSeleccionado'));
+        $procedures = \App\Models\SamplingProcedure::forCurrentCompany()->where('activo', true)->orderBy('nombre')->get();
+        return view('muestreos.create', compact('lotes', 'loteSeleccionado', 'procedures'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         abort_unless($request->user()->rol?->codigo === 'INSPECTOR', 403);
         $empresaId = (int) $request->user()->id_empresa;
+        $procedure = null;
+        if ($request->filled('procedure_id')) {
+            $request->validate(['procedure_id' => ['integer', 'min:1']]);
+            $procedure = \App\Models\SamplingProcedure::forCurrentCompany()->where('activo', true)->findOrFail($request->integer('procedure_id'));
+            $request->merge(['protocolo' => $procedure->nombre.' · '.$procedure->version, 'metodo' => $procedure->metodo,
+                'criterio_muestra' => $procedure->criterio_muestra, 'seleccion_frutos' => $procedure->seleccion_frutos]);
+        }
         $data = $request->validate([
             'id_lote' => ['required', 'integer', Rule::exists('lote', 'id_lote')->where('id_empresa', $empresaId)],
-            'tamano_muestra' => ['required', 'integer', 'min:1', 'max:100000'],
+            'tamano_muestra' => ['required', 'integer', 'min:1', 'max:'.($procedure?->max_frutos ?? config('operations.sampling_max_fruits'))],
             'metodo' => ['required', 'string', 'max:80'],
             'observaciones' => ['nullable', 'string', 'max:3000'],
             'protocolo' => ['required', 'string', 'max:200'],
             'criterio_muestra' => ['required', 'string', 'max:1500'],
             'seleccion_frutos' => ['required', 'string', 'max:1500'],
+            'confirmar_carga' => ['nullable', 'accepted'],
             'poblacion_estimada' => ['nullable', 'integer', 'min:1', 'max:100000000'],
         ]);
 
+        if ((int) $data['tamano_muestra'] > config('operations.sampling_warning_fruits') && !$request->boolean('confirmar_carga')) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['confirmar_carga' => 'Esta muestra requiere identificar y revisar una cantidad elevada de frutos. Confirma la carga de trabajo antes de continuar.']);
+        }
+        unset($data['confirmar_carga']);
         if (!empty($data['poblacion_estimada']) && (int) $data['tamano_muestra'] > (int) $data['poblacion_estimada']) throw \Illuminate\Validation\ValidationException::withMessages(['tamano_muestra' => 'La muestra no puede superar la población estimada de frutos.']);
         $sampling = \Illuminate\Support\Arr::only($data, ['protocolo', 'criterio_muestra', 'seleccion_frutos', 'poblacion_estimada']);
-        $data = \Illuminate\Support\Arr::except($data, array_keys($sampling));
+        if ($procedure) $sampling += ['procedure_id' => $procedure->id, 'max_frutos' => $procedure->max_frutos, 'tamano_recomendado' => $procedure->tamano_recomendado];
+        $data = \Illuminate\Support\Arr::except($data, ['protocolo', 'criterio_muestra', 'seleccion_frutos', 'poblacion_estimada']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['metodo' => 'metodo'], $empresaId);
         $muestreo = DB::transaction(function () use ($data, $empresaId, $request, $sampling) {
             $lote = Lote::query()->forCurrentCompany()->lockForUpdate()->findOrFail($data['id_lote']);

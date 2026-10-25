@@ -2297,6 +2297,301 @@
       ],
       "resultado_esperado": "Un envío fallido conserva el enlace anterior; un envío correcto genera una invitación nueva.",
       "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-019",
+      "requerimiento": "QA-ACC",
+      "titulo": "Impedir contraseñas administrativas en ambos formularios",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_administrators_cannot_set_passwords_in_either_user_editor",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Impedir contraseñas administrativas en ambos formularios",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-020",
+      "requerimiento": "QA-ACC",
+      "titulo": "Verificar correo nuevo antes de sustituir el acceso anterior",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_email_change_keeps_old_address_until_single_use_confirmation",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Verificar correo nuevo antes de sustituir el acceso anterior",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-021",
+      "requerimiento": "QA-ACC",
+      "titulo": "Rechazar enlaces vencidos y correos pendientes reservados",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_expired_email_verification_and_reserved_addresses_are_rejected",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Rechazar enlaces vencidos y correos pendientes reservados",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-022",
+      "requerimiento": "QA-ACC",
+      "titulo": "Cerrar otras sesiones al cambiar contraseña y conservar la actual",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_password_change_preserves_current_session_and_rotates_access_version",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Cerrar otras sesiones al cambiar contraseña y conservar la actual",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-023",
+      "requerimiento": "QA-ACC",
+      "titulo": "Mantener revocadas las sesiones anteriores tras una reactivación",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_old_sessions_stay_revoked_after_account_is_reactivated",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Mantener revocadas las sesiones anteriores tras una reactivación",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-024",
+      "requerimiento": "QA-ACC",
+      "titulo": "Aislar recuperación administrativa e historial entre empresas",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_admin_recovery_and_security_history_cannot_cross_companies",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Aislar recuperación administrativa e historial entre empresas",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-025",
+      "requerimiento": "QA-ACC",
+      "titulo": "Conservar alertas de seguridad al configurar avisos internos",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_operational_preferences_cannot_mute_security_alerts",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Conservar alertas de seguridad al configurar avisos internos",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-OPS-005",
+      "requerimiento": "QA-OPS",
+      "titulo": "Separar llegada prevista y real con peso verificado y horario de Lima",
+      "modulo": "Operaciones",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Operaciones\\OperationalWorkflowTest::test_reception_preserves_planned_arrival_and_requires_measured_weight",
+      "archivo": "tests/Feature/Operaciones/OperationalWorkflowTest.php",
+      "objetivo": "Separar llegada prevista y real con peso verificado y horario de Lima",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-OPS-006",
+      "requerimiento": "QA-OPS",
+      "titulo": "Aplicar procedimiento autorizado, límites y copia histórica del muestreo",
+      "modulo": "Operaciones",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Operaciones\\OperationalWorkflowTest::test_authorized_sampling_procedure_enforces_its_limit_and_snapshot",
+      "archivo": "tests/Feature/Operaciones/OperationalWorkflowTest.php",
+      "objetivo": "Aplicar procedimiento autorizado, límites y copia histórica del muestreo",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-OPS-007",
+      "requerimiento": "QA-OPS",
+      "titulo": "Exigir confirmación de carga para muestras grandes",
+      "modulo": "Operaciones",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Operaciones\\OperationalWorkflowTest::test_large_sampling_requires_explicit_workload_confirmation",
+      "archivo": "tests/Feature/Operaciones/OperationalWorkflowTest.php",
+      "objetivo": "Exigir confirmación de carga para muestras grandes",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-OPS-008",
+      "requerimiento": "QA-OPS",
+      "titulo": "Resolver observaciones documentales sin reinspección ni pérdida del dictamen anterior",
+      "modulo": "Operaciones",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Operaciones\\OperationalWorkflowTest::test_documentary_observation_keeps_inspection_and_preserves_decision_history",
+      "archivo": "tests/Feature/Operaciones/OperationalWorkflowTest.php",
+      "objetivo": "Resolver observaciones documentales sin reinspección ni pérdida del dictamen anterior",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Correo y colas simulados cuando corresponda"
+      ],
+      "pasos": [
+        "Preparar los usuarios, permisos y registros indicados por el caso",
+        "Ejecutar las solicitudes del método y sus casos de rechazo",
+        "Comprobar los cambios persistidos y la conservación de los datos anteriores"
+      ],
+      "resultado_esperado": "Se cumplen las aserciones del caso; las operaciones no autorizadas no alteran el acceso ni el flujo operativo.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-FE-012",
+      "requerimiento": "QA-FE",
+      "titulo": "un procedimiento completa instrucciones y límite y exige confirmar muestras grandes",
+      "modulo": "Interfaz operativa",
+      "categoria": "Frontend / interacción",
+      "prioridad": "Alta",
+      "test": "un procedimiento completa instrucciones y límite y exige confirmar muestras grandes",
+      "archivo": "tests/frontend/operational-flows.test.cjs",
+      "objetivo": "un procedimiento completa instrucciones y límite y exige confirmar muestras grandes",
+      "precondiciones": [
+        "Node.js y dependencias frontend instalados"
+      ],
+      "pasos": [
+        "Cargar el formulario simulado",
+        "Cambiar el procedimiento o el tipo de observación",
+        "Comprobar instrucciones, límites, validación y mensaje de confirmación"
+      ],
+      "resultado_esperado": "La interfaz corresponde al procedimiento y a la acción de calidad seleccionados.",
+      "evidencia": "JUnit frontend; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-FE-013",
+      "requerimiento": "QA-FE",
+      "titulo": "confirmar una observación documental no anuncia una nueva inspección",
+      "modulo": "Interfaz operativa",
+      "categoria": "Frontend / interacción",
+      "prioridad": "Alta",
+      "test": "confirmar una observación documental no anuncia una nueva inspección",
+      "archivo": "tests/frontend/operational-flows.test.cjs",
+      "objetivo": "confirmar una observación documental no anuncia una nueva inspección",
+      "precondiciones": [
+        "Node.js y dependencias frontend instalados"
+      ],
+      "pasos": [
+        "Cargar el formulario simulado",
+        "Cambiar el procedimiento o el tipo de observación",
+        "Comprobar instrucciones, límites, validación y mensaje de confirmación"
+      ],
+      "resultado_esperado": "La interfaz corresponde al procedimiento y a la acción de calidad seleccionados.",
+      "evidencia": "JUnit frontend; commit e ID de ejecución en resumen.json"
     }
   ]
 }

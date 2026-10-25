@@ -14,7 +14,8 @@ class EnsureActiveUser
     {
         $user = $request->user()?->loadMissing(['rol', 'empresa']);
 
-        $inactiveUser = ! $user || ! $user->estado || (bool) $user->invitation_hash;
+        $inactiveUser = ! $user || ! $user->estado || (bool) $user->invitation_hash
+            || (int) $request->session()->get('account_auth_version', 0) !== (int) $user->auth_version;
         $missingRole = ! $user?->rol;
         $inactiveRole = $user?->rol && ! $user->rol->estado;
         $missingCompany = $user && ! $user->isSuperAdmin() && ! $user->empresa;

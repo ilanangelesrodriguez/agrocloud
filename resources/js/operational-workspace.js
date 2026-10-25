@@ -55,7 +55,29 @@ function initialize() {
     document.querySelectorAll('[data-sampling-form]').forEach(form => {
         if (initialized.has(form)) return;
         initialized.add(form);
+        const procedure = form.querySelector('[data-sampling-procedure]');
+        const defaultMax = form.elements.tamano_muestra.max;
+        const applyProcedure = () => {
+            const raw = procedure?.selectedOptions[0]?.dataset.procedure;
+            const selected = raw ? JSON.parse(raw) : null;
+            ['protocolo', 'criterio_muestra', 'seleccion_frutos'].forEach(name => {
+                form.elements[name].readOnly = Boolean(selected);
+                if (selected) form.elements[name].value = name === 'protocolo' ? `${selected.nombre} · ${selected.version}` : selected[name];
+            });
+            form.elements.tamano_muestra.max = selected?.max_frutos || defaultMax;
+            if (selected) {
+                form.elements.metodo.value = selected.metodo;
+                if (selected.tamano_recomendado) form.elements.tamano_muestra.value = selected.tamano_recomendado;
+            }
+        };
+        procedure?.addEventListener('change', applyProcedure);
+        if (procedure?.value) applyProcedure();
         const update = () => {
+            const count = Number(form.elements.tamano_muestra.value);
+            const workload = form.querySelector('[data-sampling-workload]');
+            if (workload) workload.textContent = count > 0 ? `Se identificarán ${count} frutos. Si el procedimiento requiere una fotografía por fruto, serán al menos ${count} fotografías y ${count} revisiones; comprueba el requisito del procedimiento.` : 'Indica la cantidad para estimar el trabajo de identificación y revisión.';
+            const confirmation = form.elements.confirmar_carga;
+            if (confirmation) confirmation.required = count > Number(form.dataset.samplingWarning);
             const lot = form.elements.id_lote.selectedOptions[0];
             form.querySelector('[data-lot-summary]').textContent = lot?.dataset.info || 'Selecciona un lote para revisar sus datos de ingreso.';
             const values = [lot?.value ? lot.textContent : '', form.elements.protocolo.value.trim(), form.elements.metodo?.value, form.elements.tamano_muestra.value];

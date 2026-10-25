@@ -15,7 +15,9 @@ abstract class TestCase extends BaseTestCase
         if ($this->app['auth']->guard($guard)->id() !== $user->getAuthIdentifier()) {
             $this->app['session']->forget('password_hash_'.($guard ?? config('auth.defaults.guard')));
         }
-        return parent::actingAs($user, $guard);
+        $result = parent::actingAs($user, $guard);
+        $this->app['session']->put('account_auth_version', (int) $user->auth_version);
+        return $result;
     }
 
     public function createApplication()

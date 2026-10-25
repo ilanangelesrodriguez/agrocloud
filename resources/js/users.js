@@ -65,6 +65,7 @@ document.addEventListener('click', async (event) => {
         });
         if (current !== controller) return;
         content.replaceChildren(section);
+        initializeRolePreview(content);
         section.querySelector('input:not([type="hidden"]):not([type="file"]), select, button')?.focus();
     } catch (error) {
         if (error.name === 'AbortError') return;
@@ -132,6 +133,10 @@ document.addEventListener('livewire:navigating', () => { cleanup(); drawer()?.cl
 document.addEventListener('submit', (event) => {
     const form = event.target;
     if (!form.matches('[data-user-drawer-form]')) return;
+    if (event.submitter?.hasAttribute('formaction')) {
+        delete form.dataset.confirm; delete form.dataset.confirmTitle; delete form.dataset.confirmLabel;
+        return;
+    }
     const state = form.querySelector('input[type="checkbox"][name="estado"]');
     if (form.dataset.userInitialActive === 'true' && state && !state.checked) {
         form.dataset.confirm = 'Esta persona dejará de tener acceso a la plataforma. Sus registros se conservarán. ¿Quieres guardar la cuenta como inactiva?';
@@ -143,3 +148,14 @@ document.addEventListener('submit', (event) => {
         delete form.dataset.confirmLabel;
     }
 }, true);
+
+function initializeRolePreview(root = document) {
+    root.querySelectorAll('[data-role-preview]').forEach(select => {
+        const summary = select.closest('form')?.querySelector('[data-role-permissions-summary]');
+        if (summary) summary.textContent = select.selectedOptions[0]?.dataset.permissions || 'Selecciona un rol para consultar las acciones permitidas.';
+    });
+}
+document.addEventListener('change', event => { if (event.target.matches('[data-role-preview]')) initializeRolePreview(event.target.closest('form')); });
+document.addEventListener('DOMContentLoaded', () => initializeRolePreview());
+document.addEventListener('livewire:navigated', () => initializeRolePreview());
+if (document.readyState !== 'loading') initializeRolePreview();

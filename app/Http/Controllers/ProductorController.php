@@ -167,7 +167,7 @@ class ProductorController extends Controller
         $lotes = $productorModel
             ->lotes()
             ->with('recepcion')
-            ->orderByDesc('fecha_recepcion')
+            ->orderByRaw(\App\Models\Lote::OPERATIONAL_DATE_SQL.' DESC NULLS LAST')
             ->paginate(10)
             ->withQueryString();
 

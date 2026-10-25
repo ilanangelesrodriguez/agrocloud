@@ -44,12 +44,12 @@ class CalidadPendientes extends Component
         $empresa = auth()->user()->id_empresa;
         $base = Inspeccion::forCurrentCompany()->where('estado', 'VALIDADA');
         $totales = [
-            'pendientes' => (clone $base)->whereDoesntHave('dictamen')->count(),
+            'pendientes' => (clone $base)->pendingDecision()->count(),
             'historial' => (clone $base)->whereHas('dictamen')->count(),
             'hoy' => DictamenCalidad::where('id_empresa', $empresa)->whereDate('created_at', today())->count(),
         ];
         $query = (clone $base)->with(['muestreo.lote.productor', 'inspector', 'dictamen.supervisor', 'evidencias.validaciones', 'hallazgos']);
-        $query = $this->tab === 'historial' ? $query->whereHas('dictamen') : $query->whereDoesntHave('dictamen');
+        $query = $this->tab === 'historial' ? $query->whereHas('dictamen') : $query->pendingDecision();
         $search = trim(mb_substr($this->buscar, 0, 150));
         if ($search !== '') $query->where(function ($q) use ($search) {
             if (ctype_digit(ltrim($search, '#'))) $q->where('id_inspeccion', (int) ltrim($search, '#'))->orWhereHas('muestreo.lote', fn ($l) => $l->where('codigo_lote', 'ilike', '%'.$search.'%')->orWhereHas('productor', fn ($p) => $p->where('nombre_razon_social', 'ilike', '%'.$search.'%')->orWhere('ruc', 'ilike', '%'.$search.'%')));
@@ -64,7 +64,7 @@ class CalidadPendientes extends Component
         if ($this->tab === 'historial') {
             $query->when($this->decision !== '', fn ($q) => $q->whereHas('dictamen', fn ($d) => $d->where('decision', $this->decision)))
                 ->when($this->supervisor !== '', fn ($q) => $q->whereHas('dictamen', fn ($d) => $d->where('id_supervisor', $this->supervisor)))
-                ->orderByDesc(DictamenCalidad::select('created_at')->whereColumn('dictamen_calidad.id_inspeccion', 'inspeccion.id_inspeccion')->limit(1));
+                ->orderByDesc(DictamenCalidad::select('created_at')->whereColumn('dictamen_calidad.id_inspeccion', 'inspeccion.id_inspeccion')->orderByDesc('id_dictamen')->limit(1));
         } else $query->orderBy('validada_en');
         $inspecciones = $query->orderByDesc('id_inspeccion')->paginate(12);
         $ids = $inspecciones->flatMap(fn ($i) => $i->evidencias->modelKeys());

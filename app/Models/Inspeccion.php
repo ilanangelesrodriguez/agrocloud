@@ -22,5 +22,11 @@ class Inspeccion extends Model
     public function inspector(): BelongsTo { return $this->belongsTo(User::class, 'id_inspector', 'id_usuario'); }
     public function evidencias(): HasMany { return $this->hasMany(EvidenciaInspeccion::class, 'id_inspeccion', 'id_inspeccion'); }
     public function hallazgos(): HasMany { return $this->hasMany(HallazgoManual::class, 'id_inspeccion', 'id_inspeccion'); }
-    public function dictamen(): HasOne { return $this->hasOne(DictamenCalidad::class, 'id_inspeccion', 'id_inspeccion'); }
+    public function scopePendingDecision($query)
+    {
+        return $query->where(fn ($q) => $q->whereDoesntHave('dictamen')->orWhereHas('dictamen', fn ($d) => $d->where('decision', 'OBSERVADO')->whereIn('tipo_observacion', ['DOCUMENTACION', 'CORRECCION_ADMINISTRATIVA'])));
+    }
+
+    public function dictamenes(): HasMany { return $this->hasMany(DictamenCalidad::class, 'id_inspeccion', 'id_inspeccion')->orderBy('id_dictamen'); }
+    public function dictamen(): HasOne { return $this->hasOne(DictamenCalidad::class, 'id_inspeccion', 'id_inspeccion')->latestOfMany('id_dictamen'); }
 }

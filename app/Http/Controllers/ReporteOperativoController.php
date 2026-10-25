@@ -40,9 +40,9 @@ class ReporteOperativoController extends Controller
             default => Lote::query()->with(['productor', 'recepcion'])->withCount('muestreos'),
         };
         $date = match ($tipo) {
-            'recepciones' => 'recibido_en', 'lotes' => 'fecha_recepcion', default => 'created_at'
+            'recepciones' => 'recibido_en', 'lotes' => 'created_at', default => 'created_at'
         };
-        $query->where('id_empresa', $request->user()->id_empresa)->where($date, '>=', $desde.' 00:00:00')->where($date, '<', Carbon::parse($hasta)->addDay()->toDateString().' 00:00:00');
+        $query->where('id_empresa', $request->user()->id_empresa)->where($date, '>=', Carbon::parse($desde.' 00:00:00', 'America/Lima')->utc())->where($date, '<', Carbon::parse($hasta.' 00:00:00', 'America/Lima')->addDay()->utc());
         if ($tipo === 'muestreos' && $request->user()->rol?->codigo === 'INSPECTOR') {
             $query->where('id_inspector', $request->user()->id_usuario);
         }
@@ -54,14 +54,14 @@ class ReporteOperativoController extends Controller
             'recepciones' => ['Lote', 'Productor', 'Documento', 'Peso declarado (kg)', 'Peso recibido (kg)', 'Diferencia (kg)', 'Responsable', 'Fecha'],
             'muestreos' => ['Lote', 'Muestreo', 'Método', 'Tamaño', 'Frutos identificados', 'Inspecciones', 'Estado', 'Fecha'],
             'calidad' => ['Lote', 'Inspección', 'Decisión', 'Categoría', 'Motivo', 'Supervisor', 'Frutos de muestra', 'Imágenes', 'Frutos con hallazgos', 'Frutos observados (%)', 'Fecha'],
-            default => ['Lote', 'Productor', 'Producto', 'Variedad', 'Peso declarado (kg)', 'Peso recibido (kg)', 'Estado', 'Muestreos', 'Fecha'],
+            default => ['Lote', 'Productor', 'Producto', 'Variedad', 'Peso declarado (kg)', 'Peso recibido (kg)', 'Estado', 'Muestreos', 'Registro', 'Llegada prevista', 'Recepción real'],
         };
         $map = fn ($r) => match ($tipo) {
-            'ia' => [$r->inspeccion?->muestreo?->lote?->codigo_lote, $r->id_inspeccion, $r->id_evidencia, $r->id_fruto, $r->estado_ia, $r->version_modelo, count($r->resultado_ia['detections'] ?? []), $r->validaciones->where('confirmada', true)->count(), $r->validaciones->where('confirmada', false)->count(), $r->created_at?->format('d/m/Y H:i')],
-            'recepciones' => [$r->lote?->codigo_lote, $r->lote?->productor?->nombre_razon_social, $r->documento, $r->lote?->peso_kg, $r->peso_recibido_kg, round((float) $r->peso_recibido_kg - (float) $r->lote?->peso_kg, 2), $r->responsable?->nombre_completo, $r->recibido_en?->format('d/m/Y H:i')],
-            'muestreos' => [$r->lote?->codigo_lote, $r->id_muestreo, $r->metodo, $r->tamano_muestra, $r->frutos_count, $r->inspecciones_count, $r->estado, $r->created_at?->format('d/m/Y H:i')],
-            'calidad' => [$r->lote?->codigo_lote, $r->id_inspeccion, $r->decision, $r->categoria, $r->motivo, $r->supervisor?->nombre_completo, $r->inspeccion?->muestreo?->tamano_muestra, $r->inspeccion?->evidencias->count(), $this->frutosObservados($r), ($r->inspeccion?->muestreo?->frutos_count ?? 0) > 0 && $r->inspeccion?->muestreo?->tamano_muestra ? round($this->frutosObservados($r) * 100 / $r->inspeccion->muestreo->tamano_muestra, 2) : null, $r->created_at?->format('d/m/Y H:i')],
-            default => [$r->codigo_lote, $r->productor?->nombre_razon_social, $r->producto, $r->variedad, $r->peso_kg, $r->recepcion?->peso_recibido_kg, $r->estado->label(), $r->muestreos_count, $r->fecha_recepcion?->format('d/m/Y H:i')],
+            'ia' => [$r->inspeccion?->muestreo?->lote?->codigo_lote, $r->id_inspeccion, $r->id_evidencia, $r->id_fruto, $r->estado_ia, $r->version_modelo, count($r->resultado_ia['detections'] ?? []), $r->validaciones->where('confirmada', true)->count(), $r->validaciones->where('confirmada', false)->count(), $r->created_at?->copy()->timezone('America/Lima')->format('d/m/Y H:i')],
+            'recepciones' => [$r->lote?->codigo_lote, $r->lote?->productor?->nombre_razon_social, $r->documento, $r->lote?->peso_kg, $r->peso_recibido_kg, round((float) $r->peso_recibido_kg - (float) $r->lote?->peso_kg, 2), $r->responsable?->nombre_completo, $r->recibido_en?->copy()->timezone('America/Lima')->format('d/m/Y H:i')],
+            'muestreos' => [$r->lote?->codigo_lote, $r->id_muestreo, $r->metodo, $r->tamano_muestra, $r->frutos_count, $r->inspecciones_count, $r->estado, $r->created_at?->copy()->timezone('America/Lima')->format('d/m/Y H:i')],
+            'calidad' => [$r->lote?->codigo_lote, $r->id_inspeccion, $r->decision, $r->categoria, $r->motivo, $r->supervisor?->nombre_completo, $r->inspeccion?->muestreo?->tamano_muestra, $r->inspeccion?->evidencias->count(), $this->frutosObservados($r), ($r->inspeccion?->muestreo?->frutos_count ?? 0) > 0 && $r->inspeccion?->muestreo?->tamano_muestra ? round($this->frutosObservados($r) * 100 / $r->inspeccion->muestreo->tamano_muestra, 2) : null, $r->created_at?->copy()->timezone('America/Lima')->format('d/m/Y H:i')],
+            default => [$r->codigo_lote, $r->productor?->nombre_razon_social, $r->producto, $r->variedad, $r->peso_kg, $r->recepcion?->peso_recibido_kg, $r->estado->label(), $r->muestreos_count, $r->created_at?->copy()->timezone('America/Lima')->format('d/m/Y H:i'), $r->fecha_llegada_prevista?->copy()->timezone('America/Lima')->format('d/m/Y H:i'), $r->recepcion?->recibido_en?->copy()->timezone('America/Lima')->format('d/m/Y H:i')],
         };
         if ($request->input('exportar') === 'csv') {
             return response()->streamDownload(function () use ($query, $map, $columns) {
@@ -77,7 +77,7 @@ class ReporteOperativoController extends Controller
         }
         $evidenciasIds = $tipo === 'ia' ? (clone $query)->reorder()->select('id_evidencia') : null;
         $total = (clone $query)->count();
-        $tendencia = (clone $query)->reorder()->toBase()->select([\Illuminate\Support\Facades\DB::raw("DATE({$date}) as dia"), \Illuminate\Support\Facades\DB::raw('COUNT(*) as cantidad')])->groupByRaw("DATE({$date})")->orderByDesc('dia')->limit(30)->get()->reverse()->values();
+        $tendencia = (clone $query)->reorder()->toBase()->select([\Illuminate\Support\Facades\DB::raw("DATE(({$date} AT TIME ZONE 'UTC') AT TIME ZONE 'America/Lima') as dia"), \Illuminate\Support\Facades\DB::raw('COUNT(*) as cantidad')])->groupByRaw("DATE(({$date} AT TIME ZONE 'UTC') AT TIME ZONE 'America/Lima')")->orderByDesc('dia')->limit(30)->get()->reverse()->values();
         $indicadores = ['Registros del período' => $total];
         if ($tipo === 'recepciones') $indicadores['Peso recibido (kg)'] = round((clone $query)->sum('peso_recibido_kg'), 2);
         if ($tipo === 'muestreos') $indicadores['Frutos de muestra'] = (clone $query)->sum('tamano_muestra');
@@ -93,7 +93,7 @@ class ReporteOperativoController extends Controller
 
         $rendimiento = null;
         if ($tipo === 'ia') {
-            $intentos = \Illuminate\Support\Facades\DB::table('eventos_trazabilidad')->where('id_empresa', $request->user()->id_empresa)->whereIn('evento', ['ANALISIS_COMPLETADO', 'ANALISIS_FALLIDO'])->whereBetween('created_at', [$desde.' 00:00:00', $hasta.' 23:59:59'])->whereIn('registro', $evidenciasIds)->get();
+            $intentos = \Illuminate\Support\Facades\DB::table('eventos_trazabilidad')->where('id_empresa', $request->user()->id_empresa)->whereIn('evento', ['ANALISIS_COMPLETADO', 'ANALISIS_FALLIDO'])->whereBetween('created_at', [Carbon::parse($desde.' 00:00:00', 'America/Lima')->utc(), Carbon::parse($hasta.' 23:59:59', 'America/Lima')->utc()])->whereIn('registro', $evidenciasIds)->get();
             $rendimiento = ['completados' => $intentos->where('evento', 'ANALISIS_COMPLETADO')->count(), 'fallidos' => $intentos->where('evento', 'ANALISIS_FALLIDO')->count(), 'promedio_ms' => (int) round($intentos->map(fn ($e) => json_decode($e->cambios, true)['duracion_ms'] ?? 0)->avg() ?? 0)];
         }
         return view('operaciones.reportes', compact('indicadores', 'tendencia', 'orden', 'rendimiento', 'tipos', 'tipo', 'desde', 'hasta', 'total', 'registros', 'columns', 'rows'));
