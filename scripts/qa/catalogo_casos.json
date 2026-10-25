@@ -2207,6 +2207,96 @@
       ],
       "resultado_esperado": "La pantalla carga con etiquetas accesibles y sin desbordamiento horizontal en el tamaño indicado.",
       "evidencia": "reports/e2e-visual.xml y reports/browser/visual/; commit e ID de ejecución"
+    },
+    {
+      "id": "CP-ACC-015",
+      "requerimiento": "QA-ACC",
+      "titulo": "Crear usuarios pendientes y enviar invitaciones desde ambos formularios",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_both_user_creation_forms_create_pending_accounts_and_send_invitations",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Crear usuarios pendientes y enviar invitaciones desde ambos formularios",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Transporte de correo simulado en la prueba"
+      ],
+      "pasos": [
+        "Crear usuarios desde el administrador de empresa y desde el superadministrador",
+        "Comprobar empresa asignada, invitación pendiente y vencimiento futuro"
+      ],
+      "resultado_esperado": "Ambos formularios crean cuentas pendientes e invocan el envío de la invitación.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-016",
+      "requerimiento": "QA-ACC",
+      "titulo": "Activar una cuenta invitada con un enlace de un solo uso",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_user_invitation_blocks_login_and_recovery_then_activates_once",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Activar una cuenta invitada con un enlace de un solo uso",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Transporte de correo simulado en la prueba"
+      ],
+      "pasos": [
+        "Intentar ingresar y recuperar la contraseña de una cuenta pendiente",
+        "Abrir la invitación y establecer una contraseña",
+        "Reutilizar el enlace e iniciar sesión con la contraseña nueva"
+      ],
+      "resultado_esperado": "La cuenta pendiente no puede ingresar ni recuperar contraseña; la activación permite ingresar y el enlace no se reutiliza.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-017",
+      "requerimiento": "QA-ACC",
+      "titulo": "Impedir activaciones con invitaciones vencidas o cuentas deshabilitadas",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_expired_or_disabled_invitation_cannot_activate",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Impedir activaciones con invitaciones vencidas o cuentas deshabilitadas",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Transporte de correo simulado en la prueba"
+      ],
+      "pasos": [
+        "Abrir una invitación después de 73 horas",
+        "Restaurar el tiempo, deshabilitar la cuenta e intentar activarla"
+      ],
+      "resultado_esperado": "Las invitaciones vencidas y las cuentas deshabilitadas no permiten activar el acceso.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
+    },
+    {
+      "id": "CP-ACC-018",
+      "requerimiento": "QA-ACC",
+      "titulo": "Conservar el enlace al fallar el correo y renovarlo tras un envío correcto",
+      "modulo": "Acceso",
+      "categoria": "Funcional / integración",
+      "prioridad": "Alta",
+      "test": "Tests\\Feature\\Acceso\\AccountLifecycleTest::test_user_invitation_failure_preserves_old_token_and_success_rotates_it",
+      "archivo": "tests/Feature/Acceso/AccountLifecycleTest.php",
+      "objetivo": "Conservar el enlace al fallar el correo y renovarlo tras un envío correcto",
+      "precondiciones": [
+        "Dependencias PHP instaladas",
+        "Neon testing verificado y exclusivo",
+        "Transporte de correo simulado en la prueba"
+      ],
+      "pasos": [
+        "Simular un fallo SMTP al reenviar la invitación",
+        "Comprobar que se conserva el hash anterior",
+        "Simular un envío correcto y comprobar la renovación del hash"
+      ],
+      "resultado_esperado": "Un envío fallido conserva el enlace anterior; un envío correcto genera una invitación nueva.",
+      "evidencia": "JUnit: clase y método; commit e ID de ejecución en resumen.json"
     }
   ]
 }
