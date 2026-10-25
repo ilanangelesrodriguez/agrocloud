@@ -147,14 +147,17 @@ class AccountLifecycleTest extends TestCase
     {
         \Illuminate\Support\Facades\Queue::fake();
         $user = $this->account();
+        $previousSessionHash = \Illuminate\Support\Facades\Auth::guard('web')->hashPasswordForCookie($user->password_hash);
         $this->actingAs($user)->withSession(['password_hash_web' => $user->password_hash]);
         $this->put(route('perfil.password.update'), ['current_password' => 'AnteriorClave2026',
             'password' => 'NuevaClaveSegura2026', 'password_confirmation' => 'NuevaClaveSegura2026'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame(1, $user->fresh()->auth_version);
         $this->assertSame($user->fresh()->auth_version, session('account_auth_version'));
-        $this->assertSame($user->fresh()->password_hash, session('password_hash_web'));
+        $this->assertSame(\Illuminate\Support\Facades\Auth::guard('web')->hashPasswordForCookie($user->fresh()->password_hash), session('password_hash_web'));
         \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SendSecurityNotice::class);
         $this->get(route('perfil.edit'))->assertOk();
+        $this->withSession(['password_hash_web' => $previousSessionHash, 'account_auth_version' => 0])->get(route('perfil.edit'))->assertRedirect(route('login'));
+        $this->assertGuest();
     }
 
     public function test_old_sessions_stay_revoked_after_account_is_reactivated(): void

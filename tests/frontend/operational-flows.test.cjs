@@ -28,7 +28,7 @@ test('un procedimiento completa instrucciones y límite y exige confirmar muestr
         window: {},
     });
     handlers.DOMContentLoaded();
-    procedure.selectedOptions[0].dataset.procedure = JSON.stringify({ nombre: 'Procedimiento autorizado', version: '2', metodo: 'Distribuido', criterio_muestra: 'Según protocolo', seleccion_frutos: 'Sectores del lote', max_frutos: 800, tamano_recomendado: 600 });
+    procedure.selectedOptions[0].dataset.procedure = JSON.stringify({ nombre: 'Procedimiento autorizado', version: '2', metodo: 'Distribuido', criterio_muestra: 'Según protocolo', seleccion_frutos: 'Sectores del lote', max_frutos: 800, tamano_recomendado: 600, requiere_poblacion: true });
     procedureEvents.change(); events.change();
     assert.equal(form.elements.protocolo.value, 'Procedimiento autorizado · 2');
     assert.equal(form.elements.criterio_muestra.readOnly, true);

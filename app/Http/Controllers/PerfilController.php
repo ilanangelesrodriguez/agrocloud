@@ -57,7 +57,7 @@ class PerfilController extends Controller
         $user = $request->user();
         \Illuminate\Support\Facades\DB::transaction(fn () => $user->update(['password_hash' => $request->string('password')->toString()]));
         $request->session()->regenerate();
-        $request->session()->put('password_hash_web', $user->getAuthPassword());
+        $request->session()->put('password_hash_web', \Illuminate\Support\Facades\Auth::guard('web')->hashPasswordForCookie($user->getAuthPassword()));
         $request->session()->put('account_auth_version', (int) $user->auth_version);
         \App\Services\AccountSecurity::notice($user, 'PASSWORD_CHANGED', 'Se cambió tu contraseña de AgroCloud. Se cerrarán las otras sesiones. Si no realizaste este cambio, recupera tu acceso y contacta al administrador.');
         return back()->with('success', 'Tu contraseña se actualizó. Las otras sesiones se cerrarán y se solicitó un aviso de seguridad por correo.');

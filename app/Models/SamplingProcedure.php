@@ -12,6 +12,6 @@ class SamplingProcedure extends Model
     protected $guarded = ['id'];
     protected function casts(): array
     {
-        return ['activo' => 'boolean', 'max_frutos' => 'integer', 'tamano_recomendado' => 'integer'];
+        return ['requiere_poblacion' => 'boolean', 'activo' => 'boolean', 'max_frutos' => 'integer', 'tamano_recomendado' => 'integer'];
     }
 }

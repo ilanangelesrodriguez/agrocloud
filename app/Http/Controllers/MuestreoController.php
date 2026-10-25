@@ -33,13 +33,16 @@ class MuestreoController extends Controller
         $loteSeleccionado = $request->integer('lote');
 
         $procedures = \App\Models\SamplingProcedure::forCurrentCompany()->where('activo', true)->orderBy('nombre')->get();
-        return view('muestreos.create', compact('lotes', 'loteSeleccionado', 'procedures'));
+        $fixedLot = $request->filled('lote') ? $lotes->firstWhere('id_lote', $loteSeleccionado) : null;
+        abort_if($request->filled('lote') && !$fixedLot, 404, 'El lote no está disponible para muestreo.');
+        return view('muestreos.create', compact('lotes', 'loteSeleccionado', 'procedures', 'fixedLot'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         abort_unless($request->user()->rol?->codigo === 'INSPECTOR', 403);
         $empresaId = (int) $request->user()->id_empresa;
+        $request->validate(['procedure_id' => ['nullable', 'integer', 'prohibited_if:sampling_mode,manual'], 'sampling_mode' => ['sometimes', Rule::in(['authorized', 'manual'])], 'id_lote' => ['required', 'integer', Rule::exists('lote', 'id_lote')->where('id_empresa', $empresaId)]]);
         $procedure = null;
         if ($request->filled('procedure_id')) {
             $request->validate(['procedure_id' => ['integer', 'min:1']]);
@@ -47,6 +50,9 @@ class MuestreoController extends Controller
             $request->merge(['protocolo' => $procedure->nombre.' · '.$procedure->version, 'metodo' => $procedure->metodo,
                 'criterio_muestra' => $procedure->criterio_muestra, 'seleccion_frutos' => $procedure->seleccion_frutos]);
         }
+        $manual = !$procedure;
+        abort_if($manual && !config('operations.manual_sampling_enabled'), 403, 'Tu empresa debe configurar un procedimiento autorizado antes de registrar el muestreo.');
+        if ($request->input('sampling_mode') === 'authorized' && !$procedure) throw \Illuminate\Validation\ValidationException::withMessages(['procedure_id' => 'Selecciona un procedimiento autorizado o solicita una excepción manual.']);
         $data = $request->validate([
             'id_lote' => ['required', 'integer', Rule::exists('lote', 'id_lote')->where('id_empresa', $empresaId)],
             'tamano_muestra' => ['required', 'integer', 'min:1', 'max:'.($procedure?->max_frutos ?? config('operations.sampling_max_fruits'))],
@@ -55,21 +61,30 @@ class MuestreoController extends Controller
             'protocolo' => ['required', 'string', 'max:200'],
             'criterio_muestra' => ['required', 'string', 'max:1500'],
             'seleccion_frutos' => ['required', 'string', 'max:1500'],
-            'confirmar_carga' => ['nullable', 'accepted'],
-            'poblacion_estimada' => ['nullable', 'integer', 'min:1', 'max:100000000'],
+            'motivo_desviacion' => [Rule::requiredIf(fn () => $procedure?->tamano_recomendado && $request->integer('tamano_muestra') !== $procedure->tamano_recomendado), 'nullable', 'string', 'max:1500'],
+            'motivo_excepcion' => [Rule::requiredIf(fn () => $manual && $request->has('sampling_mode')), 'nullable', 'string', 'max:1500'],
+            'confirmar_instrucciones' => ['sometimes', 'accepted'],
+            'fuente_poblacion' => [Rule::requiredIf(fn () => $request->has('sampling_mode') && $request->filled('poblacion_estimada')), 'nullable', 'string', 'max:500'],
+            'confirmar_carga' => ['sometimes', 'accepted'],
+            'poblacion_estimada' => [Rule::requiredIf(fn () => $procedure?->requiere_poblacion), 'nullable', 'integer', 'min:1', 'max:100000000'],
         ]);
 
+        if ($procedure && $request->has('sampling_mode') && !$request->boolean('confirmar_instrucciones')) throw \Illuminate\Validation\ValidationException::withMessages(['confirmar_instrucciones' => 'Confirma que seguirás las instrucciones del procedimiento.']);
+        unset($data['confirmar_instrucciones']);
         if ((int) $data['tamano_muestra'] > config('operations.sampling_warning_fruits') && !$request->boolean('confirmar_carga')) {
             throw \Illuminate\Validation\ValidationException::withMessages(['confirmar_carga' => 'Esta muestra requiere identificar y revisar una cantidad elevada de frutos. Confirma la carga de trabajo antes de continuar.']);
         }
         unset($data['confirmar_carga']);
         if (!empty($data['poblacion_estimada']) && (int) $data['tamano_muestra'] > (int) $data['poblacion_estimada']) throw \Illuminate\Validation\ValidationException::withMessages(['tamano_muestra' => 'La muestra no puede superar la población estimada de frutos.']);
-        $sampling = \Illuminate\Support\Arr::only($data, ['protocolo', 'criterio_muestra', 'seleccion_frutos', 'poblacion_estimada']);
+        $sampling = \Illuminate\Support\Arr::only($data, ['protocolo', 'criterio_muestra', 'seleccion_frutos', 'poblacion_estimada', 'motivo_desviacion', 'motivo_excepcion', 'fuente_poblacion']);
+        $sampling += ['modalidad' => $manual ? 'MANUAL' : 'AUTORIZADO'];
+        if ($manual) $sampling['motivo_excepcion'] = $data['motivo_excepcion'] ?? $data['criterio_muestra'];
         if ($procedure) $sampling += ['procedure_id' => $procedure->id, 'max_frutos' => $procedure->max_frutos, 'tamano_recomendado' => $procedure->tamano_recomendado];
-        $data = \Illuminate\Support\Arr::except($data, ['protocolo', 'criterio_muestra', 'seleccion_frutos', 'poblacion_estimada']);
+        $data = \Illuminate\Support\Arr::except($data, ['protocolo', 'criterio_muestra', 'seleccion_frutos', 'poblacion_estimada', 'motivo_desviacion', 'motivo_excepcion', 'fuente_poblacion']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['metodo' => 'metodo'], $empresaId);
-        $muestreo = DB::transaction(function () use ($data, $empresaId, $request, $sampling) {
+        $muestreo = DB::transaction(function () use ($data, $empresaId, $request, $sampling, $procedure) {
             $lote = Lote::query()->forCurrentCompany()->lockForUpdate()->findOrFail($data['id_lote']);
+            abort_if($procedure && $procedure->producto && $procedure->producto !== $lote->producto, 422, 'El procedimiento seleccionado corresponde a otro producto.');
             abort_if(!$lote->recepcion()->exists(), 422, 'Confirma la recepción del lote antes de crear el muestreo.');
             abort_if($lote->muestreos()->exists() || $lote->estado->value !== 'RECIBIDO', 422, 'Este lote ya inició su muestreo. Las reinspecciones se solicitan desde el dictamen.');
             $muestreo = Muestreo::create([

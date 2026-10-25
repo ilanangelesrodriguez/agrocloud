@@ -66,7 +66,7 @@ class OperationalWorkflowTest extends TestCase
         $this->actingAs($receiver)->post('/recepciones/'.$lot->id_lote, $receipt)->assertRedirect('/recepciones');
         $this->post('/recepciones/'.$lot->id_lote, $receipt)->assertStatus(422);
         $this->assertDatabaseCount('recepciones', 1);
-        $this->actingAs($inspector)->post('/muestreos', $sample)->assertRedirect();
+        $this->actingAs($inspector)->post('/muestreos', $sample)->assertRedirect()->assertSessionHasNoErrors();
         $m = Muestreo::firstOrFail();
         $this->assertDatabaseCount('frutos_muestra', 2);
         $this->assertSame('M'.$m->id_muestreo.'-F00001', $m->frutos()->first()->codigo);
@@ -181,9 +181,11 @@ class OperationalWorkflowTest extends TestCase
         \App\Models\Recepcion::create(['id_empresa' => $company->id_empresa, 'id_lote' => $lot->id_lote, 'id_usuario' => $inspector->id_usuario,
             'documento' => 'GUIA-002', 'peso_recibido_kg' => 100, 'recibido_en' => now()]);
         $procedure = \App\Models\SamplingProcedure::create(['id_empresa' => $company->id_empresa, 'nombre' => 'Ingreso de palta', 'version' => '1',
-            'metodo' => 'Aleatorio simple', 'criterio_muestra' => 'Criterio autorizado', 'seleccion_frutos' => 'Distribuir por sectores', 'max_frutos' => 3, 'activo' => true]);
+            'metodo' => 'Aleatorio simple', 'criterio_muestra' => 'Criterio autorizado', 'seleccion_frutos' => 'Distribuir por sectores', 'max_frutos' => 3, 'tamano_recomendado' => 2, 'activo' => true]);
         $data = ['id_lote' => $lot->id_lote, 'procedure_id' => $procedure->id, 'tamano_muestra' => 4, 'metodo' => 'Manipulado', 'protocolo' => 'Ignorar'];
         $this->actingAs($inspector)->post(route('muestreos.store'), $data)->assertSessionHasErrors('tamano_muestra');
+        $data['tamano_muestra'] = 1;
+        $this->post(route('muestreos.store'), $data)->assertSessionHasErrors('motivo_desviacion');
         $data['tamano_muestra'] = 2;
         $this->post(route('muestreos.store'), $data)->assertSessionHasNoErrors();
         $sample = Muestreo::where('id_lote', $lot->id_lote)->firstOrFail();

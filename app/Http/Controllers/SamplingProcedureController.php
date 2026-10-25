@@ -26,6 +26,8 @@ class SamplingProcedureController extends Controller
         $this->authorizeCompany($request);
         $data = $request->validate([
             'nombre' => ['required', 'string', 'max:150', Rule::unique('sampling_procedures')->where('id_empresa', $request->user()->id_empresa)->where('version', $request->input('version'))],
+            'producto' => ['nullable', 'string', 'max:150'],
+            'requiere_poblacion' => ['nullable', 'boolean'],
             'version' => ['required', 'string', 'max:30'],
             'metodo' => ['required', 'string', 'max:80'],
             'criterio_muestra' => ['required', 'string', 'max:1500'],
@@ -33,7 +35,7 @@ class SamplingProcedureController extends Controller
             'max_frutos' => ['required', 'integer', 'min:1', 'max:'.config('operations.sampling_max_fruits')],
             'tamano_recomendado' => ['nullable', 'integer', 'min:1', 'lte:max_frutos'],
         ]);
-        $data = app(MaestroCatalog::class)->validate($data, ['metodo' => 'metodo'], $request->user()->id_empresa);
+        $data = app(MaestroCatalog::class)->validate($data, ['metodo' => 'metodo', 'producto' => 'producto'], $request->user()->id_empresa);
         SamplingProcedure::create($data + ['id_empresa' => $request->user()->id_empresa, 'activo' => true]);
         return back()->with('success', 'Procedimiento creado. Para cambiar sus instrucciones registra una versión nueva; las muestras anteriores conservan el procedimiento aplicado.');
     }

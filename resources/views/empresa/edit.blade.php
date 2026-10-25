@@ -16,8 +16,6 @@
             <form method="POST" action="{{ route('empresa.update') }}" enctype="multipart/form-data" data-company-form data-ajax-form>
                 @csrf
                 @method('PUT')
-                <x-ui.ruc-lookup :endpoint="route('empresa.consulta-ruc')" />
-                <x-ui.sunat-status :verification="$empresa->sunat_verificacion" />
                 <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
                     <div class="min-w-0 space-y-5">
                         <section class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm" aria-labelledby="company-data-title">
@@ -26,7 +24,7 @@
                                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Identificación legal y actividad comercial.</p>
                             </div>
                             <div class="grid gap-x-5 gap-y-4 p-5 sm:grid-cols-2">
-                                <x-ui.input name="ruc" label="RUC *" :value="$empresa->ruc" placeholder="Ej. 20550844321" maxlength="11" inputmode="numeric" autocomplete="off" required />
+                                <div class="min-w-0 space-y-2"><x-ui.input name="ruc" label="RUC *" :value="$empresa->ruc" placeholder="Ej. 20550844321" maxlength="11" inputmode="numeric" autocomplete="off" required /><x-ui.ruc-lookup :endpoint="route('empresa.consulta-ruc')" :ruc="$empresa->ruc" help="Consulta el RUC para contrastar o completar la razón social." /></div>
                                 <x-ui.input name="nombre_comercial" label="Nombre comercial *" :value="$empresa->nombre_comercial" placeholder="Ej. Agroexportadora del Sur" required />
                                 <div class="sm:col-span-2"><x-ui.input name="razon_social" label="Razón social *" :value="$empresa->razon_social" placeholder="Ej. Agroexportadora del Sur S.A.C." required /></div>
                                 <x-ui.master-select kind="grupo" name="grupo_empresarial" label="Grupo empresarial" :value="$empresa->grupo_empresarial" placeholder="Ej. Grupo Agrícola del Sur" />
@@ -82,7 +80,8 @@
                         </section>
                     </div>
 
-                    <aside class="min-w-0 space-y-5 xl:sticky xl:top-24" aria-label="Identidad visual de la empresa">
+                    <aside class="min-w-0 space-y-5 xl:sticky xl:top-24" aria-label="Verificación e identidad visual de la empresa">
+                        <x-ui.sunat-status :verification="$empresa->sunat_verificacion" />
                         <section class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm" aria-labelledby="company-logo-title">
                             <div class="border-b border-slate-100 dark:border-slate-700 px-5 py-3.5">
                                 <h3 id="company-logo-title" class="text-base font-semibold text-slate-900 dark:text-slate-100">Logo de la empresa</h3>

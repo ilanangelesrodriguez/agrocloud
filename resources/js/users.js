@@ -124,6 +124,7 @@ document.addEventListener('change', (event) => {
 });
 document.addEventListener('user:saved', (event) => {
     drawer()?.close();
+    document.querySelector('[data-user-status-dialog]')?.close();
     closeActions();
     showToast(event.detail.message);
     window.Livewire?.dispatch('users-saved');
@@ -159,3 +160,51 @@ document.addEventListener('change', event => { if (event.target.matches('[data-r
 document.addEventListener('DOMContentLoaded', () => initializeRolePreview());
 document.addEventListener('livewire:navigated', () => initializeRolePreview());
 if (document.readyState !== 'loading') initializeRolePreview();
+
+let statusTrigger;
+document.addEventListener('click', event => {
+    const button = event.target.closest('[data-user-status-open]');
+    const dialog = document.querySelector('[data-user-status-dialog]');
+    if (!dialog) return;
+    const form = dialog.querySelector('form');
+    if (event.target.closest('[data-user-status-close]')) {
+        if (form.dataset.ajaxSubmitting !== 'true') dialog.close();
+        return;
+    }
+    if (!button) return;
+    statusTrigger = button;
+    closeActions();
+    form.reset();
+    form.querySelectorAll('[data-form-field-error], [data-form-errors]').forEach(node => node.remove());
+    form.querySelectorAll('[aria-invalid]').forEach(node => node.removeAttribute('aria-invalid'));
+    form.action = button.dataset.userStatusUrl;
+    form.toggleAttribute('data-user-inline-form', button.hasAttribute('data-user-status-inline'));
+    dialog.querySelector('[data-user-status-name]').textContent = button.dataset.userStatusName;
+    dialog.showModal();
+    form.elements.motivo_seguridad.focus();
+});
+document.addEventListener('cancel', event => {
+    if (event.target.matches('[data-user-status-dialog]') && event.target.querySelector('form').dataset.ajaxSubmitting === 'true') event.preventDefault();
+}, true);
+document.addEventListener('close', event => {
+    if (event.target.matches('[data-user-status-dialog]')) statusTrigger?.focus();
+}, true);
+document.addEventListener('livewire:navigating', () => document.querySelector('[data-user-status-dialog]')?.close());
+document.addEventListener('toggle', event => {
+    const details = event.target;
+    if (!details.matches?.('[data-user-actions]') || !details.open) return;
+    const menu = details.querySelector('[data-user-menu]');
+    if (!menu) return;
+    document.querySelectorAll('[data-user-actions][open]').forEach(other => { if (other !== details) other.open = false; });
+    const rect = details.querySelector('summary').getBoundingClientRect();
+    menu.style.position = 'fixed'; menu.style.zIndex = '80'; menu.style.margin = '0';
+    menu.style.width = `${Math.min(208, window.innerWidth - 24)}px`;
+    menu.style.maxHeight = `${window.innerHeight - 24}px`; menu.style.overflowY = 'auto';
+    const height = menu.getBoundingClientRect().height;
+    menu.style.left = `${Math.max(12, Math.min(rect.right - menu.offsetWidth, window.innerWidth - menu.offsetWidth - 12))}px`;
+    menu.style.top = `${Math.max(12, Math.min(rect.bottom + height + 8 > window.innerHeight ? rect.top - height - 8 : rect.bottom + 8, window.innerHeight - height - 12))}px`;
+}, true);
+window.addEventListener('resize', closeActions);
+
+document.addEventListener('click', event => { if (!event.target.closest('[data-user-actions]')) closeActions(); });
+window.addEventListener('scroll', event => { if (!event.target.closest?.('[data-user-menu]')) closeActions(); }, true);
