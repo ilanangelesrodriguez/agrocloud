@@ -1,4 +1,4 @@
-<x-layouts.app title="Nuevo lote">
+<x-layouts.app title="Registrar lote anunciado">
 
     <div class="space-y-6">
 
@@ -21,7 +21,7 @@
 
             <div>
                 <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-                    Nuevo lote
+                    Registrar lote anunciado
                 </h1>
 
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -47,6 +47,7 @@
             >
 
                 @csrf
+                <input type="hidden" name="timezone" value="America/Lima">
 
                 {{-- Datos principales --}}
                 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -114,7 +115,7 @@
                             name="codigo_lote"
                             type="text"
                             maxlength="50"
-                            value="{{ old('codigo_lote') }}"
+                            value="{{ old('codigo_lote', $codigoSugerido) }}"
                             placeholder="Ej. LOTE-2026-001"
                             required
                             class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('codigo_lote') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
@@ -133,6 +134,7 @@
                     </div>
 
                     <h2 class="border-t border-slate-100 pt-4 text-base font-semibold text-slate-900 dark:border-slate-700 dark:text-slate-100 md:col-span-2">2. Características y peso declarado</h2>
+                    <p class="text-xs text-slate-500 md:col-span-2">El código sugerido puede cambiarse por el código externo del lote.</p>
                     {{-- Producto --}}
                     <div>
 
@@ -181,7 +183,7 @@
                             for="peso_kg"
                             class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
-                            Peso recibido
+                            Peso declarado
                             <span class="text-red-500">*</span>
                         </label>
 
@@ -209,23 +211,23 @@
                     <div>
 
                         <label
-                            for="fecha_recepcion"
+                            for="fecha_llegada_prevista"
                             class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
                         >
-                            Fecha y hora de recepción
+                            Fecha y hora previstas de llegada (Lima)
                             <span class="text-red-500">*</span>
                         </label>
 
                         <input
-                            id="fecha_recepcion"
-                            name="fecha_recepcion"
+                            id="fecha_llegada_prevista"
+                            name="fecha_llegada_prevista"
                             type="datetime-local"
-                            value="{{ old('fecha_recepcion') }}"
+                            value="{{ old('fecha_llegada_prevista') }}"
                             required
-                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('fecha_recepcion') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
+                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('fecha_llegada_prevista') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
                         >
 
-                        @error('fecha_recepcion')
+                        @error('fecha_llegada_prevista')
                             <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
                                 {{ $message }}
                             </p>
@@ -233,50 +235,7 @@
 
                     </div>
 
-                    {{-- Estado --}}
-                    <div>
-
-                        <label
-                            for="estado"
-                            class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200"
-                        >
-                            Estado
-                            <span class="block text-xs font-normal text-slate-500">El avance se actualiza desde recepción y control de calidad.</span>
-                            <span class="text-red-500">*</span>
-                        </label>
-
-                        <select
-                            id="estado"
-                            name="estado"
-                            required
-                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 @error('estado') border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/50 @enderror"
-                        >
-
-                            @foreach ($estados as $estado)
-                                @php
-                                    $estadoValue = $estado instanceof \BackedEnum
-                                        ? $estado->value
-                                        : $estado;
-                                @endphp
-
-                                <option
-                                    value="{{ $estadoValue }}"
-                                    @selected(old('estado', 'PENDIENTE_RECEPCION') === $estadoValue)
-                                >
-                                    {{ $estado instanceof \App\Enums\LoteEstado ? $estado->label() : $estadoValue }}
-                                </option>
-                            @endforeach
-
-                        </select>
-
-                        @error('estado')
-                            <p class="mt-1.5 text-sm text-red-600 dark:text-red-300">
-                                {{ $message }}
-                            </p>
-                        @enderror
-
-                    </div>
-
+                    <p class="rounded-xl bg-brand-50 p-3 text-sm text-brand-800 dark:bg-brand-950 dark:text-brand-200 md:col-span-2">El lote queda pendiente de recepción. El peso declarado es informado por el productor; Recepción medirá el peso real y confirmará la llegada física.</p>
                 </div>
 
                 <x-ui.master-select name="unidad_medida" kind="unidad" label="Unidad de peso *" :value="'Kilogramo'" required weight-only />

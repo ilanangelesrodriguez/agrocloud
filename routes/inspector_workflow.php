@@ -26,6 +26,7 @@ Route::middleware(['auth', 'active', \App\Http\Middleware\EnsureCompanyOperator:
         Route::get('/{inspeccion}/validacion', [ValidacionInspeccionController::class, 'index'])->middleware('permission:inspecciones.ver')->name('validacion');
         Route::post('/{inspeccion}/validacion/{evidencia}', [ValidacionInspeccionController::class, 'validarDeteccion'])->middleware('permission:inspecciones.validar')->name('validacion.detectar');
         Route::post('/{inspeccion}/revision/{evidencia}', [ValidacionInspeccionController::class, 'revisarImagen'])->middleware('permission:inspecciones.validar')->name('revision.store');
+        Route::post('/{inspeccion}/evidencias/{evidencia}/descartar', [ValidacionInspeccionController::class, 'descartarImagen'])->middleware('permission:inspecciones.validar')->name('evidencias.descartar');
         Route::post('/{inspeccion}/hallazgos', [ValidacionInspeccionController::class, 'hallazgo'])->middleware('permission:inspecciones.validar')->name('hallazgos.store');
         Route::post('/{inspeccion}/finalizar', [ValidacionInspeccionController::class, 'finalizar'])->middleware('permission:inspecciones.validar')->name('finalizar');
     });

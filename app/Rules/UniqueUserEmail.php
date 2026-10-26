@@ -12,7 +12,10 @@ class UniqueUserEmail implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (User::whereRaw('LOWER(TRIM(correo)) = ?', [mb_strtolower(trim((string) $value))])
+        if (User::where(function ($query) use ($value) {
+            $email = mb_strtolower(trim((string) $value));
+            $query->whereRaw('LOWER(TRIM(correo)) = ?', [$email])->orWhereRaw('LOWER(TRIM(pending_email)) = ?', [$email]);
+        })
             ->when($this->ignore !== null, fn ($q) => $q->where('id_usuario', '!=', $this->ignore))->exists()) {
             $fail('Este correo ya pertenece a una cuenta.');
         }

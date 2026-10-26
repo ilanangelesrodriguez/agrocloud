@@ -18,7 +18,7 @@ class EvidenciaController extends Controller
     public function index(int $inspeccion): View
     {
         $inspeccion = Inspeccion::query()->forCurrentCompany()
-            ->with(['muestreo.lote', 'evidencias.validaciones'])
+            ->with(['muestreo.lote', 'evidencias.validaciones', 'evidencias.fruto'])
             ->findOrFail($inspeccion);
 
         $revisiones = app(\App\Services\RevisionEvidencias::class)->revisiones($inspeccion->loadMissing('hallazgos'));
@@ -78,6 +78,7 @@ class EvidenciaController extends Controller
                 'message' => 'Fotografía guardada. Iniciando análisis IA.',
                 'evidencia_id' => $foto->id_evidencia,
                 'evidencias_count' => $inspeccion->evidencias()->count(),
+                'progreso' => app(\App\Services\ProgresoInspeccion::class)->calcular($inspeccion->fresh()),
                 'html' => $this->renderCard($foto, $inspeccion),
             ], 201);
         }
@@ -98,6 +99,7 @@ class EvidenciaController extends Controller
             ->where('id_inspeccion', $inspeccion->id_inspeccion)
             ->findOrFail($evidencia);
 
+        abort_if($foto->pertinencia === 'INVALIDA', 422, 'La fotografía fue descartada. Registra una imagen de reemplazo.');
         abort_if($foto->estado_ia === 'COMPLETADO', 422, 'Esta fotografía ya fue analizada.');
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $inspeccion, $foto) {
@@ -106,6 +108,7 @@ class EvidenciaController extends Controller
             // Cambio atómico: bloquea análisis simultáneos de la misma fotografía.
             // También permite recuperar un trabajo PROCESANDO atascado más de 4 minutos.
             $foto->refresh();
+            abort_if($foto->pertinencia === 'INVALIDA', 422, 'La fotografía fue descartada. Registra una imagen de reemplazo.');
             abort_if($foto->estado_ia === 'COMPLETADO', 422, 'Esta fotografía ya fue analizada.');
             $claimed = EvidenciaInspeccion::query()->forCurrentCompany()
                 ->where('id_evidencia', $foto->id_evidencia)
@@ -181,7 +184,7 @@ class EvidenciaController extends Controller
 
     private function renderCard(EvidenciaInspeccion $foto, Inspeccion $inspeccion): string
     {
-        $foto->load('validaciones');
+        $foto->load(['validaciones', 'fruto']);
         $inspeccion->load(['evidencias.validaciones', 'hallazgos']);
         $revisiones = app(\App\Services\RevisionEvidencias::class)->revisiones($inspeccion);
         return view('inspecciones._evidencia', compact('foto', 'inspeccion', 'revisiones'))->render();

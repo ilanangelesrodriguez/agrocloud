@@ -23,7 +23,8 @@ class OperacionController extends Controller
     public function recibir(Request $request, int $lote)
     {
         abort_unless($request->user()->rol?->codigo === 'RECEPCION', 403);
-        $data = $request->validate(['documento' => 'required|string|max:100', 'transportista' => 'nullable|string|max:150', 'placa' => 'nullable|string|max:20', 'peso_recibido_kg' => 'required|numeric|min:0.01|max:99999999.99', 'recibido_en' => 'required|date|before_or_equal:now', 'observaciones' => 'nullable|string|max:3000']);
+        \App\Services\OperationalDate::normalize($request, ['recibido_en']);
+        $data = $request->validate(['tipo_documento' => ['sometimes', 'required', \Illuminate\Validation\Rule::in(['Guía de remisión', 'Comprobante interno', 'Factura', 'Otro'])], 'documento' => 'required|string|max:100', 'transportista' => 'nullable|string|max:150', 'placa' => 'nullable|string|max:20', 'peso_recibido_kg' => 'required|numeric|min:0.01|max:99999999.99', 'recibido_en' => 'required|date|before_or_equal:now', 'observaciones' => 'nullable|string|max:3000']);
         DB::transaction(function () use ($lote, $data, $request) {
             $lot = Lote::forCurrentCompany()->lockForUpdate()->findOrFail($lote);
             abort_if($lot->recepcion()->exists() || $lot->muestreos()->exists() || !in_array($lot->estado->value, ['PENDIENTE_RECEPCION', 'RECIBIDO'], true), 422, 'El lote ya fue recibido o inició su operación.');

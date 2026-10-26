@@ -31,7 +31,7 @@
                     <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"><x-ui.icon name="shield" class="h-5 w-5" /></div>
                     <div>
                         <h3 id="user-access-title" class="text-base font-semibold text-slate-900 dark:text-slate-100">Acceso y seguridad</h3>
-                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Define el rol y las credenciales de acceso.</p>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Asigna el rol. El usuario define su contraseña mediante un enlace seguro.</p>
                     </div>
                 </div>
             </div>
@@ -43,25 +43,29 @@
                         <div class="flex min-h-11 items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 text-sm text-slate-600 dark:text-slate-300">{{ $usuario->rol?->nombre }}</div>
                         <p class="text-xs text-slate-400">Tu propio rol no se cambia desde Gestión de usuarios.</p>
                     @else
-                        <select id="id_rol" name="id_rol" required class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50">
+                        <select id="id_rol" name="id_rol" data-role-preview required class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50">
                             <option value="">Selecciona un rol</option>
                             @foreach ($roles as $rol)
-                                <option value="{{ $rol->id_rol }}" @selected((string) old('id_rol', $editing ? $usuario->id_rol : '') === (string) $rol->id_rol)>{{ $rol->nombre }}</option>
+                                <option value="{{ $rol->id_rol }}" data-permissions="{{ $rol->permisos->where('estado', true)->pluck('nombre')->implode(', ') }}" @selected((string) old('id_rol', $editing ? $usuario->id_rol : '') === (string) $rol->id_rol)>{{ $rol->nombre }}</option>
                             @endforeach
                         </select>
+                        <p data-role-permissions-summary class="text-xs text-slate-500" aria-live="polite">Selecciona un rol para consultar las acciones permitidas.</p>
                         @error('id_rol')<p class="text-sm text-red-600 dark:text-red-300">{{ $message }}</p>@enderror
                     @endif
                 </div>
-                @if ($editing && !$usuario->invitation_hash)
-                <x-ui.input name="password" label="{{ $editing ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}" type="password" placeholder="{{ $editing ? 'Deja en blanco para conservarla' : 'Ingresa una contraseña segura' }}" :required="! $editing" autocomplete="new-password" minlength="12" maxlength="255" />
-                <p class="text-xs text-slate-500">Mínimo 12 caracteres, con mayúsculas, minúsculas y números.</p>
-                <x-ui.input name="password_confirmation" label="{{ $editing ? 'Confirmar nueva contraseña' : 'Confirmar contraseña *' }}" type="password" placeholder="Repite la contraseña" :required="! $editing" autocomplete="new-password" minlength="12" maxlength="255" />
-                @else
-                    <p class="text-sm text-slate-600 dark:text-slate-300 sm:col-span-2">{{ $editing ? 'Activación pendiente. Si cambias el correo, guarda los cambios y luego reenvía la invitación.' : 'Se enviará una invitación por correo.' }} El usuario creará su contraseña desde un enlace de un solo uso válido durante 72 horas. Hasta entonces no podrá ingresar.</p>
-                    @if ($editing)
-                        <button type="submit" name="_method" value="POST" formmethod="POST" formaction="{{ route('users.invitation.resend', $usuario) }}" formnovalidate class="text-sm font-semibold text-brand-700">Reenviar invitación</button>
+                <div class="space-y-3 sm:col-span-2">
+                    <h4 class="font-semibold dark:text-slate-100">Seguridad y acceso</h4>
+                    @if (!$editing)
+                        <p class="text-sm text-slate-500">Se enviará una invitación de un solo uso, válida durante 72 horas. El usuario creará su contraseña antes de ingresar.</p>
+                    @else
+                        <p class="text-sm text-slate-500">{{ $usuario->invitation_hash ? ($usuario->invitation_expires_at?->isPast() ? 'Invitación vencida.' : 'Activación pendiente.') : 'Cuenta activada.' }}</p>
+                        @if($usuario->pending_email)<p class="text-sm text-amber-700 dark:text-amber-300">Nuevo correo pendiente: {{ $usuario->pending_email }}. El correo actual continúa vigente. Para reenviar la verificación, introduce de nuevo la dirección pendiente y guarda.</p><button type="submit" name="_method" value="POST" formmethod="POST" formaction="{{ route('users.email.cancel', $usuario) }}" formnovalidate class="text-sm font-semibold text-brand-700 dark:text-brand-300">Cancelar cambio de correo pendiente</button>@endif
+                        <p class="text-xs text-slate-500">Guarda los cambios antes de enviar un enlace. Cada persona elige su propia contraseña.</p>
+                        <button type="submit" name="_method" value="POST" formmethod="POST" formaction="{{ route($usuario->invitation_hash ? 'users.invitation.resend' : 'users.recovery', $usuario) }}" formnovalidate class="rounded-xl border border-brand-300 px-3 py-2 text-sm font-semibold text-brand-700 dark:text-brand-300">{{ $usuario->invitation_hash ? 'Reenviar invitación' : 'Enviar enlace de recuperación' }}</button>
+                        <a href="{{ route('users.security', $usuario) }}" wire:navigate class="inline-block text-sm font-semibold text-brand-700 dark:text-brand-300">Ver historial de seguridad</a>
+                        @if($usuario->invitation_attempted_at)<p class="text-xs text-slate-500">Último intento: {{ $usuario->invitation_attempted_at->copy()->timezone('America/Lima')->format('d/m/Y H:i') }} · {{ ['provider_accepted' => 'Aceptado por el proveedor (entrega no confirmada)', 'failed' => 'Envío fallido', 'not_sent' => 'Pendiente de envío'][$usuario->invitation_delivery_status] ?? 'Sin confirmación' }}</p>@endif
                     @endif
-                @endif
+                </div>
             </div>
         </section>
     </div>
@@ -106,6 +110,7 @@
                     </span>
                 </label>
             @endif
+            @if($editing && !$isSelf)<label class="mt-3 block text-xs text-slate-500">Motivo de desactivación (obligatorio al desactivar)<textarea name="motivo_seguridad" maxlength="500" rows="2" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-2 dark:border-slate-600 dark:bg-slate-900">{{ old('motivo_seguridad') }}</textarea></label>@endif
         </section>
     </aside>
 </div>

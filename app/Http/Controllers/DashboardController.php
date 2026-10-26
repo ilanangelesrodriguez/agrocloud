@@ -62,7 +62,7 @@ class DashboardController extends Controller
                 $operationalSummary = [
                     'Pendientes de recepción' => (clone $lots)->whereIn('estado', ['PENDIENTE_RECEPCION', 'RECIBIDO'])->whereDoesntHave('recepcion')->count(),
                     'Recibidos hoy' => \App\Models\Recepcion::where('id_empresa', $user->id_empresa)->whereDate('recibido_en', today())->count(),
-                    'Lotes con más de 48 h sin cierre' => (clone $lots)->whereNotIn('estado', ['CLASIFICADO', 'RECHAZADO'])->where('fecha_recepcion', '<', now()->subHours(48))->count(),
+                    'Lotes con más de 48 h sin cierre' => (clone $lots)->whereNotIn('estado', ['CLASIFICADO', 'RECHAZADO'])->whereRaw(\App\Models\Lote::OPERATIONAL_DATE_SQL.' < ?', [now()->subHours(48)])->count(),
                     'Lotes retenidos por incidencias' => (clone $lots)->where('estado', 'RETENIDO')->count(),
                     'Lotes aprobados últimos 30 días' => (clone $lots)->where('estado', 'CLASIFICADO')->where('updated_at', '>=', now()->subDays(30))->count(),
                 ];

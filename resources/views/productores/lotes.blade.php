@@ -179,8 +179,8 @@
                                 {{-- Fecha --}}
                                 <td class="whitespace-nowrap px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
 
-                                    @if ($lote->fecha_recepcion)
-                                        {{ $lote->fecha_recepcion->format('d/m/Y H:i') }}
+                                    @if (($lote->recepcion?->recibido_en ?? $lote->fecha_llegada_prevista))
+                                        {{ ($lote->recepcion?->recibido_en ?? $lote->fecha_llegada_prevista)->format('d/m/Y H:i') }}
                                     @else
                                         —
                                     @endif

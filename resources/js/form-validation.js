@@ -54,6 +54,7 @@ export function showFormErrors(form, errors) {
         summary.textContent = [...new Set(general)].join(' ');
         form.prepend(summary);
     }
+    form.dispatchEvent(new CustomEvent('form:errors', { detail: { first, errors } }));
     first?.focus();
 }
 

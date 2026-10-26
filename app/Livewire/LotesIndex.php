@@ -72,9 +72,9 @@ class LotesIndex extends Component
             })
             ->when($this->estado !== '', fn ($q) => $q->where('estado', $this->estado))
             ->when($this->producto !== '', fn ($q) => $q->where('producto', $this->producto))
-            ->when(preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->desde), fn ($q) => $q->whereDate('fecha_recepcion', '>=', $this->desde))
-            ->when(preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->hasta), fn ($q) => $q->whereDate('fecha_recepcion', '<=', $this->hasta))
-            ->orderByDesc('fecha_recepcion')
+            ->when(preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->desde), fn ($q) => $q->whereDate(\Illuminate\Support\Facades\DB::raw(\App\Models\Lote::LOCAL_OPERATIONAL_DATE_SQL), '>=', $this->desde))
+            ->when(preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->hasta), fn ($q) => $q->whereDate(\Illuminate\Support\Facades\DB::raw(\App\Models\Lote::LOCAL_OPERATIONAL_DATE_SQL), '<=', $this->hasta))
+            ->orderByRaw(\App\Models\Lote::OPERATIONAL_DATE_SQL.' DESC NULLS LAST')
             ->orderByDesc('id_lote')
             ->paginate(in_array($this->porPagina, [15,30,50], true) ? $this->porPagina : 15);
 

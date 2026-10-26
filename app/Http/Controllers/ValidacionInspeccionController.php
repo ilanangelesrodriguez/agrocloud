@@ -19,6 +19,8 @@ class ValidacionInspeccionController extends Controller
     public function index(int $inspeccion): View
     {
         $inspeccion = $this->find($inspeccion);
+        $activePhotos = $inspeccion->evidencias->modelKeys();
+        $inspeccion->setRelation('hallazgos', $inspeccion->hallazgos->filter(fn ($h) => !$h->id_evidencia || in_array($h->id_evidencia, $activePhotos)));
 
         $revisiones = app(\App\Services\RevisionEvidencias::class)->revisiones($inspeccion);
         $naturalezas = app(\App\Services\RevisionEvidencias::class)->naturalezas($inspeccion);
@@ -32,7 +34,7 @@ class ValidacionInspeccionController extends Controller
             $inspeccion = Inspeccion::forCurrentCompany()->lockForUpdate()->with(['muestreo.lote', 'evidencias.validaciones', 'hallazgos'])->findOrFail($inspeccion);
             InspeccionController::canOperate($inspeccion, $request);
             $foto = $inspeccion->evidencias->firstWhere('id_evidencia', $evidencia);
-            abort_unless($foto && $foto->estado_ia === 'COMPLETADO', 404);
+            abort_unless($foto && $foto->pertinencia !== 'INVALIDA' && $foto->estado_ia === 'COMPLETADO', 404);
 
             $detections = $foto->resultado_ia['detections'] ?? [];
             $data = $request->validate([
@@ -57,6 +59,7 @@ class ValidacionInspeccionController extends Controller
                     'ok' => true,
                     'message' => 'Validación guardada.',
                     'confirmada' => $validacion->confirmada,
+                    'conclusion' => ($foto->validaciones()->where('confirmada', true)->exists() || $inspeccion->hallazgos->where('id_evidencia', $foto->id_evidencia)->isNotEmpty()) ? 'CON_HALLAZGOS' : 'SIN_HALLAZGOS',
                     'evidencia_id' => $foto->id_evidencia,
                     'indice_deteccion' => (int) $data['indice_deteccion'],
                 ]);
@@ -78,7 +81,7 @@ class ValidacionInspeccionController extends Controller
                 'id_evidencia' => ['required', 'integer'],
             ]);
             $evidenciaId = $data['id_evidencia'] ?? null;
-            abort_if($evidenciaId && ! $inspeccion->evidencias->contains('id_evidencia', (int) $evidenciaId), 422,
+            abort_if($evidenciaId && ! $inspeccion->evidencias->where('pertinencia', '!=', 'INVALIDA')->contains('id_evidencia', (int) $evidenciaId), 422,
                 'La evidencia no pertenece a esta inspección.');
 
             $data = app(MaestroCatalog::class)->validate($data, ['clase' => 'defecto'], $inspeccion->id_empresa);
@@ -96,6 +99,7 @@ class ValidacionInspeccionController extends Controller
                 return response()->json([
                     'ok' => true,
                     'message' => 'Hallazgo manual registrado.',
+                    'conclusion' => 'CON_HALLAZGOS',
                     'hallazgo' => [
                         'id' => $hallazgo->id_hallazgo,
                         'clase' => $hallazgo->clase,
@@ -116,11 +120,12 @@ class ValidacionInspeccionController extends Controller
             $inspection = Inspeccion::forCurrentCompany()->lockForUpdate()->with(['muestreo.lote', 'evidencias.validaciones', 'hallazgos'])->findOrFail($inspeccion);
             InspeccionController::canOperate($inspection, $request);
             $foto = $inspection->evidencias->firstWhere('id_evidencia', $evidencia);
-            abort_unless($foto, 404);
+            abort_unless($foto && $foto->pertinencia !== 'INVALIDA', 404);
             $data = $request->validate([
-                'conclusion' => ['required', Rule::in(['SIN_HALLAZGOS', 'CON_HALLAZGOS'])],
+                'conclusion' => ['nullable', Rule::in(['SIN_HALLAZGOS', 'CON_HALLAZGOS'])],
                 'justificacion' => ['nullable', 'string', 'max:2000', Rule::requiredIf($foto->estado_ia !== 'COMPLETADO')],
                 'revision_completa' => ['accepted'],
+                'imagen_pertinente' => ['accepted'],
             ]);
             abort_if($foto->estado_ia === 'PROCESANDO', 422, 'Espera a que termine el análisis de esta fotografía.');
             $detecciones = $foto->estado_ia === 'COMPLETADO' ? ($foto->resultado_ia['detections'] ?? []) : [];
@@ -129,15 +134,32 @@ class ValidacionInspeccionController extends Controller
             }
             $tieneHallazgos = $foto->validaciones->where('confirmada', true)->isNotEmpty()
                 || $inspection->hallazgos->where('id_evidencia', $foto->id_evidencia)->isNotEmpty();
-            abort_if(($data['conclusion'] === 'CON_HALLAZGOS') !== $tieneHallazgos, 422,
+            abort_if(isset($data['conclusion']) && (($data['conclusion'] === 'CON_HALLAZGOS') !== $tieneHallazgos), 422,
                 'La conclusión debe coincidir con las detecciones confirmadas y los hallazgos asociados. Registra las omisiones de la IA en esta fotografía antes de revisarla.');
+            $data['conclusion'] = $tieneHallazgos ? 'CON_HALLAZGOS' : 'SIN_HALLAZGOS';
+            $foto->update(['pertinencia' => 'VALIDA']);
             app(\App\Observers\OperationalObserver::class)->record($foto, 'REVISION_IMAGEN', [
                 'conclusion' => $data['conclusion'],
                 'justificacion' => $data['justificacion'] ?? null,
+                'imagen_pertinente' => true,
                 'modalidad' => $foto->estado_ia === 'COMPLETADO' ? 'ASISTIDA_IA' : 'MANUAL_JUSTIFICADA',
                 'huella' => app(\App\Services\RevisionEvidencias::class)->huella($foto, $inspection),
             ]);
             return back()->with('success', 'Revisión de fotografía guardada.');
+        });
+    }
+
+    public function descartarImagen(Request $request, int $inspeccion, int $evidencia): RedirectResponse
+    {
+        return DB::transaction(function () use ($request, $inspeccion, $evidencia) {
+            $inspection = Inspeccion::forCurrentCompany()->lockForUpdate()->findOrFail($inspeccion);
+            InspeccionController::canOperate($inspection, $request);
+            $foto = $inspection->evidencias()->findOrFail($evidencia);
+            $data = $request->validate(['motivo_descarte' => ['required', 'string', 'max:1500']]);
+            abort_if($foto->estado_ia === 'PROCESANDO', 422, 'Espera a que termine el análisis antes de descartar esta fotografía.');
+            $foto->update(['pertinencia' => 'INVALIDA', 'motivo_descarte' => $data['motivo_descarte']]);
+            app(\App\Observers\OperationalObserver::class)->record($foto, 'IMAGEN_DESCARTADA', ['motivo' => $data['motivo_descarte']]);
+            return redirect()->route('inspecciones.evidencias', $inspection->id_inspeccion)->with('success', 'Fotografía descartada para evaluación. Se conserva su historial; registra una foto válida del fruto.');
         });
     }
 
@@ -148,7 +170,7 @@ class ValidacionInspeccionController extends Controller
             InspeccionController::canOperate($inspeccion, $request);
             $data = $request->validate(['observaciones' => ['nullable', 'string', 'max:3000']]);
             abort_if($inspeccion->evidencias->isEmpty(), 422, 'Registra al menos una fotografía.');
-            $sinEvidencia = $inspeccion->muestreo->frutos()->whereDoesntHave('evidencias', fn ($q) => $q->where('id_inspeccion', $inspeccion->id_inspeccion))->count();
+            $sinEvidencia = $inspeccion->muestreo->frutos()->whereDoesntHave('evidencias', fn ($q) => $q->where('id_inspeccion', $inspeccion->id_inspeccion)->where('pertinencia', '!=', 'INVALIDA'))->count();
             abort_if($sinEvidencia > 0, 422, "Faltan fotografías de {$sinEvidencia} frutos de la muestra. Registra cada fruto antes de finalizar.");
 
             abort_unless(app(\App\Services\RevisionEvidencias::class)->completa($inspeccion), 422,
@@ -183,7 +205,7 @@ class ValidacionInspeccionController extends Controller
     private function find(int $id): Inspeccion
     {
         return Inspeccion::query()->forCurrentCompany()->with([
-            'muestreo.lote', 'evidencias.validaciones', 'hallazgos', 'dictamen',
+            'muestreo.lote', 'evidencias' => fn ($q) => $q->where('pertinencia', '!=', 'INVALIDA')->with(['validaciones', 'fruto']), 'hallazgos', 'dictamen',
         ])->findOrFail($id);
     }
 }

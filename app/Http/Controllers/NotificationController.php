@@ -10,6 +10,13 @@ use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
+    public function preferences(Request $request)
+    {
+        $data = $request->validate(['muted' => ['nullable', 'array'], 'muted.*' => ['string', \Illuminate\Validation\Rule::in(array_keys(\App\Services\OperationalNotifier::OPTIONAL_KINDS))]]);
+        $request->user()->forceFill(['muted_operational_kinds' => array_values(array_unique($data['muted'] ?? []))])->save();
+        return back()->with('success', 'Preferencias guardadas. Los avisos críticos y de seguridad continúan activos.');
+    }
+
     public function index(Request $request): View
     {
         return view('notificaciones.index');

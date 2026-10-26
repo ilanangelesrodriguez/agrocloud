@@ -36,10 +36,12 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 new \App\Rules\UniqueUserEmail($usuario?->getKey()),
             ],
-            'password' => ['nullable', 'confirmed', ...\App\Support\PasswordPolicy::rules()],
+            'password' => ['prohibited'],
+            'password_confirmation' => ['prohibited'],
             'telefono' => ['nullable', 'string', 'max:30', new \App\Rules\PhoneNumber],
             'cargo' => ['nullable', 'string', 'max:150'],
             'foto_perfil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'motivo_seguridad' => ['nullable', 'string', 'max:500', Rule::requiredIf(fn () => !$this->boolean('estado') && (bool) $this->route('usuario')?->estado && !$this->route('usuario')?->is($this->user()))],
             'estado' => ['nullable', 'boolean'],
         ];
     }
