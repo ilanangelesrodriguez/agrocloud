@@ -1,12 +1,11 @@
 <?php
 
 return [
-    'bootstrap_admin' => [
-        'email' => env('AGROCLOUD_ADMIN_EMAIL'),
-        'password' => env('AGROCLOUD_ADMIN_PASSWORD'),
-        'name' => env('AGROCLOUD_ADMIN_NAME', 'Administrador'),
-        'lastname' => env('AGROCLOUD_ADMIN_LASTNAME', 'AgroCloud'),
+    'bootstrap_superadmin' => [
+        'email' => env('AGROCLOUD_SUPERADMIN_EMAIL', 'superadmin@agrocloud.com'),
+        'password' => env('AGROCLOUD_SUPERADMIN_PASSWORD', 'Prueba123!'),
     ],
+
 
     // Valores iniciales importados al maestro de cargos. La administración
     // cotidiana del catálogo se realiza desde Maestros, en la base de datos.

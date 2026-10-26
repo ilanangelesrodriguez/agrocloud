@@ -38,7 +38,7 @@ function initialize() {
         input.addEventListener('input', () => {
             const selected = select.value;
             const term = input.value.trim().toLocaleLowerCase('es');
-            select.replaceChildren(...options.filter(option => !option.value || option.value === selected || option.textContent.toLocaleLowerCase('es').includes(term)).map(option => option.cloneNode(true)));
+            select.replaceChildren(...options.filter(option => !option.value || option.value === selected || `${option.textContent} ${option.dataset.info || ''}`.toLocaleLowerCase('es').includes(term)).map(option => option.cloneNode(true)));
             select.value = selected;
         });
     });
@@ -72,7 +72,12 @@ function initialize() {
                 return applicable;
             });
             if (!manual && product && procedure?.options) {
-                if (procedure.selectedOptions[0]?.disabled) procedure.value = '';
+                if (procedure.selectedOptions[0]?.disabled) {
+                    procedure.value = '';
+                    const notice = form.querySelector('[data-procedure-change-notice]');
+                    if (notice) { notice.hidden = false; notice.textContent = 'El procedimiento anterior no corresponde al producto del nuevo lote. Revisa el procedimiento aplicable y confirma sus instrucciones.'; }
+                    if (form.elements.confirmar_instrucciones) form.elements.confirmar_instrucciones.checked = false;
+                }
                 if (!procedure.value && options.length === 1) procedure.value = options[0].value;
             }
             if (procedure) { procedure.disabled = manual; procedure.required = !manual; }
@@ -107,7 +112,16 @@ function initialize() {
             const lot = form.elements.id_lote.selectedOptions[0];
             form.querySelector('[data-lot-summary]').textContent = lot?.dataset.info || 'Selecciona un lote para revisar sus datos de ingreso.';
             const values = [lot?.value ? lot.textContent : '', form.elements.protocolo.value.trim(), selected?.metodo || form.elements.metodo?.value, countInput.value];
-            form.querySelector('[data-sampling-summary]').textContent = values.every(Boolean) ? `Lote: ${values[0]}\nProcedimiento: ${values[1]}\nMétodo: ${values[2]}\n${values[3]} frutos identificados.\nModalidad: ${mode() === 'manual' ? 'Excepción manual documentada' : 'Procedimiento autorizado'}` : 'Completa lote, procedimiento, método y cantidad para revisar la muestra.';
+            form.querySelector('[data-sampling-summary]').textContent = values.every(Boolean) ? `Lote: ${values[0]}\nProcedimiento: ${values[1]}\nMétodo: ${values[2]}\n${values[3]} frutos que se identificarán.\nModalidad: ${mode() === 'manual' ? 'Excepción manual documentada' : 'Procedimiento autorizado'}` : 'Completa lote, procedimiento, método y cantidad para revisar la muestra.';
+            const summary = form.querySelector('[data-sampling-summary]');
+            if (values.every(Boolean)) {
+                const population = form.elements.poblacion_estimada;
+                summary.textContent += `\nResponsable: ${form.dataset.samplingResponsible || 'Usuario autenticado'}\nEstimación del lote: ${mode() === 'manual' || selected?.requiere_poblacion ? (population.value || 'Sin registrar') : 'No requerida'}\nFuente: ${mode() === 'manual' || selected?.requiere_poblacion ? (form.elements.fuente_poblacion?.value || 'Sin registrar') : 'No requerida'}`;
+                if (selected?.tamano_recomendado && count !== Number(selected.tamano_recomendado)) summary.textContent += `\nMotivo de desviación: ${form.elements.motivo_desviacion?.value || 'Pendiente de justificar'}`;
+                if (mode() === 'manual') summary.textContent += `\nMotivo de excepción: ${form.elements.motivo_excepcion?.value || 'Pendiente de justificar'}`;
+            }
+            const guidance = form.querySelector('[data-sampling-guidance]');
+            if (guidance) guidance.textContent = selected ? `Este procedimiento ${selected.tamano_recomendado ? 'recomienda inspeccionar ' + selected.tamano_recomendado + ' frutos' : 'define la cantidad mediante su criterio documentado'}. El máximo permitido es ${selected.max_frutos} frutos. Si cambias la cantidad recomendada, justifica el motivo. Estimación del lote: ${selected.requiere_poblacion ? 'obligatoria' : 'no requerida'}.` : 'Documenta la cantidad según el criterio técnico y respeta el máximo permitido.';
             const deviation = Boolean(selected?.tamano_recomendado && count > 0 && count !== selected.tamano_recomendado);
             form.querySelector('[data-sampling-deviation]')?.toggleAttribute('hidden', !deviation);
             if (form.elements.motivo_desviacion) form.elements.motivo_desviacion.required = deviation;
