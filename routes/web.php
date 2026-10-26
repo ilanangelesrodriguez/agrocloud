@@ -18,3 +18,5 @@ require __DIR__.'/operaciones.php';
 require __DIR__.'/notificaciones.php'; // AGROCLOUD_NOTIFICATIONS_INSTALLED
 
 require __DIR__.'/acceso.php';
+
+require __DIR__.'/sampling.php';

@@ -5,11 +5,15 @@
 (() => {
     'use strict';
     if (window.agrocloudInitEvidence) { window.agrocloudInitEvidence(); return; }
+    const initialized = new WeakMap();
     const initialize = () => {
 
     const root = document.querySelector('[data-evidence-workspace]');
-    if (!root || root.dataset.inspectionReady === 'true') return;
-    root.dataset.inspectionReady = 'true';
+    if (!root || (initialized.has(root) && !initialized.get(root).signal.aborted)) return;
+    const lifecycle = new AbortController();
+    initialized.set(root, lifecycle);
+    const on = (element, type, callback, options = {}) => element?.addEventListener(type, callback, { ...options, signal: lifecycle.signal });
+    document.addEventListener('livewire:navigating', () => lifecycle.abort(), { once: true });
 
     const list = root.querySelector('[data-evidence-list]');
     const empty = root.querySelector('[data-evidence-empty]');
@@ -84,7 +88,7 @@
     async function sendForm(form, formData) {
         const token = form.querySelector('input[name="_token"]')?.value;
         const response = await fetch(form.action, {
-            method: 'POST',
+            method: 'POST', signal: lifecycle.signal,
             credentials: 'same-origin',
             headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token || '' },
             body: formData,
@@ -119,17 +123,16 @@
         else if (isNew) list.prepend(next);
         else list.append(next);
         if (empty) empty.classList.toggle('hidden', list.children.length > 0);
-        if (typeof data.evidencias_count === 'number' && total) {
-            total.textContent = String(data.evidencias_count);
-        }
-        if (analyzed) analyzed.textContent = String(list.querySelectorAll('[data-evidencia-id][data-analyzed="1"]').length);
-        const count = list.querySelectorAll('[data-evidencia-id]').length;
-        const done = list.querySelectorAll('[data-analyzed="1"]').length;
+        const cards = [...list.querySelectorAll('[data-evidencia-id]')].filter(card => card.dataset.usable !== '0');
+        const count = cards.length;
+        const done = cards.filter(card => card.dataset.analyzed === '1').length;
+        if (total) total.textContent = String(count);
+        if (analyzed) analyzed.textContent = String(done);
         const progress = root.querySelector('[data-analysis-progress]');
         if (progress) { progress.max = Math.max(1, count); progress.value = done; }
         const progressLabel = root.querySelector('[data-analysis-progress-label]');
         if (progressLabel) progressLabel.textContent = `${done} de ${count} fotografías analizadas con IA. La revisión humana es una etapa independiente.`;
-        const cards = [...list.querySelectorAll('[data-evidencia-id]')];
+
         const reviewNext = root.querySelector('[data-validation-next]');
         if (reviewNext && count > 0) { reviewNext.removeAttribute('aria-disabled'); reviewNext.removeAttribute('tabindex'); reviewNext.classList.remove('pointer-events-none', 'opacity-50'); reviewNext.querySelector('[data-validation-next-label]').textContent = 'Continuar revisión humana'; }
         const covered = new Set(cards.map(card => card.dataset.frutoId).filter(Boolean)).size;
@@ -141,7 +144,7 @@
         if (root.querySelector('[data-human-total]')) root.querySelector('[data-human-total]').textContent = String(count);
         const fruitProgress = root.querySelector('[data-fruit-progress]'); if (fruitProgress) fruitProgress.value = covered;
         const humanProgress = root.querySelector('[data-human-progress]'); if (humanProgress) { humanProgress.max = Math.max(1, count); humanProgress.value = human; }
-        root.querySelectorAll('[data-fruit-pick]').forEach(button => { button.hidden = cards.some(card => card.dataset.frutoNumero === button.dataset.fruitPick); });
+        root.querySelectorAll('[data-fruit-pick]:not([data-fruit-next])').forEach(button => { button.hidden = cards.some(card => card.dataset.frutoNumero === button.dataset.fruitPick); });
     }
 
     function clearPreview(form) {
@@ -156,7 +159,7 @@
     }
 
     for (const form of uploadForms) {
-        form.querySelector('[data-file-input]')?.addEventListener('change', () => {
+        on(form.querySelector('[data-file-input]'), 'change', () => {
             clearPreview(form);
             const file = form.querySelector('[data-file-input]')?.files?.[0];
             if (!file) return;
@@ -181,13 +184,13 @@
         catch (_) { notify('Utiliza el selector de archivos de tu navegador.', 'error'); }
     }
     for (const form of uploadForms) {
-        form.querySelector('[data-camera-input]')?.addEventListener('change', event => useFile(form, event.target.files));
+        on(form.querySelector('[data-camera-input]'), 'change', event => useFile(form, event.target.files));
         const dropzone = form.querySelector('[data-photo-dropzone]');
-        dropzone?.addEventListener('dragover', event => { event.preventDefault(); dropzone.classList.add('ring-2', 'ring-emerald-500'); });
-        dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('ring-2', 'ring-emerald-500'));
-        dropzone?.addEventListener('drop', event => { event.preventDefault(); dropzone.classList.remove('ring-2', 'ring-emerald-500'); useFile(form, event.dataTransfer.files); });
+        on(dropzone, 'dragover', event => { event.preventDefault(); dropzone.classList.add('ring-2', 'ring-emerald-500'); });
+        on(dropzone, 'dragleave', () => dropzone.classList.remove('ring-2', 'ring-emerald-500'));
+        on(dropzone, 'drop', event => { event.preventDefault(); dropzone.classList.remove('ring-2', 'ring-emerald-500'); useFile(form, event.dataTransfer.files); });
     }
-    root.addEventListener('click', event => {
+    on(root, 'click', event => {
         const fruit = event.target.closest('[data-fruit-pick]');
         if (fruit) { const input = root.querySelector('[name=numero_fruto]'); if (input) { input.value = fruit.dataset.fruitPick; input.dispatchEvent(new Event('input', { bubbles: true })); input.focus(); } return; }
         const button = event.target.closest('[data-photo-view]');
@@ -197,7 +200,7 @@
         card.querySelectorAll('[data-photo-view]').forEach(control => control.setAttribute('aria-pressed', String(control === button)));
     });
 
-    root.addEventListener('submit', async event => {
+    on(root, 'submit', async event => {
         const form = event.target;
         if (!(form instanceof HTMLFormElement)) return;
         if (form.matches('[data-upload-form]')) {
@@ -223,10 +226,16 @@
                 automaticAnalysis = [...list.querySelectorAll('[data-evidencia-id]')]
                     .find(card => card.dataset.evidenciaId === String(result.evidencia_id))?.querySelector('[data-ia-form]');
                 form.reset();
+                const pending = result.progreso?.pendientes?.[0];
+                const fruit = form.elements.numero_fruto;
+                if (fruit) fruit.value = pending?.numero || 1;
+                const next = root.querySelector('[data-fruit-next]');
+                if (next) { next.disabled = !pending; next.dataset.fruitPick = pending?.numero || ''; }
                 clearPreview(form);
                 notify(result.message || 'Fotografía guardada.');
                 if (progress) progress.textContent = 'Fotografía guardada correctamente.';
             } catch (error) {
+                if (error.name === 'AbortError' || !root.isConnected) return;
                 notify(error.message || 'No se pudo guardar la fotografía.', 'error');
                 if (progress) progress.textContent = 'Revisa el mensaje y vuelve a intentarlo.';
             } finally {
@@ -260,6 +269,7 @@
                 replaceEvidence(result);
                 notify(result.message || 'Análisis completado.');
             } catch (error) {
+                if (error.name === 'AbortError' || !root.isConnected) return;
                 if (error.responseData?.html) replaceEvidence(error.responseData);
                 notify(error.message || 'Fallo el análisis. Puedes reintentar.', 'error');
                 if (button.isConnected) {

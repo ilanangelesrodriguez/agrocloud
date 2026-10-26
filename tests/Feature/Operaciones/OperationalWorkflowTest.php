@@ -66,7 +66,7 @@ class OperationalWorkflowTest extends TestCase
         $this->actingAs($receiver)->post('/recepciones/'.$lot->id_lote, $receipt)->assertRedirect('/recepciones');
         $this->post('/recepciones/'.$lot->id_lote, $receipt)->assertStatus(422);
         $this->assertDatabaseCount('recepciones', 1);
-        $this->actingAs($inspector)->post('/muestreos', $sample)->assertRedirect();
+        $this->actingAs($inspector)->post('/muestreos', $sample)->assertRedirect()->assertSessionHasNoErrors();
         $m = Muestreo::firstOrFail();
         $this->assertDatabaseCount('frutos_muestra', 2);
         $this->assertSame('M'.$m->id_muestreo.'-F00001', $m->frutos()->first()->codigo);
@@ -85,6 +85,7 @@ class OperationalWorkflowTest extends TestCase
                 ->post(route('inspecciones.revision.store', [$i->id_inspeccion, $evidencia->id_evidencia]), [
                     'conclusion' => 'SIN_HALLAZGOS',
                     'revision_completa' => '1',
+                    'imagen_pertinente' => '1',
                 ])->assertRedirect();
         }
         $this->actingAs($inspector)->post('/inspecciones/'.$i->id_inspeccion.'/finalizar')->assertRedirect();
@@ -139,7 +140,7 @@ class OperationalWorkflowTest extends TestCase
         \Illuminate\Support\Facades\DB::enableQueryLog();
         try {
             $this->actingAs($inspector)->post('/muestreos', [
-                'id_lote' => $lot->id_lote, 'tamano_muestra' => 100000, 'metodo' => 'Aleatorio simple',
+                'id_lote' => $lot->id_lote, 'tamano_muestra' => 100000, 'confirmar_carga' => '1', 'metodo' => 'Aleatorio simple',
                 'protocolo' => 'Protocolo de prueba grande', 'criterio_muestra' => 'Cobertura del lote completo',
                 'seleccion_frutos' => 'Selección aleatoria distribuida',
             ])->assertRedirect();
@@ -153,6 +154,124 @@ class OperationalWorkflowTest extends TestCase
         $this->assertSame(100000, $sample->frutos()->count());
         $this->assertSame('M'.$sample->id_muestreo.'-F100000', $sample->frutos()->where('numero', 100000)->firstOrFail()->codigo);
         $this->assertSame('EN_MUESTREO', $lot->fresh()->estado->value);
+    }
+
+    public function test_reception_preserves_planned_arrival_and_requires_measured_weight(): void
+    {
+        $company = $this->company('20666111222');
+        $receiver = $this->user('RECEPCION', $company);
+        $lot = $this->lot($company, 'PLANIFICADO');
+        $planned = now()->addDay()->startOfMinute();
+        $lot->update(['estado' => 'PENDIENTE_RECEPCION', 'fecha_llegada_prevista' => $planned]);
+        $this->actingAs($receiver)->get(route('recepciones.revisar', $lot->id_lote))->assertOk()->assertSee('Peso verificado al recibir');
+        $data = ['documento' => 'GUIA-001', 'tipo_documento' => 'Guía de remisión', 'recibido_en' => now('America/Lima')->subHour()->format('Y-m-d H:i:s'), 'timezone' => 'America/Lima'];
+        $this->post(route('recepciones.store', $lot->id_lote), $data)->assertSessionHasErrors('peso_recibido_kg');
+        $this->post(route('recepciones.store', $lot->id_lote), $data + ['peso_recibido_kg' => 95])->assertSessionHasErrors('observaciones');
+        $this->post(route('recepciones.store', $lot->id_lote), $data + ['peso_recibido_kg' => 95, 'observaciones' => 'Diferencia verificada al pesar.'])->assertSessionHasNoErrors();
+        $this->assertTrue($lot->fresh()->fecha_llegada_prevista->equalTo($planned));
+        $this->assertTrue($lot->fresh()->recepcion->recibido_en->lt($lot->fresh()->recepcion->created_at));
+        $this->assertEqualsWithDelta(3600, $lot->fresh()->recepcion->recibido_en->diffInSeconds(now()), 60);
+        $this->assertSame('Guía de remisión', $lot->fresh()->recepcion->tipo_documento);
+    }
+
+    public function test_authorized_sampling_procedure_enforces_its_limit_and_snapshot(): void
+    {
+        $company = $this->company('20666111333');
+        $inspector = $this->user('INSPECTOR', $company);
+        $lot = $this->lot($company, 'PROCEDIMIENTO');
+        \App\Models\Recepcion::create(['id_empresa' => $company->id_empresa, 'id_lote' => $lot->id_lote, 'id_usuario' => $inspector->id_usuario,
+            'documento' => 'GUIA-002', 'peso_recibido_kg' => 100, 'recibido_en' => now()]);
+        $procedure = \App\Models\SamplingProcedure::create(['id_empresa' => $company->id_empresa, 'nombre' => 'Ingreso de palta', 'version' => '1',
+            'metodo' => 'Aleatorio simple', 'criterio_muestra' => 'Criterio autorizado', 'seleccion_frutos' => 'Distribuir por sectores', 'max_frutos' => 3, 'tamano_recomendado' => 2, 'activo' => true]);
+        $data = ['id_lote' => $lot->id_lote, 'procedure_id' => $procedure->id, 'tamano_muestra' => 4, 'metodo' => 'Manipulado', 'protocolo' => 'Ignorar'];
+        $this->actingAs($inspector)->post(route('muestreos.store'), $data)->assertSessionHasErrors('tamano_muestra');
+        $data['tamano_muestra'] = 1;
+        $this->post(route('muestreos.store'), $data)->assertSessionHasErrors('motivo_desviacion');
+        $data['tamano_muestra'] = 2;
+        $this->post(route('muestreos.store'), $data)->assertSessionHasNoErrors();
+        $sample = Muestreo::where('id_lote', $lot->id_lote)->firstOrFail();
+        $this->assertSame('Aleatorio simple', $sample->metodo);
+        $event = \Illuminate\Support\Facades\DB::table('eventos_trazabilidad')->where('entidad', 'Muestreo')->where('registro', $sample->id_muestreo)->where('evento', 'PROTOCOLO_MUESTREO')->first();
+        $this->assertSame('Ingreso de palta · 1', json_decode($event->cambios, true)['protocolo']);
+        $this->assertSame(2, $sample->frutos()->count());
+    }
+
+    public function test_large_sampling_requires_explicit_workload_confirmation(): void
+    {
+        $company = $this->company('20666111444');
+        $inspector = $this->user('INSPECTOR', $company);
+        $lot = $this->lot($company, 'CARGA');
+        $this->actingAs($inspector)->post(route('muestreos.store'), ['id_lote' => $lot->id_lote, 'tamano_muestra' => 501,
+            'metodo' => 'Aleatorio simple', 'protocolo' => 'Manual v1', 'criterio_muestra' => 'Criterio técnico', 'seleccion_frutos' => 'Selección distribuida'])->assertSessionHasErrors('confirmar_carga');
+        $this->assertDatabaseMissing('muestreo', ['id_lote' => $lot->id_lote]);
+    }
+
+    public function test_documentary_observation_keeps_inspection_and_preserves_decision_history(): void
+    {
+        $company = $this->company('20666111555');
+        $inspector = $this->user('INSPECTOR', $company);
+        $supervisor = $this->user('SUPERVISOR', $company);
+        $lot = $this->lot($company, 'CORRECCION');
+        $sample = Muestreo::create(['id_empresa' => $company->id_empresa, 'id_lote' => $lot->id_lote, 'id_inspector' => $inspector->id_usuario,
+            'tamano_muestra' => 1, 'metodo' => 'Aleatorio simple', 'estado' => 'PENDIENTE_DICTAMEN']);
+        $inspection = Inspeccion::create(['id_empresa' => $company->id_empresa, 'id_muestreo' => $sample->id_muestreo,
+            'id_inspector' => $inspector->id_usuario, 'estado' => 'VALIDADA', 'validada_en' => now()]);
+        $revision = \Mockery::mock(\App\Services\RevisionEvidencias::class);
+        $revision->shouldReceive('completa')->andReturn(true);
+        $revision->shouldReceive('revisiones')->andReturn([]);
+        $this->app->instance(\App\Services\RevisionEvidencias::class, $revision);
+        $data = ['decision' => 'OBSERVADO', 'tipo_observacion' => 'DOCUMENTACION', 'observaciones' => 'Falta guía corregida.',
+            'protocolo_calidad' => 'Calidad v1', 'revision_independiente' => '1'];
+        $url = route('calidad.dictamen.store', $inspection->id_inspeccion);
+        $this->actingAs($supervisor)->post($url, $data)->assertSessionHasNoErrors();
+        $this->assertSame('OBSERVADO', $lot->fresh()->estado->value);
+        $this->assertSame(1, $sample->inspecciones()->count());
+        $data['dictamen_anterior'] = $inspection->fresh()->dictamen->id_dictamen;
+        $data['decision'] = 'APROBADO';
+        $this->post($url, $data)->assertSessionHasErrors('respuesta_observacion');
+        $data['respuesta_observacion'] = 'Guía corregida verificada por supervisor, referencia GUIA-009.';
+        $this->post($url, $data)->assertSessionHasNoErrors();
+        $this->assertSame('CLASIFICADO', $lot->fresh()->estado->value);
+        $this->assertSame(2, $inspection->dictamenes()->count());
+        $this->assertSame('APROBADO', $inspection->fresh()->dictamen->decision);
+        $this->assertSame('OBSERVADO', $inspection->dictamenes()->first()->decision);
+        $this->post($url, $data)->assertUnprocessable();
+    }
+
+    public function test_discarded_image_requires_replacement_and_explicit_human_relevance(): void
+    {
+        $company = $this->company('20666111666');
+        $inspector = $this->user('INSPECTOR', $company);
+        $lot = $this->lot($company, 'REEMPLAZO-FOTO');
+        $sample = Muestreo::create(['id_empresa' => $company->id_empresa, 'id_lote' => $lot->id_lote,
+            'id_inspector' => $inspector->id_usuario, 'tamano_muestra' => 1, 'metodo' => 'Aleatorio simple', 'estado' => 'EN_INSPECCION']);
+        $fruit = \App\Models\FrutoMuestra::create(['id_empresa' => $company->id_empresa, 'id_muestreo' => $sample->id_muestreo, 'numero' => 1, 'codigo' => 'M1-F00001']);
+        $inspection = Inspeccion::create(['id_empresa' => $company->id_empresa, 'id_muestreo' => $sample->id_muestreo, 'id_inspector' => $inspector->id_usuario, 'estado' => 'EN_CAPTURA']);
+        $photoData = ['id_empresa' => $company->id_empresa, 'id_inspeccion' => $inspection->id_inspeccion, 'id_fruto' => $fruit->id,
+            'imagen_url' => 'https://example.test/fruit.jpg', 'imagen_public_id' => 'fruit', 'estado_ia' => 'COMPLETADO', 'resultado_ia' => ['detections' => []]];
+        $photo = EvidenciaInspeccion::create($photoData);
+        $this->actingAs($inspector)->post(route('inspecciones.revision.store', [$inspection->id_inspeccion, $photo->id_evidencia]), ['revision_completa' => '1'])->assertSessionHasErrors('imagen_pertinente');
+        $this->post(route('inspecciones.evidencias.descartar', [$inspection->id_inspeccion, $photo->id_evidencia]), ['motivo_descarte' => 'La fotografía no muestra el fruto identificado.'])->assertRedirect(route('inspecciones.evidencias', $inspection->id_inspeccion));
+        $this->assertSame('INVALIDA', $photo->fresh()->pertinencia);
+        $this->assertSame(1, app(\App\Services\ProgresoInspeccion::class)->calcular($inspection->fresh())['faltantes']);
+        $this->post(route('inspecciones.finalizar', $inspection->id_inspeccion), [])->assertUnprocessable();
+        $replacement = EvidenciaInspeccion::create([...$photoData, 'imagen_public_id' => 'replacement']);
+        $this->post(route('inspecciones.revision.store', [$inspection->id_inspeccion, $replacement->id_evidencia]), ['revision_completa' => '1', 'imagen_pertinente' => '1'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame('VALIDA', $replacement->fresh()->pertinencia);
+        $this->post(route('inspecciones.finalizar', $inspection->id_inspeccion), [])->assertRedirect();
+        $this->assertSame('VALIDADA', $inspection->fresh()->estado);
+        $this->assertDatabaseHas('evidencia_inspeccion', ['id_evidencia' => $photo->id_evidencia, 'pertinencia' => 'INVALIDA']);
+    }
+
+    public function test_sampling_livewire_list_cannot_modify_another_company_procedure(): void
+    {
+        $company = $this->company('20666111777');
+        $other = $this->company('20666111888');
+        $admin = $this->user('ADMIN', $company);
+        $procedure = \App\Models\SamplingProcedure::create(['id_empresa' => $other->id_empresa, 'nombre' => 'Procedimiento reservado', 'version' => '1', 'metodo' => 'Aleatorio simple', 'criterio_muestra' => 'Autorizado', 'seleccion_frutos' => 'Sectores', 'max_frutos' => 10, 'activo' => true]);
+        $this->actingAs($admin);
+        \Livewire\Livewire::test(\App\Livewire\SamplingProceduresIndex::class)->assertDontSee('Procedimiento reservado')->call('toggle', $procedure->id, true)->assertStatus(404);
+        $this->assertTrue($procedure->fresh()->activo);
     }
 
 }

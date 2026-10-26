@@ -33,6 +33,7 @@ class User extends Authenticatable
         'password_hash',
         'remember_token',
         'invitation_hash',
+        'email_change_hash',
     ];
 
     protected $appends = [
@@ -46,6 +47,11 @@ class User extends Authenticatable
             'id_rol' => 'integer',
             'estado' => 'boolean',
             'invitation_expires_at' => 'datetime',
+            'email_change_expires_at' => 'datetime',
+            'invitation_attempted_at' => 'datetime',
+            'invitation_sent_at' => 'datetime',
+            'auth_version' => 'integer',
+            'muted_operational_kinds' => 'array',
             'email_verified_at' => 'datetime',
             'ultimo_acceso' => 'datetime',
             'password_hash' => 'hashed',

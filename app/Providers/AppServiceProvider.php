@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \App\Models\User::observe(\App\Observers\AccountObserver::class);
         \Illuminate\Support\Facades\RateLimiter::for('ruc-public', fn () =>
             \Illuminate\Cache\RateLimiting\Limit::perDay(max(1, (int) config('services.ruc.public_daily_limit', 10)))
                 ->by('ruc-public-global')

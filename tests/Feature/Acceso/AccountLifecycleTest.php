@@ -96,6 +96,107 @@ class AccountLifecycleTest extends TestCase
         $this->assertNotSame($hash, $user->fresh()->invitation_hash);
     }
 
+    public function test_administrators_cannot_set_passwords_in_either_user_editor(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+        $user = $this->invitedAccount();
+        $actor = $this->account();
+        $actor->update(['id_empresa' => $user->id_empresa]);
+        $this->actingAs($actor);
+        $data = ['nombre' => $user->nombre, 'apellido' => 'Persona', 'id_rol' => $user->id_rol,
+            'correo' => $user->correo, 'estado' => '1', 'password' => 'OtraClaveSegura2026', 'password_confirmation' => 'OtraClaveSegura2026'];
+        foreach ([route('usuarios.update', $user), route('admin.empresas.usuarios.update', [$user->empresa, $user])] as $url) {
+            $this->put($url, $data)->assertSessionHasErrors('password');
+        }
+        $this->assertTrue(Hash::check('AnteriorClave2026', $user->fresh()->password_hash));
+    }
+
+    public function test_email_change_keeps_old_address_until_single_use_confirmation(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+        $user = $this->invitedAccount();
+        $user->forceFill(['invitation_hash' => null])->save();
+        $this->actingAs($user);
+        $this->post(route('profile.email'), ['correo' => 'NuevaDireccion@example.test', 'current_password' => 'incorrecta'])->assertSessionHasErrors('current_password');
+        $this->post(route('profile.email'), ['correo' => 'NuevaDireccion@example.test', 'current_password' => 'AnteriorClave2026'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame('nueva@example.test', $user->fresh()->correo);
+        $this->assertSame('nuevadireccion@example.test', $user->fresh()->pending_email);
+        $token = null;
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SendEmailChange::class, function ($job) use (&$token) { $token = $job->token; return true; });
+        $url = route('users.email.confirm', ['usuario' => $user, 'token' => $token]);
+        $this->get($url)->assertOk();
+        $this->post($url)->assertRedirect(route('login'));
+        $this->assertSame('nuevadireccion@example.test', $user->fresh()->correo);
+        $this->assertNull($user->fresh()->pending_email);
+        $this->post($url)->assertGone();
+        $this->assertDatabaseHas('account_security_events', ['id_usuario' => $user->id_usuario, 'event' => 'EMAIL_CHANGE_CONFIRMED']);
+    }
+
+    public function test_expired_email_verification_and_reserved_addresses_are_rejected(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+        $user = $this->invitedAccount();
+        $user->forceFill(['invitation_hash' => null, 'pending_email' => 'reservada@example.test',
+            'email_change_hash' => hash('sha256', str_repeat('b', 64)), 'email_change_expires_at' => now()->subMinute()])->save();
+        $this->get(route('users.email.confirm', ['usuario' => $user, 'token' => str_repeat('b', 64)]))->assertGone();
+        $this->assertTrue(Validator::make(['correo' => 'RESERVADA@example.test'], ['correo' => [new UniqueUserEmail]])->fails());
+        $this->assertSame('nueva@example.test', $user->fresh()->correo);
+    }
+
+    public function test_password_change_preserves_current_session_and_rotates_access_version(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+        $user = $this->account();
+        $previousSessionHash = \Illuminate\Support\Facades\Auth::guard('web')->hashPasswordForCookie($user->password_hash);
+        $this->actingAs($user)->withSession(['password_hash_web' => $user->password_hash]);
+        $this->put(route('perfil.password.update'), ['current_password' => 'AnteriorClave2026',
+            'password' => 'NuevaClaveSegura2026', 'password_confirmation' => 'NuevaClaveSegura2026'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame(1, $user->fresh()->auth_version);
+        $this->assertSame($user->fresh()->auth_version, session('account_auth_version'));
+        $this->assertSame(\Illuminate\Support\Facades\Auth::guard('web')->hashPasswordForCookie($user->fresh()->password_hash), session('password_hash_web'));
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SendSecurityNotice::class);
+        $this->get(route('perfil.edit'))->assertOk();
+        $this->withSession(['password_hash_web' => $previousSessionHash, 'account_auth_version' => 0])->get(route('perfil.edit'))->assertRedirect(route('login'));
+        $this->assertGuest();
+    }
+
+    public function test_old_sessions_stay_revoked_after_account_is_reactivated(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+        $user = $this->account();
+        $this->actingAs($user);
+        $user->update(['estado' => false]);
+        $user->update(['estado' => true]);
+        $this->get(route('perfil.edit'))->assertRedirect(route('login'));
+        $this->assertGuest();
+        $this->assertDatabaseHas('account_security_events', ['id_usuario' => $user->id_usuario, 'event' => 'ACCOUNT_UPDATED']);
+    }
+
+    public function test_admin_recovery_and_security_history_cannot_cross_companies(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+        $user = $this->invitedAccount();
+        $otherCompany = Empresa::create(['ruc' => '20888777666', 'razon_social' => 'Otra empresa', 'nombre_comercial' => 'Otra', 'estado' => true]);
+        $actor = $this->account('adminotra@example.test');
+        $actor->update(['id_empresa' => $otherCompany->id_empresa, 'id_rol' => $user->id_rol]);
+        $permission = \App\Models\Permiso::firstOrCreate(['codigo' => 'usuarios.editar'], ['nombre' => 'Editar usuarios', 'modulo' => 'USUARIOS', 'estado' => true]);
+        $actor->rol->permisos()->syncWithoutDetaching([$permission->id_permiso]);
+        $this->actingAs($actor);
+        $this->post(route('users.recovery', $user))->assertNotFound();
+        $this->get(route('users.security', $user))->assertNotFound();
+    }
+
+    public function test_operational_preferences_cannot_mute_security_alerts(): void
+    {
+        $user = $this->account();
+        $this->actingAs($user)->post(route('profile.notifications'), ['muted' => ['LOTE_RECIBIDO']])->assertSessionHasNoErrors();
+        $this->assertSame(['LOTE_RECIBIDO'], $user->fresh()->muted_operational_kinds);
+        $this->post(route('profile.notifications'), ['muted' => ['PASSWORD_CHANGED']])->assertSessionHasErrors('muted.0');
+        $this->assertSame(['LOTE_RECIBIDO'], $user->fresh()->muted_operational_kinds);
+        $this->post(route('profile.notifications'), [])->assertSessionHasNoErrors();
+        $this->assertSame([], $user->fresh()->muted_operational_kinds);
+    }
+
     public function test_normalizes_email_and_rejects_case_insensitive_duplicates(): void
     {
         $user = $this->account('  ANA@EXAMPLE.TEST  ');

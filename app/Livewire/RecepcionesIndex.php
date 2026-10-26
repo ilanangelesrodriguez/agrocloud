@@ -54,8 +54,8 @@ class RecepcionesIndex extends Component
         }
         foreach (['desde' => '>=', 'hasta' => '<='] as $field => $operator) {
             if ($this->$field !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->$field)) {
-                $pendientes->whereDate('fecha_recepcion', $operator, $this->$field);
-                $confirmadas->whereDate('recibido_en', $operator, $this->$field);
+                $pendientes->whereDate(\Illuminate\Support\Facades\DB::raw("(fecha_llegada_prevista AT TIME ZONE 'UTC') AT TIME ZONE 'America/Lima'"), $operator, $this->$field);
+                $confirmadas->whereDate(\Illuminate\Support\Facades\DB::raw("(recibido_en AT TIME ZONE 'UTC') AT TIME ZONE 'America/Lima'"), $operator, $this->$field);
             }
         }
         $totales = ['pendientes' => (clone $pendientes)->count(), 'confirmadas' => (clone $confirmadas)->count()];

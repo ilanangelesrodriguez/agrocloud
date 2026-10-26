@@ -206,6 +206,7 @@
 
     <div data-sidebar-backdrop aria-hidden="true" class="pointer-events-none invisible fixed inset-0 z-40 bg-slate-950/40 opacity-0 transition-[opacity,visibility] duration-300 ease-out motion-reduce:transition-none lg:hidden"></div>
     <x-app.feedback />
+    <x-app.user-status-dialog />
     <x-app.master-dialog />
     <x-app.workspace-drawer />
     <script defer src="{{ asset('js/empresa-form.js') }}?v=20261020-drawer"></script>

@@ -30,3 +30,20 @@ Route::post('/invitacion-usuario/{usuario}/{token}', [\App\Http\Controllers\Auth
     ->whereNumber('usuario')->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:20,1')->name('users.invitation.activate');
 Route::post('/usuarios/{usuario}/reenviar-invitacion', [\App\Http\Controllers\Auth\UserInvitationController::class, 'resend'])
     ->whereNumber('usuario')->middleware(['auth', 'active', 'throttle:5,1'])->name('users.invitation.resend');
+
+Route::post('/usuarios/{usuario}/recuperacion', [\App\Http\Controllers\Auth\AccountAccessController::class, 'recovery'])
+    ->whereNumber('usuario')->middleware(['auth', 'active', 'throttle:5,1'])->name('users.recovery');
+Route::get('/usuarios/{usuario}/seguridad', [\App\Http\Controllers\Auth\AccountAccessController::class, 'audit'])
+    ->whereNumber('usuario')->middleware(['auth', 'active'])->name('users.security');
+Route::post('/perfil/correo', [\App\Http\Controllers\Auth\AccountAccessController::class, 'requestEmail'])
+    ->middleware(['auth', 'active', 'throttle:5,1'])->name('profile.email');
+Route::get('/confirmar-correo/{usuario}/{token}', [\App\Http\Controllers\Auth\AccountAccessController::class, 'showEmail'])
+    ->whereNumber('usuario')->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:20,1')->name('users.email.confirm');
+Route::post('/confirmar-correo/{usuario}/{token}', [\App\Http\Controllers\Auth\AccountAccessController::class, 'confirmEmail'])
+    ->whereNumber('usuario')->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:20,1')->name('users.email.confirm.store');
+
+Route::post('/usuarios/{usuario}/cancelar-correo', [\App\Http\Controllers\Auth\AccountAccessController::class, 'cancelEmail'])
+    ->whereNumber('usuario')->middleware(['auth', 'active', 'throttle:5,1'])->name('users.email.cancel');
+
+Route::post('/perfil/notificaciones', [\App\Http\Controllers\NotificationController::class, 'preferences'])
+    ->middleware(['auth', 'active'])->name('profile.notifications');

@@ -11,6 +11,10 @@ class Lote extends Model
 {
     use BelongsToCompany;
 
+    public const OPERATIONAL_DATE_SQL = 'COALESCE((SELECT recibido_en FROM recepciones WHERE recepciones.id_lote = lote.id_lote LIMIT 1), lote.fecha_llegada_prevista)';
+
+    public const LOCAL_OPERATIONAL_DATE_SQL = "(".self::OPERATIONAL_DATE_SQL." AT TIME ZONE 'UTC') AT TIME ZONE 'America/Lima'";
+
     protected $table = 'lote';
 
     protected $primaryKey = 'id_lote';
@@ -28,14 +32,23 @@ class Lote extends Model
         'peso_kg',
         'unidad_medida',
         'fecha_recepcion',
+        'fecha_llegada_prevista',
         'estado',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $lote) {
+            if (!$lote->fecha_llegada_prevista && $lote->fecha_recepcion) $lote->fecha_llegada_prevista = $lote->fecha_recepcion;
+        });
+    }
 
     protected function casts(): array
     {
         return [
             'peso_kg' => 'decimal:2',
             'fecha_recepcion' => 'datetime',
+            'fecha_llegada_prevista' => 'datetime',
             'estado' => LoteEstado::class,
         ];
     }

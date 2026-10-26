@@ -22,10 +22,19 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
         $request->session()->regenerate();
+        $request->session()->put('account_auth_version', (int) $request->user()->auth_version);
 
         $request->user()?->forceFill([
             'ultimo_acceso' => now(),
         ])->saveQuietly();
+
+        $context = hash_hmac('sha256', (string) $request->ip().'|'.substr((string) $request->userAgent(), 0, 500), (string) config('app.key'));
+        $previous = \Illuminate\Support\Facades\DB::table('account_security_events')->where('id_usuario', $request->user()->id_usuario)->where('event', 'LOGIN_CONTEXT');
+        $seen = (clone $previous)->where('changes->context_hash', $context)->exists();
+        if (!$seen) {
+            if ((clone $previous)->exists()) \App\Services\AccountSecurity::notice($request->user(), 'NEW_LOGIN_CONTEXT', 'Se inició sesión en AgroCloud desde una combinación de red y navegador que no habíamos registrado. Puede deberse a un cambio de conexión. Si no fuiste tú, cambia tu contraseña y contacta al administrador.');
+            \App\Services\AccountSecurity::record($request->user(), 'LOGIN_CONTEXT', ['context_hash' => $context]);
+        }
 
         $redirect = redirect()->intended(route(RouteNames::DASHBOARD));
         return $request->expectsJson() ? response()->json(['redirect' => $redirect->getTargetUrl()]) : $redirect;

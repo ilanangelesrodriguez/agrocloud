@@ -2,10 +2,14 @@
 (() => {
     'use strict';
     if (window.agrocloudInitValidation) { window.agrocloudInitValidation(); return; }
+    const initialized = new WeakMap();
     const initialize = () => {
     const root = document.querySelector('[data-validation-workspace]');
-    if (!root || root.dataset.inspectionReady === 'true') return;
-    root.dataset.inspectionReady = 'true';
+    if (!root || (initialized.has(root) && !initialized.get(root).signal.aborted)) return;
+    const lifecycle = new AbortController();
+    initialized.set(root, lifecycle);
+    const on = (element, type, callback, options = {}) => element?.addEventListener(type, callback, { ...options, signal: lifecycle.signal });
+    document.addEventListener('livewire:navigating', () => lifecycle.abort(), { once: true });
     const notification = root.querySelector('[data-validation-message]');
 
     function show(message, error = false) {
@@ -18,7 +22,7 @@
 
     async function submit(form) {
         const response = await fetch(form.action, {
-            method: 'POST', credentials: 'same-origin',
+            method: 'POST', credentials: 'same-origin', signal: lifecycle.signal,
             headers: { Accept: 'application/json', 'X-CSRF-TOKEN': form.querySelector('input[name="_token"]')?.value || '' },
             body: new FormData(form),
         });
@@ -43,13 +47,13 @@
     };
     if (photos.length && navigation) {
         navigation.classList.remove('hidden'); navigation.classList.add('flex');
-        navigation.querySelector('[data-review-prev]').addEventListener('click', () => choose(photoIndex - 1));
-        navigation.querySelector('[data-review-next]').addEventListener('click', () => choose(photoIndex + 1));
-        navigation.querySelector('[data-review-select]').addEventListener('change', event => choose(photos.findIndex(photo => photo.dataset.reviewPhoto === event.target.value)));
+        on(navigation.querySelector('[data-review-prev]'), 'click', () => choose(photoIndex - 1));
+        on(navigation.querySelector('[data-review-next]'), 'click', () => choose(photoIndex + 1));
+        on(navigation.querySelector('[data-review-select]'), 'change', event => choose(photos.findIndex(photo => photo.dataset.reviewPhoto === event.target.value)));
         choose(photos.findIndex(photo => photo.querySelector('[data-review-current="0"]')));
     }
 
-    root.addEventListener('submit', async event => {
+    on(root, 'submit', async event => {
         const form = event.target;
         if (!(form instanceof HTMLFormElement) || !form.matches('[data-validation-form], [data-hallazgo-form]')) return;
         event.preventDefault();
@@ -81,7 +85,14 @@
             const evidenceId = data.evidencia_id || data.hallazgo?.evidencia_id;
             const review = [...root.querySelectorAll('[data-image-review]')].find(item => item.dataset.imageReview === String(evidenceId));
             review?.querySelector('[data-review-changed]')?.classList.remove('hidden');
-            if (review) review.dataset.reviewCurrent = '0';
+            if (review) {
+                review.dataset.reviewCurrent = '0';
+                const conclusion = review.querySelector('[name=conclusion]');
+                if (conclusion && data.conclusion) conclusion.value = data.conclusion;
+                const proposed = review.querySelector('[data-proposed-conclusion]');
+                if (proposed && data.conclusion) proposed.textContent = data.conclusion === 'CON_HALLAZGOS' ? 'Con hallazgos confirmados o registrados manualmente.' : 'Sin hallazgos registrados. Revisa personalmente la imagen antes de confirmarlo.';
+                review.querySelectorAll('[name=revision_completa], [name=imagen_pertinente]').forEach(input => { input.checked = false; });
+            }
             const reviewed = root.querySelectorAll('[data-review-current="1"]').length;
             if (root.querySelector('[data-review-check-count]')) root.querySelector('[data-review-check-count]').textContent = String(reviewed);
             if (root.querySelector('[data-human-reviewed]')) root.querySelector('[data-human-reviewed]').textContent = String(reviewed);
@@ -93,6 +104,7 @@
             if (finalize) finalize.disabled = finalize.dataset.reviewCovered !== '1' || reviewed !== Number(finalize.dataset.reviewTotal) || reviewed === 0;
             show(data.message || 'Información guardada.');
         } catch (error) {
+            if (error.name === 'AbortError' || !root.isConnected) return;
             show(error.message || 'No se pudo guardar.', true);
         } finally {
             button.disabled = false;

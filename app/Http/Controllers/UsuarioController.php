@@ -54,7 +54,7 @@ class UsuarioController extends Controller
 
     public function store(StoreUserRequest $request, CloudinaryService $cloudinary): RedirectResponse|JsonResponse
     {
-        $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil', 'motivo_seguridad']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $this->empresaId(), isset($usuario) ? $usuario->toArray() : []);
         $data['id_empresa'] = $this->empresaId();
         $data['password_hash'] = \Illuminate\Support\Str::random(64);
@@ -104,7 +104,7 @@ class UsuarioController extends Controller
     public function update(UpdateUserRequest $request, User $usuario, CloudinaryService $cloudinary): RedirectResponse|JsonResponse
     {
         $this->assertManageableUser($usuario);
-        $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil']);
+        $data = $request->safe()->except(['password', 'password_confirmation', 'foto_perfil', 'motivo_seguridad']);
         $data = app(\App\Services\MaestroCatalog::class)->validate($data, ['cargo' => 'cargo'], $this->empresaId(), isset($usuario) ? $usuario->toArray() : []);
 
         // Un administrador no puede dejar su propia cuenta sin acceso desde este módulo.
@@ -113,15 +113,6 @@ class UsuarioController extends Controller
             $data['estado'] = true;
         } else {
             $data['estado'] = $request->boolean('estado');
-        }
-
-        if ($request->filled('password')) {
-            $data['password_hash'] = $request->string('password')->toString();
-        }
-
-        if ($usuario->invitation_hash && $data['correo'] !== $usuario->correo) {
-            // Un enlace enviado al correo anterior no debe verificar el nuevo correo.
-            $usuario->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64)), 'invitation_expires_at' => null]);
         }
 
         $oldPublicId = $usuario->foto_perfil_public_id;
@@ -134,7 +125,16 @@ class UsuarioController extends Controller
                 $data['foto_perfil_public_id'] = $uploaded['public_id'];
             }
 
-            DB::transaction(fn () => $usuario->update($data));
+            DB::transaction(function () use ($usuario, $data) {
+                if ($usuario->invitation_hash) {
+                    if ($data['correo'] !== $usuario->correo) {
+                        $usuario->forceFill(['invitation_hash' => hash('sha256', \Illuminate\Support\Str::random(64)), 'invitation_expires_at' => null, 'invitation_delivery_status' => 'not_sent']);
+                    }
+                } else {
+                    app(\App\Services\EmailChange::class)->prepare($usuario, $data);
+                }
+                $usuario->update($data);
+            });
         } catch (Throwable $e) {
             if ($uploaded) {
                 rescue(fn () => $cloudinary->deleteImage($uploaded['public_id']), report: true);
@@ -156,7 +156,7 @@ class UsuarioController extends Controller
 
         CompanySecurityUpdated::dispatch($this->empresaId(), 'usuario', 'updated', $usuario->id_usuario);
 
-        return $this->savedResponse($request, 'Usuario actualizado correctamente.');
+        return $this->savedResponse($request, 'Usuario actualizado. Si cambiaste el correo, el anterior sigue vigente hasta verificar el nuevo; guarda los cambios y revisa la sección Seguridad y acceso.');
     }
 
     public function toggleStatus(Request $request, User $usuario): RedirectResponse|JsonResponse
@@ -171,6 +171,7 @@ class UsuarioController extends Controller
             if ($request->has('estado_actual') && (bool) $current->estado !== $request->boolean('estado_actual')) {
                 throw \Illuminate\Validation\ValidationException::withMessages(['estado' => 'El estado de esta cuenta cambió desde que abriste la lista. Actualiza los resultados antes de intentarlo nuevamente.']);
             }
+            $request->validate(['motivo_seguridad' => [$current->estado ? 'required' : 'nullable', 'string', 'max:500']]);
             $current->update(['estado' => ! $current->estado]);
         });
         CompanySecurityUpdated::dispatch($this->empresaId(), 'usuario', 'status_changed', $usuario->id_usuario);
@@ -197,7 +198,7 @@ class UsuarioController extends Controller
 
     private function companyRoles()
     {
-        return Rol::query()
+        return Rol::query()->with('permisos')
             ->where('estado', true)
             ->where('codigo', '!=', 'SUPERADMIN')
             ->orderBy('nombre')

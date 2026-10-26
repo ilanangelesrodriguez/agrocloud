@@ -29,7 +29,7 @@ class RevisionEvidencias
         foreach ($eventos as $evento) {
             $datos = json_decode($evento->cambios, true) ?? [];
             $foto = $inspeccion->evidencias->firstWhere('id_evidencia', $evento->registro);
-            if ($foto && hash_equals($this->huella($foto, $inspeccion), (string) ($datos['huella'] ?? ''))) {
+            if ($foto && $foto->pertinencia !== 'INVALIDA' && ($inspeccion->estado !== 'EN_CAPTURA' || $foto->pertinencia === 'VALIDA') && hash_equals($this->huella($foto, $inspeccion), (string) ($datos['huella'] ?? ''))) {
                 $result[$evento->registro] = $datos + ['responsable' => $evento->id_usuario, 'fecha' => $evento->created_at];
             }
         }
@@ -46,7 +46,7 @@ class RevisionEvidencias
 
     public function completa(Inspeccion $inspeccion): bool
     {
-        return $inspeccion->evidencias->isNotEmpty()
-            && count($this->revisiones($inspeccion)) === $inspeccion->evidencias->count();
+        return $inspeccion->evidencias->where('pertinencia', '!=', 'INVALIDA')->isNotEmpty()
+            && count($this->revisiones($inspeccion)) === $inspeccion->evidencias->where('pertinencia', '!=', 'INVALIDA')->count();
     }
 }
