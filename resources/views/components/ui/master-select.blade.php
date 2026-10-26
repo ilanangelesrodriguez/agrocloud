@@ -1,4 +1,4 @@
-@props(['name', 'kind', 'label' => null, 'value' => null, 'required' => false, 'companyId' => null, 'weightOnly' => false])
+@props(['name', 'kind', 'label' => null, 'value' => null, 'required' => false, 'companyId' => null, 'weightOnly' => false, 'emptyLabel' => null])
 @php
     $selected = (string) old($name, $value);
     $options = app(\App\Services\MaestroCatalog::class)->options($kind, $companyId ?? auth()->user()?->id_empresa);

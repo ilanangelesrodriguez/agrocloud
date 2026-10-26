@@ -44,7 +44,8 @@ test('un procedimiento completa instrucciones y límite y exige confirmar muestr
     form.elements.tamano_muestra.value = '10'; events.input();
     assert.equal(form.elements.confirmar_carga.required, false);
     output.summary = nodes['data-sampling-summary'].textContent;
-    assert.match(output.summary, /10 frutos/);
+    assert.match(output.summary, /10 frutos que se identificarán/);
+    assert.match(output.summary, /Responsable:/);
 });
 
 test('confirmar una observación documental no anuncia una nueva inspección', () => {
@@ -67,4 +68,23 @@ test('confirmar una observación documental no anuncia una nueva inspección', (
     decision.value = 'APROBADO'; events.change();
     assert.equal(form.elements.tipo_observacion.disabled, true);
     assert.match(form.dataset.confirm, /liberación/);
+});
+
+
+test('buscar lotes encuentra el productor incluido en los datos de ingreso', () => {
+    const handlers = {}, events = {};
+    const option = (value, textContent, info = '') => ({ value, textContent, dataset: { info }, cloneNode() { return option(this.value, this.textContent, this.dataset.info); } });
+    const select = {
+        value: '', options: [option('', 'Selecciona un lote'), option('1', 'LOTE-1 Mango', 'Productor Ana Torres'), option('2', 'LOTE-2 Palta', 'Productor Luis')],
+        replaceChildren(...options) { this.options = options; },
+    };
+    const input = { dataset: { optionSearch: 'id_lote' }, value: 'ana torres', addEventListener(name, fn) { events[name] = fn; } };
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../resources/js/operational-workspace.js'), 'utf8'), {
+        location: { hash: '' }, HTMLDetailsElement: class {}, window: {},
+        document: { readyState: 'loading', getElementById: id => id === 'id_lote' ? select : null, querySelectorAll: selector => selector === '[data-option-search]' ? [input] : [], addEventListener(name, fn) { handlers[name] = fn; } },
+    });
+    handlers.DOMContentLoaded(); events.input();
+    assert.deepEqual(select.options.map(item => item.value), ['', '1']);
+    input.value = ''; events.input();
+    assert.equal(select.options.length, 3);
 });
