@@ -2,30 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\Empresa;
 use App\Models\Permiso;
 use App\Models\Rol;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class SecurityAndCompanySeeder extends Seeder
 {
     public function run(): void
     {
-        // ECONOAGRO es la primera empresa, no una empresa codificada
-        // como única del sistema.
-        $empresa = Empresa::query()->updateOrCreate(
-            ['ruc' => '20550844321'],
-            [
-                'razon_social' => 'AGROPUNTO SOCIEDAD ANONIMA CERRADA - AGROPUNTO S.A.C.',
-                'nombre_comercial' => 'ECONOAGRO',
-                'grupo_empresarial' => 'ARIS',
-                'tipo_empresa' => 'AGROQUIMICOS',
-                'rubro' => 'Agroquímicos y soluciones agrícolas',
-                'estado' => true,
-            ],
-        );
-
         /*
         |--------------------------------------------------------------------------
         | ROLES
@@ -479,65 +463,5 @@ class SecurityAndCompanySeeder extends Seeder
 
        $inspector->permisos()->sync($basic);
 
-        /*
-        |--------------------------------------------------------------------------
-        | COMPATIBILIDAD INICIAL DE USUARIOS
-        |--------------------------------------------------------------------------
-        |
-        | Usuarios antiguos sin empresa se asocian una sola vez
-        | a la primera empresa del caso actual.
-        |
-        | Los nuevos usuarios SIEMPRE se crean con empresa.
-        |
-        */
-
-        User::query()
-            ->whereNull('id_empresa')
-            ->where(function ($query) {
-                $query
-                    ->whereDoesntHave('rol')
-                    ->orWhereHas(
-                        'rol',
-                        fn ($roleQuery) => $roleQuery
-                            ->where('codigo', '!=', 'SUPERADMIN')
-                    );
-            })
-            ->update([
-                'id_empresa' => $empresa->id_empresa,
-            ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | USUARIO ADMINISTRADOR INICIAL
-        |--------------------------------------------------------------------------
-        */
-
-        $adminEmail = config('agrocloud.bootstrap_admin.email');
-        $adminPassword = config('agrocloud.bootstrap_admin.password');
-
-        if ($adminEmail && $adminPassword) {
-            User::query()->updateOrCreate(
-                ['correo' => $adminEmail],
-                [
-                    'id_empresa' => $empresa->id_empresa,
-                    'id_rol' => $admin->id_rol,
-                    'nombre' => config('agrocloud.bootstrap_admin.name'),
-                    'apellido' => config('agrocloud.bootstrap_admin.lastname'),
-                    'cargo' => 'Administrador de empresa',
-                    'password_hash' => $adminPassword,
-                    'estado' => true,
-                ],
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUPERADMIN
-        |--------------------------------------------------------------------------
-        |
-        | No se crea un SUPERADMIN automáticamente.
-        | Queda reservado para una fase futura.
-        |
-        */
     }
 }
